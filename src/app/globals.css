@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #020106;
+  --color-surface: #0A0910;
+  --color-card: #0F0E17;
+  --color-primary: #FF0080;
+  --color-primary-hover: #E60073;
+  --color-accent: #7C3AED;
+  --color-text: #FFFFFF;
+  --color-muted: #94A3B8;
+  --color-border: #1E1E2E;
+
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  --font-manrope: "Manrope", sans-serif;
+  --font-inter: "Inter", sans-serif;
+
+  --animate-fade-up: fade-up 0.5s ease-out;
+  --animate-spin-slow: spin 6s linear infinite;
+  --animate-swing: swing 2s ease-in-out infinite;
+}
+
+@keyframes swing {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(10deg); }
+  30% { transform: rotate(-10deg); }
+  45% { transform: rotate(5deg); }
+  55% { transform: rotate(-5deg); }
+  65% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:root {
+  --background: #020106;
+  --foreground: #FFFFFF;
+}
+
+body {
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(255, 0, 128, 0.05), transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(124, 58, 237, 0.03), transparent 50%);
+  background-attachment: fixed;
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-manrope);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*:focus-visible {
+  outline: 2px solid #FF0080;
+  outline-offset: 2px;
+}
+
+/* Custom Scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #020106;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E1E2E;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF0080;
+}
+
+/* For the active link underline effect in header */
+.nav-link-active {
+  position: relative;
+}
+.nav-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #FF0080;
+  border-radius: 2px;
+}

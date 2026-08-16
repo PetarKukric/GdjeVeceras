@@ -1,0 +1,368 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { AdminHeader } from '@/components/admin/AdminLayout';
+import { 
+  ArrowLeft, 
+  Save, 
+  Image as ImageIcon,
+  Calendar,
+  Clock,
+  Tag,
+  Shirt,
+  Trash2
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
+import { Venue } from '@/types';
+import { useToast } from '@/components/ui/Toast';
+
+export default function EditEvent() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+  
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+  const [eventFinished, setEventFinished] = useState(false);
+  const [eventSlug, setEventSlug] = useState('');
+  const { showToast } = useToast();
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'PARTY',
+    venueId: '',
+    startDateTime: '',
+    endDateTime: '',
+    price: 0,
+    imageUrl: '',
+    performers: '',
+    minimumAge: '',
+    dressCodeType: 'NONE',
+    dressCodeName: '',
+    dressCodeDescription: '',
+    ticketUrl: '',
+    instagramUrl: '',
+    facebookUrl: '',
+    status: 'PUBLISHED'
+  });
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [venuesRes, eventRes] = await Promise.all([
+          fetch('/api/venues'),
+          fetch(`/api/admin/events?id=${id}`) // We need a way to fetch a single event by ID for admin
+        ]);
+        
+        const venuesData = await venuesRes.json();
+        setVenues(venuesData);
+
+        // For now, let's assume we fetch all and find, but better to have specific API
+        const allEvents = await eventRes.json();
+        const event = allEvents.find((e: any) => e.id === id);
+        
+        if (event) {
+          setEventSlug(event.slug || '');
+          setEventFinished(!!event.endDateTime && new Date(event.endDateTime) < new Date());
+          setFormData({
+            title: event.title || '',
+            description: event.description || '',
+            category: event.category || 'PARTY',
+            venueId: event.venueId || '',
+            startDateTime: event.startDateTime ? new Date(event.startDateTime).toISOString().slice(0, 16) : '',
+            endDateTime: event.endDateTime ? new Date(event.endDateTime).toISOString().slice(0, 16) : '',
+            price: event.price || 0,
+            imageUrl: event.imageUrl || '',
+            performers: event.performers || '',
+            minimumAge: event.minimumAge?.toString() || '',
+            dressCodeType: event.dressCodeType || 'NONE',
+            dressCodeName: event.dressCodeName || '',
+            dressCodeDescription: event.dressCodeDescription || '',
+            ticketUrl: event.ticketUrl || '',
+            instagramUrl: event.instagramUrl || '',
+            facebookUrl: event.facebookUrl || '',
+            status: event.status || 'PUBLISHED'
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setFetching(false);
+      }
+    }
+    fetchData();
+  }, [id]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/events/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          price: parseFloat(formData.price.toString()),
+        }),
+      });
+
+      if (res.ok) {
+        showToast('Izmjene sačuvane');
+        router.push('/admin/events');
+      } else {
+        const error = await res.json();
+        alert('Greška: ' + error.error);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Da li ste sigurni da želite obrisati ovaj događaj?')) return;
+    try {
+      const res = await fetch(`/api/events/${eventSlug}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Događaj obrisan');
+        router.push('/admin/events');
+      } else {
+        alert('Greška pri brisanju.');
+      }
+    } catch {
+      alert('Mrežna greška.');
+    }
+  };
+
+  if (fetching) return <div className="p-12 text-center animate-pulse">Učitavanje podataka...</div>;
+
+  // Završeni događaji se ne mogu uređivati — samo obrisati
+  if (eventFinished) {
+    return (
+      <>
+        <AdminHeader title="Događaj je završen" />
+        <main className="p-8 max-w-3xl mx-auto text-left">
+          <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
+            <ArrowLeft size={16} /> Nazad na listu
+          </Link>
+          <div className="bg-card border border-white/5 rounded-[2rem] p-12 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-gray-500/10 border border-gray-500/20 flex items-center justify-center text-gray-400 mx-auto">
+              <Clock size={28} />
+            </div>
+            <h3 className="text-2xl font-black uppercase tracking-tight text-white">Događaj je završen</h3>
+            <p className="text-muted text-xs font-bold uppercase tracking-widest leading-relaxed max-w-md mx-auto">
+              Ovaj događaj je prošao i više ga nije moguće uređivati. Možete ga samo obrisati sa platforme.
+            </p>
+            <div className="flex items-center justify-center gap-4 pt-4">
+              <Link href="/admin/events" className="px-8 py-3.5 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                Nazad
+              </Link>
+              <button onClick={handleDelete} className="px-8 py-3.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2">
+                <Trash2 size={14} /> Obriši događaj
+              </button>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <AdminHeader title="Uredi događaj" />
+      <main className="p-8 max-w-5xl mx-auto text-left">
+        <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
+          <ArrowLeft size={16} /> Nazad na listu
+        </Link>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
+                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
+                    <Tag size={18} /> Osnovne informacije
+                 </h3>
+                 <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Naziv događaja *</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Opis</label>
+                      <textarea 
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm min-h-[120px]"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Kategorija</label>
+                          <select 
+                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                            value={formData.category}
+                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                          >
+                             <option value="PARTY">Žurka</option>
+                             <option value="LIVE_MUSIC">Muzika uživo</option>
+                          </select>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Lokal (Venue) *</label>
+                          <select 
+                            required
+                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                            value={formData.venueId}
+                            onChange={(e) => setFormData({ ...formData, venueId: e.target.value })}
+                          >
+                             {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                          </select>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
+                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
+                    <Calendar size={18} /> Vrijeme i cijena
+                 </h3>
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Početak *</label>
+                      <input 
+                        type="datetime-local" 
+                        required
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        value={formData.startDateTime}
+                        onChange={(e) => setFormData({ ...formData, startDateTime: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Kraj (opciono)</label>
+                      <input 
+                        type="datetime-local" 
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        value={formData.endDateTime}
+                        onChange={(e) => setFormData({ ...formData, endDateTime: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Cijena (KM)</label>
+                      <input 
+                        type="number" 
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                      />
+                    </div>
+                 </div>
+              </div>
+
+              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
+                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
+                    <Shirt size={18} /> Dress Code
+                 </h3>
+                 <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <div>
+                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Tip Dress Code-a</label>
+                          <select 
+                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                            value={formData.dressCodeType}
+                            onChange={(e) => setFormData({ ...formData, dressCodeType: e.target.value })}
+                          >
+                             <option value="NONE">Nema Dress Code-a</option>
+                             <option value="CASUAL">Casual</option>
+                             <option value="ELEGANT">Elegantno</option>
+                             <option value="SPECIAL">Specijalni Dress Code</option>
+                          </select>
+                       </div>
+                       {formData.dressCodeType === 'SPECIAL' && (
+                          <div className="animate-in fade-in slide-in-from-top-2">
+                             <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Naziv Dress Code-a *</label>
+                             <input 
+                               type="text" 
+                               required
+                               className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                               placeholder="Npr. All White, Masquerade..."
+                               value={formData.dressCodeName}
+                               onChange={(e) => setFormData({ ...formData, dressCodeName: e.target.value })}
+                             />
+                          </div>
+                       )}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Opis Dress Code-a (opciono)</label>
+                      <textarea 
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm min-h-[80px]"
+                        placeholder="Detaljnije upute za goste..."
+                        value={formData.dressCodeDescription}
+                        onChange={(e) => setFormData({ ...formData, dressCodeDescription: e.target.value })}
+                      />
+                    </div>
+                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
+                <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
+                    <ImageIcon size={18} /> Slika i linkovi
+                 </h3>
+                 <div>
+                    <div className="aspect-video w-full bg-surface border border-dashed border-border rounded-xl mb-4 flex items-center justify-center text-muted overflow-hidden">
+                       {formData.imageUrl ? (
+                         <img src={formData.imageUrl} className="w-full h-full object-cover" alt="" />
+                       ) : (
+                         <ImageIcon size={32} />
+                       )}
+                    </div>
+                    <input 
+                      type="text" 
+                      className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                      placeholder="https://..."
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    />
+                 </div>
+                 <div className="space-y-4 pt-4">
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Status</label>
+                      <select 
+                        className="w-full px-4 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      >
+                         <option value="PUBLISHED">Objavljeno</option>
+                         <option value="PENDING">Na čekanju</option>
+                         <option value="CANCELLED">Otkazano</option>
+                      </select>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="sticky top-24 space-y-4">
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-primary text-text font-black rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest"
+                >
+                  <Save size={20} /> {loading ? 'ČUVANJE...' : 'SNIMI IZMJENE'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </main>
+    </>
+  );
+}

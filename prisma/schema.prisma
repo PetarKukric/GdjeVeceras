@@ -1,0 +1,474 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String           @id @default(cuid())
+  name              String?
+  email             String           @unique
+  passwordHash      String
+  avatarUrl         String?
+  role              Role             @default(USER)
+  emailVerified     DateTime?
+  verificationToken String?          @unique
+  tokenExpires      DateTime?
+  lastResentAt      DateTime?
+  // Sigurnost prijave: rate limit + admin jednokratne lozinke
+  failedLoginAttempts Int            @default(0)
+  loginLockoutUntil   DateTime?
+  adminLoginResentAt  DateTime?
+  adminPasswordExpiresAt DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  events            Event[]          @relation("CreatedBy")
+  eventFavorites    EventFavorite[]
+  venueFavorites    VenueFavorite[]
+  reports           Report[]
+  ownedVenues       Venue[]          @relation("VenueOwner")
+  sentMessages      Message[]        @relation("MessageSender")
+  notifications     Notification[]
+  chatParticipants  ConversationParticipant[]
+  sentChatMessages  ChatMessage[]
+  globalMessages    GlobalMessage[]
+  blockedUsers      Block[]          @relation("Blocker")
+  blockedBy         Block[]          @relation("Blocked")
+  chatReports       ChatReport[]
+  comments          Comment[]
+  promotions        Promotion[]
+  liveMedia         EventLiveMedia[]
+  reservations      Reservation[]
+}
+
+model Venue {
+  id           String          @id @default(cuid())
+  name         String
+  slug         String          @unique
+  description  String?
+  address      String
+  city         String
+  latitude     Float?
+  longitude    Float?
+  phone        String?
+  website      String?
+  instagramUrl String?
+  facebookUrl  String?
+  tiktokUrl    String?
+  imageUrl     String?
+  promoted     Boolean         @default(false)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  ownerId      String?
+  events       Event[]
+  favorites    VenueFavorite[]
+  owner        User?           @relation("VenueOwner", fields: [ownerId], references: [id])
+  messages     Message[]
+  comments          Comment[]
+  images       VenueImage[]
+  liveMedia    EventLiveMedia[]
+  openingHours VenueOpeningHour[]
+  tags         VenueTag[]
+  sharedInChats ChatMessage[]
+  promotions    Promotion[]
+  floorItems    VenueFloorItem[]
+  reservations  Reservation[]
+}
+
+model VenueOpeningHour {
+  id           String   @id @default(cuid())
+  venueId      String
+  dayGroup     String   // "WEEKDAYS", "FRIDAY", "SATURDAY", "SUNDAY"
+  openTime     String?  // "HH:mm"
+  closeTime    String?  // "HH:mm"
+  isClosed     Boolean  @default(false)
+  venue        Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model VenueTag {
+  id      String @id @default(cuid())
+  name    String
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model VenueImage {
+  id           String   @id @default(cuid())
+  venueId      String
+  imageUrl     String
+  type         MediaType @default(IMAGE)
+  eventId      String?
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  venue        Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  event        Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+}
+
+model EventLiveMedia {
+  id                String      @id @default(cuid())
+  eventId           String
+  venueId           String
+  uploadedByUserId  String
+  type              MediaType   @default(IMAGE)
+  mediaUrl          String
+  thumbnailUrl      String?
+  caption           String?
+  archivedToGallery Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  event             Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  venue             Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  uploadedBy        User        @relation(fields: [uploadedByUserId], references: [id])
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model Message {
+  id            String         @id @default(cuid())
+  senderName    String
+  senderEmail   String
+  senderUserId  String?
+  subject       String
+  message       String
+  venueId       String?
+  createdAt     DateTime       @default(now())
+  isRead        Boolean        @default(false)
+  venue         Venue?         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  sender        User?          @relation("MessageSender", fields: [senderUserId], references: [id])
+  notifications Notification[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  messageId String?
+  eventId   String?
+  type      String   // NEW_MESSAGE, PROMOTED_EVENT, etc.
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id            String          @id @default(cuid())
+  title         String
+  slug          String          @unique
+  description   String?
+  venueId       String
+  startDateTime DateTime
+  endDateTime   DateTime
+  price         Float?
+  currency      String          @default("KM")
+  category      Category
+  performers    String?
+  minimumAge    Int?
+  dressCodeType DressCodeType   @default(NONE)
+  dressCodeName String?
+  dressCodeDescription String?
+  imageUrl      String?
+  ticketUrl     String?
+  instagramUrl  String?
+  facebookUrl   String?
+  status        Status          @default(PENDING)
+  featured      Boolean         @default(false)
+  promoted      Boolean         @default(false)
+  createdById   String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  createdBy     User            @relation("CreatedBy", fields: [createdById], references: [id])
+  venue         Venue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  favorites     EventFavorite[]
+  reports       Report[]
+  comments      Comment[]
+  sharedInChats ChatMessage[]
+  promotions    Promotion[]
+  notifications Notification[]
+  liveMedia     EventLiveMedia[]
+  venueImages   VenueImage[]
+  floorItems    EventFloorItem[]
+  tableGroups   EventTableGroup[]
+  reservations  Reservation[]
+}
+
+model EventFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, eventId])
+}
+
+model VenueFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  venueId   String
+  createdAt DateTime @default(now())
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, venueId])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  eventId     String
+  userId      String
+  reason      String
+  description String?
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  OWNER
+  ADMIN
+}
+
+enum Category {
+  LIVE_MUSIC
+  PARTY
+}
+
+enum Status {
+  PENDING
+  PUBLISHED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     ChatMessage[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model ChatMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  type           String       @default("TEXT") // "TEXT", "EVENT_SHARE", "VENUE_SHARE"
+  sharedEventId  String?
+  sharedVenueId  String?
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  sharedEvent    Event?       @relation(fields: [sharedEventId], references: [id], onDelete: SetNull)
+  sharedVenue    Venue?       @relation(fields: [sharedVenueId], references: [id], onDelete: SetNull)
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+model ChatReport {
+  id        String   @id @default(cuid())
+  userId    String
+  targetId  String
+  reason    String
+  details   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GlobalMessage {
+  id        String   @id @default(cuid())
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  eventId   String?
+  venueId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  venue     Venue?   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model Promotion {
+  id              String          @id @default(cuid())
+  ownerId         String
+  venueId         String?
+  eventId         String?
+  type            PromotionType
+  status          PromotionStatus @default(PENDING_PAYMENT)
+  startAt         DateTime?
+  endAt           DateTime?
+  price           Float
+  currency        String          @default("EUR")
+  durationDays    Int
+  paypalOrderId   String?         @unique
+  paypalCaptureId String?         @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  owner           User            @relation(fields: [ownerId], references: [id])
+  venue           Venue?          @relation(fields: [venueId], references: [id])
+  event           Event?          @relation(fields: [eventId], references: [id])
+  sentNotifications PromotedEventNotification[]
+}
+
+model PromotedEventNotification {
+  id          String   @id @default(cuid())
+  userId      String
+  eventId     String
+  promotionId String
+  createdAt   DateTime @default(now())
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId, promotionId])
+}
+
+enum PromotionType {
+  VENUE
+  EVENT
+}
+
+enum PromotionStatus {
+  PENDING_PAYMENT
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PAYMENT_FAILED
+  REFUNDED
+}
+
+model VenueFloorItem {
+  id        String    @id @default(cuid())
+  venueId   String
+  type      FloorItemType // TABLE, BOOTH, STAGE, BAR, LABEL
+  name      String
+  capacity  Int       @default(0)
+  x         Float     @default(0)
+  y         Float     @default(0)
+  width     Float     @default(100)
+  height    Float     @default(100)
+  rotation  Float     @default(0)
+  venue     Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model EventFloorItem {
+  id                      String          @id @default(cuid())
+  eventId                 String
+  sourceVenueFloorItemId  String?
+  type                    FloorItemType
+  name                    String
+  capacity                Int             @default(0)
+  x                       Float
+  y                       Float
+  width                   Float
+  height                  Float
+  rotation                Float           @default(0)
+  status                  TableStatus     @default(AVAILABLE)
+  reservationId           String?
+  groupId                 String?
+  event                   Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  reservation             Reservation?    @relation("ItemReservation", fields: [reservationId], references: [id], onDelete: SetNull)
+  group                   EventTableGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+}
+
+model EventTableGroup {
+  id            String          @id @default(cuid())
+  eventId       String
+  reservationId String?
+  name          String
+  totalCapacity Int
+  createdAt     DateTime        @default(now())
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  items         EventFloorItem[]
+  reservation   Reservation?    @relation("GroupReservation", fields: [reservationId], references: [id], onDelete: SetNull)
+}
+
+model Reservation {
+  id             String            @id @default(cuid())
+  eventId        String
+  venueId        String
+  userId         String?
+  name           String
+  email          String?
+  phone          String
+  numberOfPeople Int
+  status         ReservationStatus @default(PENDING)
+  startTime      DateTime
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  event          Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  venue          Venue             @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  assignedItems  EventFloorItem[]  @relation("ItemReservation")
+  assignedGroups EventTableGroup[] @relation("GroupReservation")
+}
+
+enum FloorItemType {
+  TABLE
+  BOOTH
+  STAGE
+  BAR
+  LABEL
+}
+
+enum TableStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  UNAVAILABLE
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+  COMPLETED
+}
+
+enum DressCodeType {
+  CASUAL
+  ELEGANT
+  SPECIAL
+  NONE
+}

@@ -1,0 +1,66 @@
+'use client';
+
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { Venue } from '@/types';
+
+// Lokalna divIcon ikonica — ne zavisi od CDN-a (radi i offline)
+const icon = L.divIcon({
+  className: 'custom-div-icon',
+  html: `<div style="background-color: #FF0080; width: 14px; height: 14px; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px #FF0080;"></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+
+interface VenueMapProps {
+  venue: Venue;
+}
+
+export default function VenueMap({ venue }: VenueMapProps) {
+  if (!venue.latitude || !venue.longitude) return null;
+  
+  const position: [number, number] = [venue.latitude, venue.longitude];
+
+  return (
+    <div className="w-full h-full min-h-[300px] rounded-3xl overflow-hidden border border-border/50 shadow-xl relative z-0">
+      <MapContainer 
+        center={position} 
+        zoom={16} 
+        style={{ height: '100%', width: '100%', background: '#020106' }}
+        scrollWheelZoom={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        />
+        <Marker position={position} icon={icon}>
+          <Popup>
+            <div className="p-3 bg-card min-w-[150px]">
+              <p className="font-black text-xs text-white uppercase tracking-tight mb-1">{venue.name}</p>
+              <p className="text-[9px] text-muted font-bold uppercase tracking-widest leading-tight">{venue.address}</p>
+            </div>
+          </Popup>
+        </Marker>
+      </MapContainer>
+
+      <style jsx global>{`
+        .leaflet-popup-content-wrapper {
+          background: #0F0E17 !important;
+          color: #FFFFFF !important;
+          border: 1px solid #1E1E2E;
+          border-radius: 1rem !important;
+          padding: 0 !important;
+        }
+        .leaflet-popup-content {
+          margin: 0 !important;
+        }
+        .leaflet-popup-tip {
+          background: #0F0E17 !important;
+          border: 1px solid #1E1E2E;
+        }
+      `}</style>
+    </div>
+  );
+}
