@@ -119,6 +119,13 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
       if (res.ok) {
         const data = await res.json();
         setItems(data);
+        // Promjena stola: preselektuj stolove koji su VEĆ dodijeljeni ovoj rezervaciji
+        if (isAssignMode && assigningReservationId) {
+          const current = (data as FloorItem[])
+            .filter(i => i.reservation && i.reservation.id === assigningReservationId)
+            .map(i => i.id);
+          if (current.length > 0) setSelectedIds(current);
+        }
         // Auto-fit kad se raspored učita — stolovi odmah vidljivi (naročito na mobitelu)
         if (data.length > 0) {
           setTimeout(() => fitToScreen(data), 350);
@@ -204,8 +211,11 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
     e.preventDefault();
     
     if (isAssignMode) {
-        // TOGGLE logic for assign mode
-        if (item.status === 'AVAILABLE' || selectedIds.includes(item.id)) {
+        // TOGGLE logic za dodjelu/promjenu stola.
+        // Dozvoljeno: slobodni stolovi + stolovi koji su VEĆ dodijeljeni ovoj rezervaciji
+        // (da vlasnik može odznačiti stari sto i izabrati novi).
+        const isCurrentAssignment = item.reservation && item.reservation.id === assigningReservationId;
+        if (item.status === 'AVAILABLE' || isCurrentAssignment || selectedIds.includes(item.id)) {
             setSelectedIds(prev => 
                 prev.includes(item.id) 
                     ? prev.filter(id => id !== item.id) 
@@ -592,10 +602,11 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                                 <span className="text-[8px] font-bold text-muted uppercase tracking-widest">{item.capacity} MJ</span>
                             )}
                             
-                            {/* Ime gosta na dodijeljenom stolu (EVENT mod) */}
+                            {/* Ime gosta na dodijeljenom stolu (EVENT mod) — visoki kontrast */}
                             {mode === 'EVENT' && item.reservation && (
-                                <span className="text-[8px] md:text-[9px] font-black text-yellow-300 uppercase tracking-wider text-center leading-tight max-w-full truncate px-1.5 py-0.5 mt-0.5 rounded-md bg-yellow-500/15 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.15)]">
-                                   {item.reservation.name}
+                                <span className="w-full max-w-full mt-1 flex items-center justify-center gap-1 rounded-md bg-black/80 border border-yellow-400/70 text-yellow-300 px-1.5 py-1 text-[9px] md:text-[10px] font-black uppercase tracking-wide leading-none shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+                                   <User size={10} className="shrink-0" />
+                                   <span className="truncate">{item.reservation.name}</span>
                                 </span>
                             )}
                             

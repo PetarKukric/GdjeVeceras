@@ -211,6 +211,11 @@ export default function AdminReservations() {
                                          Dodijeli sto
                                       </button>
                                    )}
+                                   {(r.status === 'CONFIRMED' || r.status === 'PENDING') && r.assignedItems && r.assignedItems.length > 0 && (
+                                      <button onClick={() => setAssigningRes(r)} className="px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xl transition-all text-[9px] font-black uppercase tracking-widest border border-blue-500/20">
+                                         Promijeni sto
+                                      </button>
+                                   )}
                                    {r.status === 'PENDING' && (
                                       <button onClick={() => updateStatus(r.id, 'CONFIRMED')} className="p-2.5 bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white rounded-xl transition-all border border-green-500/20" title="Potvrdi">
                                          <CheckCircle2 size={16} />
@@ -250,7 +255,9 @@ export default function AdminReservations() {
                                 <LayoutDashboard size={24} />
                             </div>
                             <div>
-                                <h3 className="text-lg md:text-2xl font-black uppercase tracking-tight text-white">Dodjela stola / separeira</h3>
+                                <h3 className="text-lg md:text-2xl font-black uppercase tracking-tight text-white">
+                                    {assigningRes.assignedItems && assigningRes.assignedItems.length > 0 ? 'Promjena stola / separeira' : 'Dodjela stola / separeira'}
+                                </h3>
                                 <p className="text-[10px] md:text-xs font-medium text-muted uppercase tracking-widest mt-1">
                                     {assigningRes.name} • {assigningRes.numberOfPeople} OSOBA • {new Date(assigningRes.startTime).toLocaleTimeString('bs', {hour:'2-digit', minute:'2-digit'})}
                                 </p>

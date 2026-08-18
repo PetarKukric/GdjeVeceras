@@ -93,7 +93,7 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-background text-text flex flex-col text-left">
-      <main className="flex-grow flex items-center justify-center p-4 py-12 animate-fade-up">
+      <main className="flex-grow flex items-center justify-center p-4 pt-12 pb-32 md:pb-12 animate-fade-up">
         <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 shadow-2xl">
           <div className="mb-8 text-left">
             <h1 className="text-3xl font-black mb-2 uppercase tracking-tight text-primary">REGISTRACIJA</h1>
@@ -176,9 +176,9 @@ export default function Signup() {
           </form>
 
           <div className="text-center mt-8 pt-8 border-t border-border">
-            <p className="text-muted text-sm font-medium text-left">
+            <p className="text-muted text-[15px] font-medium">
               Već imaš nalog?{' '}
-              <button onClick={() => window.location.href='/login'} className="text-primary font-bold hover:underline">
+              <button onClick={() => window.location.href='/login'} className="text-primary font-bold underline underline-offset-4 hover:text-white transition-colors">
                 Prijavi se
               </button>
             </p>

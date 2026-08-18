@@ -1,13 +1,15 @@
 import type { MetadataRoute } from 'next';
 
+// ⚠️ PRED-LANSIRANJE: blokiraj Google indeksiranje dok sajt nije zvanično
+// pokrenut. Na dan lansiranja (1. septembar) obriši disallow '/*' red
+// (ili zatraži novu verziju) da bi Google počeo da indeksira sajt.
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdje-veceras.vercel.app';
   return {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/chat', '/favorites', '/reservations', '/settings', '/login', '/signup', '/verify-email'],
+        disallow: ['/*'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,

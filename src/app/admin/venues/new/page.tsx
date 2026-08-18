@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
 import { isValidBosnianPhone } from '@/lib/validation';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 const PREDEFINED_TAGS = [
   'Parking', 'Bingo', 'Wi-Fi', 'Terasa', 'Bašta', 'Rezervacije', 'Hrana', 
@@ -401,23 +402,12 @@ export default function NewVenue() {
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
                     <ImageIcon size={18} /> Fotografija
                  </h3>
-                 <div>
-                    <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">URL Slike</label>
-                    <div className="aspect-square w-full bg-surface border border-dashed border-border rounded-xl mb-4 flex items-center justify-center text-muted overflow-hidden">
-                       {formData.imageUrl ? (
-                         <img src={formData.imageUrl} className="w-full h-full object-cover" alt="" />
-                       ) : (
-                         <ImageIcon size={32} />
-                       )}
-                    </div>
-                    <input 
-                      type="text" 
-                      className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                      placeholder="https://images.unsplash.com/..."
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    />
-                 </div>
+                 <ImageUploader
+                    label="Naslovna fotografija lokala"
+                    aspect="square"
+                    value={formData.imageUrl}
+                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                 />
               </div>
 
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">

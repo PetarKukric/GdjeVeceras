@@ -194,6 +194,28 @@ export async function POST(
     if (action === 'assignReservation') {
         if (!reservationId) return NextResponse.json({ error: 'Reservation ID required' }, { status: 400 });
         
+        // PROMJENA STOLA: prvo oslobodi sve prethodne dodjele ove rezervacije
+        // koje nisu među novim izborom (sto 1 → sto 2)
+        const newItemIds = new Set<string>(itemIds || []);
+        const existingAssigned = await prisma.eventFloorItem.findMany({
+            where: { reservationId },
+            select: { id: true, groupId: true }
+        });
+        const toFree = existingAssigned
+            .filter(i => !newItemIds.has(i.id))
+            .map(i => i.id);
+        if (toFree.length > 0) {
+            await prisma.eventFloorItem.updateMany({
+                where: { id: { in: toFree } },
+                data: { status: 'AVAILABLE', reservationId: null }
+            });
+        }
+        // Oslobodi i grupe ove rezervacije koje nisu nove
+        await prisma.eventTableGroup.updateMany({
+            where: { reservationId, id: groupId ? { not: groupId } : undefined },
+            data: { reservationId: null }
+        });
+        
         if (groupId) {
             await prisma.$transaction([
                 prisma.eventTableGroup.update({

@@ -102,7 +102,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4 animate-fade-up">
+    <div className="min-h-[80vh] flex items-center justify-center p-4 pb-32 md:pb-4 animate-fade-up">
       <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 shadow-2xl">
         <div className="mb-8">
           <h1 className="text-3xl font-black mb-2 uppercase tracking-tight text-primary">PRIJAVA</h1>
@@ -201,9 +201,9 @@ export default function Login() {
         </div>
 
         <div className="text-center mt-4 pt-6 border-t border-border">
-          <p className="text-muted text-sm font-medium">
+          <p className="text-muted text-[15px] font-medium">
             Nemaš nalog?{' '}
-            <Link href="/signup" className="text-primary font-bold hover:underline">
+            <Link href="/signup" className="text-primary font-bold underline underline-offset-4 hover:text-white transition-colors">
               Registruj se
             </Link>
           </p>

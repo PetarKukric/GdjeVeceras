@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 export default function EditEvent() {
   const router = useRouter();
@@ -318,22 +319,11 @@ export default function EditEvent() {
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
                     <ImageIcon size={18} /> Slika i linkovi
                  </h3>
-                 <div>
-                    <div className="aspect-video w-full bg-surface border border-dashed border-border rounded-xl mb-4 flex items-center justify-center text-muted overflow-hidden">
-                       {formData.imageUrl ? (
-                         <img src={formData.imageUrl} className="w-full h-full object-cover" alt="" />
-                       ) : (
-                         <ImageIcon size={32} />
-                       )}
-                    </div>
-                    <input 
-                      type="text" 
-                      className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                      placeholder="https://..."
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    />
-                 </div>
+                 <ImageUploader
+                    label="Naslovna slika događaja"
+                    value={formData.imageUrl}
+                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                 />
                  <div className="space-y-4 pt-4">
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Status</label>
