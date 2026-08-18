@@ -81,8 +81,13 @@ Zapiši `URL` i `token` — trebat će ti za Vercel (Korak 3).
 4. Build komanda (Project Settings → Build Command):
 
 ```
-prisma generate && prisma db push && next build
+prisma generate && node prisma/push-turso.js && next build
 ```
+
+> ℹ️ **Zašto ne `prisma db push`?** Prisma 6.3 ne podržava `libsql://` URL-ove u CLI
+> komandama. `push-turso.js` radi istu stvar preko driver adaptera koji aplikacija
+> već koristi — sigurno radi sa Turso bazom (i idempotentno je, može se pokretati
+> više puta).
 
 5. Klikni **Deploy**. Nakon minut-dva sajt je live! 🎉
 
@@ -116,6 +121,9 @@ Seed **kreira SAMO admin nalog** (bez demo podataka — ni lokalno ni u produkci
 npm run seed
 # Zatim vrati DATABASE_URL na file:./dev.db
 ```
+
+> ℹ️ Šema na Turso bazi se postavlja automatski pri svakom deploy-u (build komanda),
+> tako da seed samo dodaje admin nalog. Seed radi direktno sa Turso URL-om.
 
 Admin: `gdjevecerasbusiness@gmail.com` — prijava preko **jednokratne lozinke na email**
 (vidi „Admin prijava" iznad). Nema demo lozinke ni demo podataka. 🔒

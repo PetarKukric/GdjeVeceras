@@ -1,7 +1,20 @@
 import { PrismaClient, Category, Status, Role } from '@prisma/client';
+import { PrismaLibSQL } from '@prisma/adapter-libsql';
+import { createClient } from '@libsql/client';
 import * as bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// Klijent sa driver adapterom za Turso (libsql:// URL-ove) — kao u src/lib/prisma.ts
+function getPrismaClient() {
+  const url = process.env.DATABASE_URL || 'file:./prisma/dev.db';
+  if (url.startsWith('libsql://') || url.startsWith('https://') || url.startsWith('http://')) {
+    const libsql = createClient({ url, authToken: process.env.DATABASE_AUTH_TOKEN });
+    const adapter = new PrismaLibSQL(libsql);
+    return new PrismaClient({ adapter: adapter });
+  }
+  return new PrismaClient();
+}
+
+const prisma = getPrismaClient();
 
 async function main() {
   const passwordHash = await bcrypt.hash('password123', 10);
