@@ -24,18 +24,20 @@ import { Category } from '@/types';
 import { useRouter } from 'next/navigation';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
+import { SUPPORTED_CITIES, getCityBySlug } from '@/lib/cities';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 const EventMap = dynamic(() => import('@/components/map/EventMap'), { 
   ssr: false,
-  loading: () => <div className="w-full h-[600px] bg-card/20 border border-border/50 rounded-[3rem] animate-pulse flex items-center justify-center text-muted uppercase text-[10px] font-black tracking-widest">Učitavanje mape...</div>
+  loading: () => <div className="w-full h-[350px] sm:h-[450px] lg:h-[600px] bg-card/20 border border-border/50 rounded-[3rem] animate-pulse flex items-center justify-center text-muted uppercase text-[10px] font-black tracking-widest">Učitavanje mape...</div>
 });
 
 export default function Home() {
   const router = useRouter();
   const [activeCategory] = useState<Category | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCity, setSelectedCity] = useState(''); // '' = svi gradovi
   const [favoriteIds, setFavoriteIds] = useState<{events: string[], venues: string[]}>({events: [], venues: []});
   const [activeWeekendTab, setActiveWeekendTab] = useState<'PET' | 'SUB' | 'NED'>('PET');
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
@@ -107,7 +109,8 @@ export default function Home() {
     loading: tonightLoading
   } = useEvents({ 
     date: 'today', 
-    category: activeCategory 
+    category: activeCategory,
+    city: selectedCity
   });
 
   const {
@@ -116,7 +119,8 @@ export default function Home() {
   } = useEvents({
     date: 'upcoming',
     sort: 'popularity',
-    limit: 8
+    limit: 8,
+    city: selectedCity
   });
 
   const {
@@ -124,18 +128,29 @@ export default function Home() {
     loading: popularVenuesLoading
   } = useVenues({
     sort: 'popularity',
-    limit: 8
+    limit: 8,
+    city: selectedCity
   });
 
   const { 
     data: venuesData, 
     loading: venuesLoading 
-  } = useVenues();
+  } = useVenues({ city: selectedCity });
 
   const popularEvents = React.useMemo(() => {
     if (!popularData) return [];
     return popularData.events.filter(e => (e._count?.favorites || 0) >= POPULARITY_THRESHOLD).slice(0, 4);
   }, [popularData]);
+
+  // Preporuke filtrirane po izabranom gradu
+  const visibleRecommendations = React.useMemo(() => {
+    const city = getCityBySlug(selectedCity);
+    if (!city) return recommendations;
+    return recommendations.filter(e => {
+      const venueCity = (e.venue && e.venue.city) || '';
+      return venueCity.trim().toLowerCase() === city.name.toLowerCase();
+    });
+  }, [recommendations, selectedCity]);
 
   const popularVenues = React.useMemo(() => {
     if (!popularVenuesData) return [];
@@ -150,20 +165,31 @@ export default function Home() {
   const {
     data: weekendData,
     loading: weekendLoading
-  } = useEvents({ date: 'weekend' });
+  } = useEvents({ date: 'weekend', city: selectedCity });
 
   const {
     data: promotedEventsData
   } = useEvents({
     date: 'upcoming',
     limit: 4,
-    sort: 'relevance'
+    sort: 'relevance',
+    city: selectedCity
   });
 
   const promotedEvents = React.useMemo(() => {
     if (!promotedEventsData) return [];
     return promotedEventsData.events.filter(e => e.promoted);
   }, [promotedEventsData]);
+
+  // Mapa: svi nadolazeći događaji izabranog grada (ne samo večerašnji)
+  const {
+    data: mapEventsData
+  } = useEvents({
+    date: 'upcoming',
+    limit: 60,
+    sort: 'startTime',
+    city: selectedCity
+  });
 
   const filteredWeekendEvents = React.useMemo(() => {
     if (!weekendData) return [];
@@ -177,9 +203,11 @@ export default function Home() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/events?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set('search', searchQuery.trim());
+    if (selectedCity) params.set('city', selectedCity);
+    const qs = params.toString();
+    router.push(qs ? `/events?${qs}` : '/events');
   };
 
   return (
@@ -198,12 +226,12 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
           </div>
 
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20 relative z-10 w-full">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-20 relative z-10 w-full">
             <div className="lg:w-3/5 text-center lg:text-left animate-fade-up">
-              <h1 className="text-6xl sm:text-7xl lg:text-9xl font-black text-white mb-6 tracking-tighter leading-none uppercase">
+              <h1 className="text-4xl sm:text-6xl lg:text-9xl font-black text-white mb-4 sm:mb-6 tracking-tighter leading-none uppercase">
                 PRONAĐI. IZABERI. <span className="text-primary italic animate-pulse">IZAĐI.</span>
               </h1>
-              <p className="text-muted text-lg sm:text-2xl font-medium mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed opacity-80 uppercase tracking-widest">
+              <p className="text-muted text-sm sm:text-2xl font-medium mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed opacity-80 uppercase tracking-widest">
                 NAJBOLJA MJESTA ZA PROVOD U <span className="text-white">GRADU.</span>
               </p>
               
@@ -224,7 +252,7 @@ export default function Home() {
             </div>
 
             <div className="lg:w-2/5 relative w-full max-w-lg animate-fade-up [animation-delay:200ms]">
-               <div className="bg-card/60 backdrop-blur-3xl border border-white/10 p-10 rounded-[3rem] shadow-2xl relative z-20 hover:border-primary/30 transition-all duration-500 group/form overflow-hidden">
+               <div className="bg-card/60 backdrop-blur-3xl border border-white/10 p-5 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-2xl relative z-20 hover:border-primary/30 transition-all duration-500 group/form overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[50px] rounded-full translate-x-1/2 -translate-y-1/2" />
                   <h3 className="text-xs font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3 text-white">
                     <Search size={18} className="text-primary group-hover/form:scale-110 transition-transform" /> PRETRAGA DOGAĐAJA
@@ -241,8 +269,20 @@ export default function Home() {
                       />
                     </div>
                     <div className="relative group">
-                      <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" />
-                      <input type="text" placeholder="Lokacija" className="w-full h-16 pl-14 bg-background/50 border border-white/5 rounded-2xl text-sm font-medium focus:outline-none cursor-default text-white" readOnly value="Tvoj grad" />
+                      <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="w-full h-16 pl-14 pr-4 bg-background/50 border border-white/5 rounded-2xl text-sm font-medium focus:outline-none focus:border-primary transition-all text-white appearance-none cursor-pointer"
+                      >
+                        <option value="" className="bg-background text-white">Svi gradovi</option>
+                        {SUPPORTED_CITIES.map(city => (
+                          <option key={city.slug} value={city.slug} className="bg-background text-white">{city.name}</option>
+                        ))}
+                      </select>
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                      </div>
                     </div>
                     <button type="submit" className="w-full h-16 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 uppercase tracking-[0.3em] text-[10px] mt-4">
                       PRETRAŽI
@@ -301,19 +341,19 @@ export default function Home() {
         )}
 
         {/* PERSONALIZED RECOMMENDATIONS SECTION */}
-        {recommendations.length > 0 && (
+        {visibleRecommendations.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
-            <div className="flex justify-between items-end mb-12 px-4">
+            <div className="flex justify-between items-end mb-8 md:mb-12 px-4">
               <div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
+                <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary italic">✨</span> ZA TEBE
                 </h2>
-                <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-4">Na osnovu tvojih interesovanja i sačuvanih događaja.</p>
+                <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-3 sm:mt-4">Na osnovu tvojih interesovanja i sačuvanih događaja.</p>
               </div>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 px-4">
-               {recommendations.map((event) => (
+            <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4 px-4">
+               {visibleRecommendations.map((event) => (
                  <EventCard key={event.id} event={event} isFavoritedInitial={favoriteIds.events.includes(event.id)} />
                ))}
             </div>
@@ -330,8 +370,8 @@ export default function Home() {
           <div className="relative z-10 px-4">
             <div className="flex justify-between items-end mb-12">
               <div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-primary animate-pulse">🔥</span> VEČERAS U GRADU
+                <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
+                   <span className="text-primary animate-pulse">🔥</span> {getCityBySlug(selectedCity) ? `VEČERAS U ${getCityBySlug(selectedCity)!.name.toUpperCase()}` : 'VEČERAS U GRADU'}
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-80 mt-4">Najbolja mjesta za izlazak večeras.</p>
               </div>
@@ -340,10 +380,19 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 px-4">
+            <div className="grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4 px-4">
               {tonightLoading ? [1, 2, 3, 4].map(i => <EventCardSkeleton key={i} />) : 
-               tonightData?.events.slice(0, 4).map((event) => (
+               (tonightData?.events.length ? tonightData.events.slice(0, 4).map((event) => (
                 <EventCard key={event.id} event={event} isFavoritedInitial={favoriteIds.events.includes(event.id)} />
+              )) : (
+                <div className="md:col-span-2 lg:col-span-4 bg-card/60 border border-white/10 rounded-[2rem] p-10 sm:p-14 text-center space-y-4">
+                  <p className="text-white font-black uppercase tracking-tight text-base sm:text-lg">Trenutno nema događaja u ovom gradu.</p>
+                  {selectedCity && (
+                    <button onClick={() => setSelectedCity('')} className="px-6 py-3 bg-white/5 border border-white/10 text-muted hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                      Pogledaj drugi grad
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -354,7 +403,7 @@ export default function Home() {
           <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
             <div className="flex justify-between items-end mb-12 px-4">
               <div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
+                <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-accent italic">✨</span> POPULARNI DOGAĐAJI
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-4">Događaji koje ljudi najviše čuvaju.</p>
@@ -379,7 +428,7 @@ export default function Home() {
           <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
             <div className="flex justify-between items-end mb-12 px-4">
               <div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
+                <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary"><Trophy size={32} className="text-yellow-500" /></span> POPULARNI LOKALI
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-4">Najviše sačuvani klubovi i kafići.</p>
@@ -400,10 +449,10 @@ export default function Home() {
         )}
 
         {/* MAP SECTION */}
-        <section className="max-w-7xl mx-auto px-4 py-24 animate-fade-up">
-           <div className="flex flex-col md:flex-row justify-between items-center gap-8 mb-12 px-4">
+        <section className="max-w-7xl mx-auto px-4 py-10 md:py-16 lg:py-24 animate-fade-up">
+           <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 mb-6 md:mb-12 px-0 md:px-4">
               <div className="text-center md:text-left">
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none mb-4">
+                <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none mb-3 sm:mb-4">
                    MAPA <span className="text-primary">DOGAĐAJA</span> 🗺️
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60">Istraži svoj grad i pronađi provod u blizini.</p>
@@ -427,11 +476,14 @@ export default function Home() {
               )}
            </div>
 
-           <div className="h-[600px] w-full px-4">
+           <div className="h-[350px] sm:h-[450px] lg:h-[600px] w-full px-0 md:px-4">
               <ClientOnly fallback={<div className="w-full h-full bg-card/20 border border-border/50 rounded-[3rem] animate-pulse" />}>
                  <EventMap 
-                   events={tonightData?.events || []} 
+                   events={mapEventsData?.events || []} 
                    userLocation={userLocation}
+                   center={getCityBySlug(selectedCity) ? [getCityBySlug(selectedCity)!.lat, getCityBySlug(selectedCity)!.lng] : undefined}
+                   centerKey={selectedCity || 'all'}
+                   zoom={getCityBySlug(selectedCity)?.zoom || 8}
                  />
               </ClientOnly>
            </div>
@@ -482,7 +534,7 @@ export default function Home() {
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary"><MapPin size={32} /></span> SVI LOKALI
                 </h2>
-                <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-80 mt-4">Istražite mesta u Gradišci.</p>
+                <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-80 mt-4">Istražite mjesta u svom gradu.</p>
               </div>
               <button onClick={() => router.push('/venues')} className="text-primary text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors flex items-center gap-2 group">
                 Pogledaj sve <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

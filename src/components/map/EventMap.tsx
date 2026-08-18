@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Event } from '@/types';
@@ -24,26 +24,28 @@ const userIcon = L.divIcon({
   iconAnchor: [7, 7],
 });
 
-// Component to handle map view updates
-function MapUpdater({ center, zoom }: { center: [number, number], zoom?: number }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, zoom || map.getZoom(), { animate: true });
-  }, [center, zoom, map]);
-  return null;
-}
-
 interface EventMapProps {
   events: Event[];
   userLocation?: { lat: number, lng: number } | null;
+  /** Centar mape (koordinate izabranog grada) */
+  center?: [number, number];
+  /** Ključ koji se mijenja pri promjeni grada — mapa se re-centrira samo tada */
+  centerKey?: string;
+  zoom?: number;
 }
 
-export default function EventMap({ events, userLocation }: EventMapProps) {
-  // Default map center
-  const defaultCenter: [number, number] = [45.1465, 17.2536];
-  const [mapCenter, setMapCenter] = useState<[number, number]>(defaultCenter);
+/**
+ * INTERAKTIVNA MAPA DOGAĐAJA.
+ * - drag (miš + touch), scroll zoom, pinch zoom, zoom kontrole
+ * - NEMA automatskog vraćanja centra nakon ručnog pomjeranja:
+ *   centar se postavlja SAMO kroz centerKey (promjena grada), ne kroz
+ *   efekte koji prate korisnikovu interakciju.
+ */
+export default function EventMap({ events, userLocation, center, centerKey = 'default', zoom = 13 }: EventMapProps) {
+  // Default centar — prvi podržani grad (ako nije proslijeđen)
+  const mapCenter: [number, number] = center || [45.1465, 17.2536];
 
-  // Group events by venue location to avoid overlapping
+  // Group events by venue location to avoid overlapping markers
   const locationGroups = events.reduce((acc, event) => {
     if (event.venue.latitude && event.venue.longitude) {
       const key = `${event.venue.latitude},${event.venue.longitude}`;
@@ -52,12 +54,6 @@ export default function EventMap({ events, userLocation }: EventMapProps) {
     }
     return acc;
   }, {} as Record<string, { lat: number, lng: number, events: Event[] }>);
-
-  useEffect(() => {
-    if (userLocation) {
-      setMapCenter([userLocation.lat, userLocation.lng]);
-    }
-  }, [userLocation]);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // km
@@ -71,25 +67,28 @@ export default function EventMap({ events, userLocation }: EventMapProps) {
   };
 
   return (
-    <div className="w-full h-full min-h-[500px] rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl relative z-0">
+    <div className="w-full h-full min-h-[300px] rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl relative z-0">
       {events.length === 0 && (
-        <div className="absolute inset-0 z-10 bg-background/60 backdrop-blur-sm flex items-center justify-center p-8 text-center">
-          <p className="text-muted font-bold uppercase tracking-widest text-xs">Trenutno nema događaja sa dostupnom lokacijom.</p>
+        <div className="absolute inset-0 z-[400] bg-background/60 backdrop-blur-sm flex items-center justify-center p-8 text-center pointer-events-none">
+          <p className="text-muted font-bold uppercase tracking-widest text-xs">Trenutno nema događaja sa dostupnom lokacijom u ovom gradu.</p>
         </div>
       )}
 
+      {/* key=centerKey: mapa se re-mountuje SAMO pri promjeni grada (bez snap-back tokom korištenja) */}
       <MapContainer 
+        key={centerKey}
         center={mapCenter} 
-        zoom={14} 
+        zoom={zoom} 
         style={{ height: '100%', width: '100%', background: '#020106' }}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
+        dragging={true}
+        touchZoom={true}
+        zoomControl={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
-        
-        <MapUpdater center={mapCenter} />
 
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
@@ -128,7 +127,7 @@ export default function EventMap({ events, userLocation }: EventMapProps) {
                         href={`/events/${event.slug}`}
                         className="inline-flex w-full py-2.5 bg-primary text-white text-[9px] font-black justify-center rounded-xl uppercase tracking-[0.2em] hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
                       >
-                        POGLEDAJ DOGAĐAJ
+                        DETALJI
                       </Link>
                     </div>
                   ))}

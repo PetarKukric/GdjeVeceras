@@ -6,6 +6,7 @@ export function useEvents({
   category = 'ALL', 
   search = '', 
   venue = '',
+  city = '',
   minPrice,
   maxPrice,
   sort = 'startTime',
@@ -29,6 +30,7 @@ export function useEvents({
       if (category && category !== 'ALL') params.append('category', category);
       if (search) params.append('search', search);
       if (venue) params.append('venue', venue);
+      if (city) params.append('city', city);
       if (minPrice !== undefined) params.append('minPrice', minPrice.toString());
       if (maxPrice !== undefined) params.append('maxPrice', maxPrice.toString());
       if (lat !== undefined && lat !== null) params.append('lat', lat.toString());
@@ -44,12 +46,12 @@ export function useEvents({
     } finally {
       setLoading(false);
     }
-  }, [date, category, search, venue, minPrice, maxPrice, sort, limit, lat, lng]);
+  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng]);
 
   useEffect(() => {
     fetchEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, category, search, venue, minPrice, maxPrice, sort, lat, lng]);
+  }, [date, category, search, venue, city, minPrice, maxPrice, sort, lat, lng]);
 
   return { data, loading, error, refetch: fetchEvents };
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { cleanupExpiredPromotions } from '@/lib/promotion-service';
+import { getCityBySlug, getCityByName } from '@/lib/cities';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -21,7 +22,11 @@ export async function GET(_request: NextRequest) {
       orderBy.push({ name: 'asc' });
     }
 
+    const cityParam = searchParams.get('city');
+    const city = getCityBySlug(cityParam) || getCityByName(cityParam);
+
     const venues = await prisma.venue.findMany({
+      where: city ? { city: city.name } : undefined,
       include: {
         openingHours: true,
         tags: true,

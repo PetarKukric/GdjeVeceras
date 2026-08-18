@@ -14,11 +14,23 @@ export async function saveUpload(
   contentType: string
 ): Promise<string> {
   if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const { url } = await blobPut(key, buffer, {
-      access: 'public',
-      contentType,
-    });
-    return url;
+    try {
+      const { url } = await blobPut(key, buffer, {
+        access: 'public',
+        contentType,
+      });
+      return url;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      // Jasna poruka za Vercel Blob probleme
+      if (/store does not exist/i.test(msg)) {
+        throw new Error('BLOB store ne postoji — provjeri BLOB_READ_WRITE_TOKEN u Vercelu (Settings → Environment Variables).');
+      }
+      if (/private access/i.test(msg)) {
+        throw new Error('BLOB store je privatan — u Vercelu (Storage → Blob → Settings) prebaci pristup na Public.');
+      }
+      throw new Error('Blob upload nije uspio: ' + msg.slice(0, 200));
+    }
   }
 
   // Lokalni fallback (dev)

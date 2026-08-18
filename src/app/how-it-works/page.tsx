@@ -12,7 +12,7 @@ export default function HowItWorks() {
     {
       icon: Search,
       title: '1. Istražite događaje',
-      desc: 'Pregledajte najnovije žurke, koncerte i muziku uživo u Gradišci. Koristite filtere da pronađete baš ono što vam se sviđa.',
+      desc: 'Pregledajte najnovije žurke, koncerte i muziku uživo u svom gradu. Koristite filtere da pronađete baš ono što vam se sviđa.',
       color: 'text-primary'
     },
     {
@@ -59,7 +59,7 @@ export default function HowItWorks() {
             <span className="text-primary italic">Gdje Večeras?</span>
           </h1>
           <p className="text-muted text-lg font-medium max-w-2xl mx-auto md:mx-0 leading-relaxed">
-            Vaša digitalna karta za najbolji noćni život u Gradišci. Naš cilj je da u dva klika saznate gdje je najbolja zabava.
+            Vaša digitalna karta za najbolji noćni život u vašem gradu. Naš cilj je da u dva klika saznate gdje je najbolja zabava.
           </p>
         </header>
 

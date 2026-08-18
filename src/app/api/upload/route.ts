@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url }, { status: 201 });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Greška pri uploadu slike.' }, { status: 500 });
+    const message = error instanceof Error && error.message ? error.message : 'Greška pri uploadu slike.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

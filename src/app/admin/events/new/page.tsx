@@ -8,7 +8,8 @@ import {
   Image as ImageIcon,
   Calendar,
   Tag,
-  Shirt
+  Shirt,
+  MapPin
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -154,6 +155,14 @@ export default function NewEvent() {
                           >
                              {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                           </select>
+                          {(() => {
+                            const v = venues.find(v => v.id === formData.venueId);
+                            return v ? (
+                              <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-2 flex items-center gap-1.5">
+                                <MapPin size={12} /> Grad: {v.city || '—'}
+                              </p>
+                            ) : null;
+                          })()}
                        </div>
                     </div>
                  </div>

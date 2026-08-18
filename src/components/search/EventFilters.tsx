@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Search, SlidersHorizontal, Calendar, Tag, DollarSign, MapPin, X } from 'lucide-react';
 import { Category } from '@/types';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 import debounce from 'lodash.debounce';
 
 interface FilterState {
@@ -11,6 +12,7 @@ interface FilterState {
   date: string;
   priceRange: string;
   venue: string;
+  city: string;
   sort: string;
 }
 
@@ -61,6 +63,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
       date: 'all',
       priceRange: 'ALL',
       venue: '',
+      city: '',
       sort: 'startTime'
     };
     setFilters(defaultFilters);
@@ -74,6 +77,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
     if (filters.date !== 'all') count++;
     if (filters.priceRange !== 'ALL') count++;
     if (filters.venue !== '') count++;
+    if (filters.city !== '') count++;
     if (filters.sort !== 'startTime') count++;
     return count;
   }, [filters]);
@@ -206,6 +210,22 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
                   <option value="price">Najjeftinije</option>
                   <option value="newest">Najnovije dodato</option>
                   <option value="distance">Najbliže meni</option>
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                  <MapPin size={12} className="text-primary" /> Grad
+                </label>
+                <select 
+                  className="w-full px-4 py-2.5 bg-surface border border-border rounded-xl text-xs font-bold text-muted focus:outline-none focus:border-primary"
+                  value={filters.city}
+                  onChange={(e) => updateFilter('city', e.target.value)}
+                >
+                  <option value="">Svi gradovi</option>
+                  {SUPPORTED_CITIES.map(c => (
+                    <option key={c.slug} value={c.slug}>{c.name}</option>
+                  ))}
                 </select>
               </div>
 

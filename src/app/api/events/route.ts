@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Category, Status } from '@prisma/client';
 import { cleanupExpiredPromotions } from '@/lib/promotion-service';
+import { getCityBySlug, getCityByName } from '@/lib/cities';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -16,11 +17,15 @@ export async function GET(_request: NextRequest) {
     // Filtering
     const category = searchParams.get('category') as Category | null;
     const venueSlug = searchParams.get('venue');
+    const cityParam = searchParams.get('city'); // slug (npr. "banja-luka") ili naziv ("Banja Luka")
     const dateFilter = searchParams.get('date'); // today, tomorrow, weekend, YYYY-MM-DD
     const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
     const search = searchParams.get('search');
     const status = (searchParams.get('status') as Status) || Status.PUBLISHED;
+
+    // Grad — rezolucija na kanonski naziv (gradovi dolaze iz centralne liste)
+    const city = getCityBySlug(cityParam) || getCityByName(cityParam);
 
     // Sorting
     const sort = searchParams.get('sort') || 'startTime'; // startTime, newest, price, relevance, distance
@@ -35,8 +40,11 @@ export async function GET(_request: NextRequest) {
       where.category = category;
     }
 
-    if (venueSlug) {
-      where.venue = { slug: venueSlug };
+    if (venueSlug || city) {
+      const venueWhere: any = {};
+      if (venueSlug) venueWhere.slug = venueSlug;
+      if (city) venueWhere.city = city.name;
+      where.venue = venueWhere;
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {

@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
 import { isValidBosnianPhone } from '@/lib/validation';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 
 const PREDEFINED_TAGS = [
@@ -51,7 +52,7 @@ export default function EditVenue() {
     name: '',
     description: '',
     address: '',
-    city: 'Gradiška',
+    city: '',
     latitude: '',
     longitude: '',
     phone: '',
@@ -87,7 +88,7 @@ export default function EditVenue() {
           name: data.name || '',
           description: data.description || '',
           address: data.address || '',
-          city: data.city || 'Gradiška',
+          city: data.city || '',
           latitude: data.latitude?.toString() || '',
           longitude: data.longitude?.toString() || '',
           phone: data.phone || '',
@@ -225,13 +226,20 @@ export default function EditVenue() {
                     <div className="grid grid-cols-2 gap-4">
                        <div>
                           <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Grad *</label>
-                          <input 
-                            type="text" 
+                          <select 
                             required
-                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm font-medium"
+                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm cursor-pointer"
                             value={formData.city}
                             onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          />
+                          >
+                            <option value="" disabled>Odaberi grad</option>
+                            {SUPPORTED_CITIES.map(c => (
+                              <option key={c.slug} value={c.name}>{c.name}</option>
+                            ))}
+                            {formData.city && !SUPPORTED_CITIES.some(c => c.name === formData.city) && (
+                              <option value={formData.city}>{formData.city}</option>
+                            )}
+                          </select>
                        </div>
                        <div>
                           <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Adresa *</label>

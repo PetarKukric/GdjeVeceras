@@ -1,15 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { VenueCard } from '@/components/venues/VenueCard';
 import { useVenues } from '@/hooks/useVenues';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MapPin } from 'lucide-react';
 import { VenueCardSkeleton } from '@/components/ui/Skeleton';
+import { getCityBySlug } from '@/lib/cities';
 
-export default function VenuesPage() {
-  const { data: venues, loading } = useVenues();
+function VenuesContent() {
+  const searchParams = useSearchParams();
+  const citySlug = searchParams.get('city') || '';
+  const city = getCityBySlug(citySlug);
+  const { data: venues, loading } = useVenues({ city: citySlug });
   const [favoriteVenueIds, setFavoriteVenueIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -38,8 +43,8 @@ export default function VenuesPage() {
           <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0">
              Discover Places
           </div>
-          <h1 className="text-5xl font-black tracking-tighter uppercase mb-4 leading-none">Svi lokali u <span className="text-primary">Gradišci</span> 🏢</h1>
-          <p className="text-muted text-sm font-medium max-w-xl mx-auto md:mx-0">Istražite najbolja mjesta za izlazak, koncerte i žurke koje naš grad nudi.</p>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase mb-4 leading-none">Svi lokali{city ? <> u <span className="text-primary">{city.name}</span></> : null} 🏢</h1>
+          <p className="text-muted text-sm font-medium max-w-xl mx-auto md:mx-0">Istražite najbolja mjesta za izlazak, koncerte i žurke.</p>
         </header>
 
         {loading ? (
@@ -70,5 +75,13 @@ export default function VenuesPage() {
       </main>
       <BottomNav />
     </div>
+  );
+}
+
+export default function VenuesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <VenuesContent />
+    </Suspense>
   );
 }

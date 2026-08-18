@@ -84,6 +84,7 @@ export interface UseEventsProps {
   category?: Category | 'ALL';
   search?: string;
   venue?: string;
+  city?: string;
   minPrice?: number;
   maxPrice?: number;
   sort?: string;

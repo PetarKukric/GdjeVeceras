@@ -12,6 +12,7 @@ import { Category } from '@/types';
 import dynamic from 'next/dynamic';
 import { Map as MapIcon, LayoutGrid, Search } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { getCityBySlug } from '@/lib/cities';
 
 interface FilterState {
   search: string;
@@ -19,6 +20,7 @@ interface FilterState {
   date: string;
   priceRange: string;
   venue: string;
+  city: string;
   sort: string;
 }
 
@@ -62,6 +64,7 @@ function EventsContent() {
     date: searchParams.get('date') || 'all',
     priceRange: searchParams.get('priceRange') || 'ALL',
     venue: searchParams.get('venue') || '',
+    city: searchParams.get('city') || '',
     sort: searchParams.get('sort') || 'startTime',
   }), [searchParams]);
 
@@ -98,6 +101,7 @@ function EventsContent() {
     category: currentFilters.category,
     date: currentFilters.date,
     venue: currentFilters.venue,
+    city: currentFilters.city,
     minPrice: priceRange.min,
     maxPrice: priceRange.max,
     sort: currentFilters.sort,
@@ -180,7 +184,12 @@ function EventsContent() {
             </div>
           ) : (
             <div className="h-[600px]">
-              <EventMap events={data?.events || []} />
+              <EventMap
+                events={data?.events || []}
+                center={getCityBySlug(currentFilters.city) ? [getCityBySlug(currentFilters.city)!.lat, getCityBySlug(currentFilters.city)!.lng] : undefined}
+                centerKey={currentFilters.city || 'all'}
+                zoom={getCityBySlug(currentFilters.city)?.zoom || 8}
+              />
             </div>
           )}
         </>

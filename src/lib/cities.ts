@@ -1,0 +1,55 @@
+/**
+ * PODRŽANI GRADOVI — centralna lista.
+ * Kada se doda novi grad, mijenja se SAMO ovaj fajl.
+ */
+export interface City {
+  /** Stabilni identifikator (za URL parametre) */
+  slug: string;
+  /** Prikazno ime */
+  name: string;
+  /** Koordinate centra (za mapu) */
+  lat: number;
+  lng: number;
+  /** Default zoom za mapu grada */
+  zoom?: number;
+}
+
+export const SUPPORTED_CITIES: City[] = [
+  { slug: 'gradiska', name: 'Gradiška', lat: 45.1465, lng: 17.2536, zoom: 13 },
+  { slug: 'banja-luka', name: 'Banja Luka', lat: 44.7722, lng: 17.1910, zoom: 13 },
+  { slug: 'prnjavor', name: 'Prnjavor', lat: 44.8700, lng: 17.6625, zoom: 13 },
+];
+
+/** Pronađi grad po slug-u */
+export function getCityBySlug(slug: string | null | undefined): City | null {
+  if (!slug) return null;
+  return SUPPORTED_CITIES.find((c) => c.slug === slug) || null;
+}
+
+/** Pronađi grad po nazivu (toleriše mala/velika slova i dijakritike u ASCII varijanti) */
+export function getCityByName(name: string | null | undefined): City | null {
+  if (!name) return null;
+  const n = normalizeCityName(name);
+  return SUPPORTED_CITIES.find((c) => normalizeCityName(c.name) === n) || null;
+}
+
+/** Normalizacija naziva grada za poređenje ("GRADISKA"/"Gradiska" → "gradiska") */
+export function normalizeCityName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/š/g, 's')
+    .replace(/č/g, 'c')
+    .replace(/ć/g, 'c')
+    .replace(/ž/g, 'z')
+    .replace(/đ/g, 'd')
+    .replace(/dž/g, 'dz');
+}
+
+/** Kanonski naziv grada iz bilo koje varijante unosa (za čuvanje u bazi) */
+export function canonicalCityName(name: string | null | undefined): string | null {
+  const city = getCityByName(name);
+  if (city) return city.name;
+  const trimmed = (name || '').trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
