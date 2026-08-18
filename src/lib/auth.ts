@@ -57,10 +57,16 @@ export async function getSession() {
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get('bl_session')?.value;
-    console.log('getSession: Cookie bl_session exists?', !!session);
     if (!session) return null;
     return await decrypt(session);
   } catch (error) {
+    // Tokom statičke faze build-a nema kolačića (nema korisnika) —
+    // Next.js javlja "Dynamic server usage" i to je potpuno očekivano.
+    // Stranica se tada automatski prebaci u dinamički režim.
+    const digest = (error as any)?.digest;
+    if (digest === 'DYNAMIC_SERVER_USAGE') {
+      return null;
+    }
     console.error('getSession error:', error);
     return null;
   }
