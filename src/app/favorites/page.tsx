@@ -63,7 +63,7 @@ export default function FavoritesPage() {
           <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0">
              Your Collection
           </div>
-          <h1 className="text-5xl font-black tracking-tighter uppercase flex items-center justify-center md:justify-start gap-4 leading-none">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter uppercase flex items-center justify-center md:justify-start gap-4 leading-tight">
             <Heart size={44} className="text-primary fill-primary" /> Sačuvano
           </h1>
           <p className="text-muted font-bold mt-4 uppercase tracking-[0.2em] text-[10px] opacity-70">Vaša personalizovana lista omiljenih događaja i lokala</p>

@@ -199,7 +199,7 @@ export function PromotionModal({ isOpen, onClose, type, id, title }: PromotionMo
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={onClose} />
       
-      <div className="relative bg-card border border-white/10 rounded-[3rem] w-full max-w-xl overflow-hidden shadow-[0_0_50px_rgba(255,0,128,0.2)] animate-in zoom-in-95 duration-300">
+      <div className="relative bg-card border border-white/10 rounded-[2rem] sm:rounded-[3rem] w-full max-w-xl max-h-[calc(100dvh-32px)] overflow-y-auto scrollbar-hide shadow-[0_0_50px_rgba(255,0,128,0.2)] animate-in zoom-in-95 duration-300">
         
         {success ? (
           <div className="p-16 text-center animate-fade-up">
@@ -211,7 +211,7 @@ export function PromotionModal({ isOpen, onClose, type, id, title }: PromotionMo
           </div>
         ) : (
           <>
-            <div className="p-8 sm:p-12">
+            <div className="p-5 sm:p-12">
                <div className="flex items-center justify-between mb-10">
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-lg">

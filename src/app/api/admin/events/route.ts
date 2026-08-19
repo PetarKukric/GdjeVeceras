@@ -28,6 +28,7 @@ export async function GET(_request: NextRequest) {
       where,
       include: {
         venue: true,
+        additionalVenues: { include: { venue: { select: { id: true, name: true, city: true } } } },
         createdBy: {
           select: { name: true, email: true }
         }

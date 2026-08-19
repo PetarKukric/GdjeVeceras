@@ -377,7 +377,7 @@ export default function ChatPage() {
           {activeConvId ? (
             <>
               {/* Chat Header */}
-              <div className="h-24 px-8 border-b border-border/50 flex items-center justify-between bg-surface/20 backdrop-blur-md sticky top-0 z-30">
+              <div className="h-16 px-3 md:h-24 md:px-8 border-b border-border/50 flex items-center justify-between bg-surface/20 backdrop-blur-md sticky top-0 z-30">
                 <div className="flex items-center gap-4">
                   <button onClick={() => setView('list')} className="md:hidden p-2 text-muted hover:text-white transition-all bg-surface rounded-xl">
                     <ArrowLeft size={20} />
@@ -442,7 +442,7 @@ export default function ChatPage() {
                             : 'bg-card text-muted border border-border/50 rounded-tl-none'
                         }`}>
                           {m.type === 'EVENT_SHARE' && m.sharedEvent ? (
-                            <div className="space-y-4 min-w-[240px]">
+                            <div className="space-y-4 min-w-[190px] max-w-full">
                                <div className="aspect-[2/1] rounded-2xl overflow-hidden bg-black/20 border border-white/5">
                                   <img src={m.sharedEvent.imageUrl || '/hero-bg.jpg'} className="w-full h-full object-cover" alt="" />
                                </div>
@@ -458,7 +458,7 @@ export default function ChatPage() {
                                </Link>
                             </div>
                           ) : m.type === 'VENUE_SHARE' && m.sharedVenue ? (
-                            <div className="space-y-4 min-w-[240px]">
+                            <div className="space-y-4 min-w-[190px] max-w-full">
                                <div className="aspect-[2/1] rounded-2xl overflow-hidden bg-black/20 border border-white/5">
                                   <img src={m.sharedVenue.imageUrl || '/hero-bg.jpg'} className="w-full h-full object-cover" alt="" />
                                </div>
@@ -499,7 +499,7 @@ export default function ChatPage() {
               </div>
 
               {/* Message Input */}
-              <div className="p-8 border-t border-border/50 bg-surface/10 backdrop-blur-xl">
+              <div className="p-3 pb-safe md:p-8 border-t border-border/50 bg-surface/10 backdrop-blur-xl">
                 <form 
                   onSubmit={handleSend}
                   className="flex gap-4 items-center bg-card border border-border/50 p-2 rounded-[2rem] shadow-2xl focus-within:border-primary/50 transition-all"

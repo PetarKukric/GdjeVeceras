@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { toISOFromLocalInput } from '@/lib/bosnia-time';
 
 export default function NewEvent() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function NewEvent() {
     instagramUrl: '',
     facebookUrl: '',
   });
+  const [additionalVenueIds, setAdditionalVenueIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchVenues() {
@@ -76,6 +78,10 @@ export default function NewEvent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          // Vrijeme: lokalno vrijeme iz inputa → ISO (UTC) da se ne pomjeri dan
+          startDateTime: toISOFromLocalInput(formData.startDateTime),
+          endDateTime: formData.endDateTime ? toISOFromLocalInput(formData.endDateTime) : undefined,
+          additionalVenueIds,
           price: parseFloat(formData.price.toString()),
           createdById: 'admin-id', // In real app, get from session
           status: 'PUBLISHED' // Admin created events can be published immediately
@@ -151,7 +157,10 @@ export default function NewEvent() {
                             required
                             className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
                             value={formData.venueId}
-                            onChange={(e) => setFormData({ ...formData, venueId: e.target.value })}
+                            onChange={(e) => {
+                              setFormData({ ...formData, venueId: e.target.value });
+                              setAdditionalVenueIds(prev => prev.filter(id => id !== e.target.value));
+                            }}
                           >
                              {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                           </select>
@@ -164,6 +173,34 @@ export default function NewEvent() {
                             ) : null;
                           })()}
                        </div>
+
+                       {venues.length > 1 && (
+                         <div>
+                            <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Zajednički događaj — dodatni lokali (opciono)</label>
+                            <div className="max-h-44 overflow-y-auto pr-1 space-y-1.5 border border-border rounded-xl p-3 bg-surface/50">
+                              {venues.filter(v => v.id !== formData.venueId).map(v => {
+                                const checked = additionalVenueIds.includes(v.id);
+                                return (
+                                  <label key={v.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all ${checked ? 'bg-primary/10 border border-primary/30' : 'border border-transparent hover:bg-white/5'}`}>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e) => {
+                                        setAdditionalVenueIds(prev =>
+                                          e.target.checked ? [...prev, v.id] : prev.filter(id => id !== v.id)
+                                        );
+                                      }}
+                                      className="accent-pink-500 w-4 h-4 shrink-0"
+                                    />
+                                    <span className="text-xs font-bold text-white">{v.name}</span>
+                                    {v.city && <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{v.city}</span>}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            <p className="text-[9px] text-muted font-medium mt-1.5">Ako se žurka održava u više lokala istovremeno (npr. Makao i Kamel) — označi sve. Tretiraće se kao jedan zajednički događaj.</p>
+                         </div>
+                       )}
                     </div>
                  </div>
               </div>

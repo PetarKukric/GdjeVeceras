@@ -168,6 +168,9 @@ export default function AdminEvents() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm font-medium">{event.venue.name}</span>
+                        {(event.additionalVenues && event.additionalVenues.length > 0) && (
+                          <span className="ml-1.5 text-[10px] font-bold text-primary uppercase tracking-widest">+{event.additionalVenues.length}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">

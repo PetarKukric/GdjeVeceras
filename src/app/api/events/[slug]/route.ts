@@ -27,6 +27,13 @@ export async function GET(
             }
           }
         },
+        additionalVenues: {
+          include: {
+            venue: {
+              select: { id: true, name: true, city: true, slug: true, address: true, latitude: true, longitude: true, imageUrl: true }
+            }
+          }
+        },
         promotions: {
           where: {
             status: 'ACTIVE',

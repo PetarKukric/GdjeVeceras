@@ -108,3 +108,37 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #FF0080;
   border-radius: 2px;
 }
+
+/* ===== MOBILE UX UTILITIES ===== */
+
+/* Sigurna zona za iPhone (notch/home bar) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Zadnja odbrana protiv horizontalnog scrolla — primarno rješavamo
+   uzrok (elemente koji bježe), ovo je samo osiguranje. */
+html {
+  overflow-x: clip;
+}
+body {
+  overflow-x: clip;
+}
+
+/* Konzistentan mobile container padding (16px) — koristi se preko px-4;
+   ovo je helper za mjesta gdje treba biti sigurno ujednačeno */
+.mobile-px {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Bolji touch targeti za male icon buttone na telefonu */
+@media (max-width: 767px) {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

@@ -12,7 +12,7 @@ export default function AboutPage() {
           <div className="bg-primary/10 border border-primary/20 w-fit px-6 py-2 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.4em] mx-auto">
              O NAMA
           </div>
-          <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter">
+          <h1 className="text-3xl sm:text-4xl md:text-7xl font-black uppercase tracking-tighter leading-tight">
             VAŠ VODIČ KROZ <span className="text-primary italic">NOĆNI ŽIVOT</span>
           </h1>
           <p className="text-muted text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed uppercase tracking-widest opacity-60">

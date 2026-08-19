@@ -133,12 +133,15 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">
              {formattedTime(startDate)}
            </p>
-           <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-tight mb-2 uppercase tracking-tight line-clamp-1">
+           <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-tight mb-2 uppercase tracking-tight line-clamp-2">
             {event.title}
           </h3>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted text-[9px] font-bold uppercase tracking-widest truncate">
-               <MapPin size={10} className="text-primary" /> {event.venue?.name || 'Nepoznata lokacija'}
+               <MapPin size={10} className="text-primary shrink-0" /> {event.venue?.name || 'Nepoznata lokacija'}
+               {(event.additionalVenues && event.additionalVenues.length > 0) && (
+                 <span className="text-primary/90 truncate">+ {event.additionalVenues.map(av => av.venue.name).join(', ')}</span>
+               )}
             </div>
             <div className="flex items-center gap-1.5 text-muted text-[9px] font-bold uppercase tracking-widest">
                <MapPin size={10} className="text-primary" /> {event.venue?.city || ''}
@@ -159,7 +162,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
            </div>
            <button 
             disabled={loadingFavorite}
-            className={`p-2 rounded-xl transition-all hover:bg-white/5 ${isFavorited ? 'text-primary scale-110' : 'text-muted hover:text-primary'}`}
+            className={`touch-target p-2 rounded-xl transition-all hover:bg-white/5 ${isFavorited ? 'text-primary scale-110' : 'text-muted hover:text-primary'}`}
             onClick={toggleFavorite}
           >
             <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="transition-transform active:scale-125" />

@@ -61,7 +61,7 @@ export function NotificationBell({ user }: { user: any }) {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-muted hover:text-primary transition-all relative group"
+        className="touch-target p-2 text-muted hover:text-primary transition-all relative group"
       >
         <Bell size={20} className={unreadCount > 0 ? 'animate-swing' : ''} />
         {unreadCount > 0 && (
@@ -72,7 +72,7 @@ export function NotificationBell({ user }: { user: any }) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-4 w-80 bg-card border border-border shadow-2xl rounded-3xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+        <div className="fixed right-3 top-16 md:absolute md:top-auto md:right-0 md:mt-4 w-80 max-w-[calc(100vw-24px)] bg-card border border-border shadow-2xl rounded-3xl overflow-hidden z-[600] animate-in fade-in slide-in-from-top-2">
           <div className="p-5 border-b border-border flex justify-between items-center">
             <h4 className="text-xs font-black uppercase tracking-widest text-white">Obavijesti</h4>
             {unreadCount > 0 && (

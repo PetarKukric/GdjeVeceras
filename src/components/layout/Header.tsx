@@ -55,7 +55,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
   if (!pathname || pathname.startsWith('/admin')) return null;
 
   return (
-    <header className="sticky top-0 z-[500] bg-background/60 backdrop-blur-2xl border-b border-white/5 h-20 shadow-2xl">
+    <header className="sticky top-0 z-[500] bg-background/60 backdrop-blur-2xl border-b border-white/5 h-16 md:h-20 shadow-2xl">
       <div className="max-w-7xl mx-auto px-4 h-full">
         <div className="flex justify-between items-center h-full">
           
@@ -107,17 +107,17 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
             </ClientOnly>
           </nav>
 
-          <div className="flex items-center gap-3 sm:gap-6 min-w-0 shrink-0">
-            <Link href="/events" className="text-muted hover:text-text transition-colors">
+          <div className="flex items-center gap-2 sm:gap-6 min-w-0 shrink-0">
+            <Link href="/events" className="touch-target text-muted hover:text-text transition-colors">
               <Search size={20} />
             </Link>
 
             <ClientOnly>
               {user && (
-                <Link href="/chat" className="text-muted hover:text-primary transition-all relative">
+                <Link href="/chat" className="touch-target text-muted hover:text-primary transition-all relative">
                   <MessageSquare size={20} />
                   {chatUnread > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-background">
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-background">
                       {chatUnread > 9 ? '9+' : chatUnread}
                     </span>
                   )}
@@ -134,10 +134,10 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
                 {user ? (
                   <div className="flex items-center gap-3 sm:gap-4">
                     <span className="text-xs font-bold text-white hidden lg:block truncate max-w-[120px]">{user.name}</span>
-                    <Link href="/settings" className="text-muted hover:text-primary transition-colors" title="Podešavanja">
+                    <Link href="/settings" className="touch-target text-muted hover:text-primary transition-colors" title="Podešavanja">
                       <Settings size={20} />
                     </Link>
-                    <button onClick={handleLogout} className="text-muted hover:text-primary transition-colors" title="Odjava">
+                    <button onClick={handleLogout} className="touch-target text-muted hover:text-primary transition-colors" title="Odjava">
                       <LogOut size={20} />
                     </button>
                     {(user.role === 'ADMIN' || user.role === 'OWNER') && (

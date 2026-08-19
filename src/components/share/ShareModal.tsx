@@ -153,7 +153,7 @@ export function ShareModal({ isOpen, onClose, type, data }: ShareModalProps) {
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       
-      <div className="relative bg-card border border-white/10 rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
+      <div className="relative bg-card border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-md max-h-[calc(100dvh-32px)] overflow-y-auto scrollbar-hide shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-2xl font-black uppercase tracking-tight">PODIJELI</h3>

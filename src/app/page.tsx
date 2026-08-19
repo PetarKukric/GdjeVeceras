@@ -322,7 +322,7 @@ export default function Home() {
 
         {/* PROMOTED EVENTS SECTION */}
         {promotedEvents.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
+          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
             <div className="flex justify-between items-end mb-12 px-4">
               <div>
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
@@ -342,7 +342,7 @@ export default function Home() {
 
         {/* PERSONALIZED RECOMMENDATIONS SECTION */}
         {visibleRecommendations.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
+          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
             <div className="flex justify-between items-end mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
@@ -361,7 +361,7 @@ export default function Home() {
         )}
 
         {/* TONIGHT SECTION */}
-        <section className="relative max-w-7xl mx-auto px-4 py-12 animate-fade-up overflow-hidden rounded-[3rem] my-4">
+        <section className="relative max-w-7xl mx-auto px-4 py-10 sm:py-16 animate-fade-up overflow-hidden rounded-[3rem] my-6">
           <div className="absolute inset-0 -z-10">
             <img src="/bg-tonight.jpg" alt="" className="w-full h-full object-cover opacity-[0.35] blur-[3px]" />
             <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
@@ -400,7 +400,7 @@ export default function Home() {
 
         {/* POPULAR EVENTS SECTION */}
         {popularEvents.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
+          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
             <div className="flex justify-between items-end mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
@@ -425,7 +425,7 @@ export default function Home() {
 
         {/* POPULAR VENUES SECTION */}
         {popularVenues.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
+          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
             <div className="flex justify-between items-end mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
@@ -490,7 +490,7 @@ export default function Home() {
         </section>
 
         {/* UPRAVO SE DEŠAVA SECTION */}
-        <section className="max-w-7xl mx-auto px-4 py-12 animate-fade-up">
+        <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
            <div className="flex items-center gap-4 mb-8 px-4 text-left">
               <div className="w-3 h-3 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(255,0,128,0.8)]" />
               <h2 className="text-3xl font-black text-white tracking-tighter uppercase">UPRAVO SE DEŠAVA</h2>

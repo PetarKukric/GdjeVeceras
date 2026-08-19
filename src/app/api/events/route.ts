@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { Category, Status } from '@prisma/client';
 import { cleanupExpiredPromotions } from '@/lib/promotion-service';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
+import { getSarajevoNow, sarajevoStartOfDay } from '@/lib/bosnia-time';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -62,10 +63,11 @@ export async function GET(_request: NextRequest) {
       ];
     }
 
-    // Date filtering logic
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    // Date filtering logic — granice dana po SARAJEVSKOM vremenu
+    // (da događaj unesen za petak 22:00 ne "sklizne" u subotu zbog UTC-a na serveru)
+    const bosniaNow = getSarajevoNow();
+    const todayStart = sarajevoStartOfDay(bosniaNow);
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
     if (dateFilter === 'today') {
       where.startDateTime = {
@@ -82,12 +84,11 @@ export async function GET(_request: NextRequest) {
         lte: tomorrowEnd,
       };
     } else if (dateFilter === 'weekend') {
-      // Assuming weekend is Friday evening to Sunday night
-      const friday = new Date(todayStart);
-      friday.setDate(todayStart.getDate() + (5 - todayStart.getDay() + 7) % 7);
-      const sunday = new Date(friday);
-      sunday.setDate(friday.getDate() + 2);
-      sunday.setHours(23, 59, 59, 999);
+      // Vikend: petak (sarajevsko vrijeme) do nedjelje 23:59:59
+      const dayOfWeek = bosniaNow.getUTCDay(); // 0=ned..6=sub u Sarajevu
+      const daysToFriday = (5 - dayOfWeek + 7) % 7;
+      const friday = new Date(todayStart.getTime() + daysToFriday * 24 * 60 * 60 * 1000);
+      const sunday = new Date(friday.getTime() + 3 * 24 * 60 * 60 * 1000 - 1);
       where.startDateTime = {
         gte: friday,
         lte: sunday,
@@ -148,6 +149,13 @@ export async function GET(_request: NextRequest) {
           venue: {
             include: {
               openingHours: true
+            }
+          },
+          additionalVenues: {
+            include: {
+              venue: {
+                select: { id: true, name: true, city: true, slug: true, address: true }
+              }
             }
           },
           promotions: {
@@ -243,6 +251,14 @@ export async function POST(_request: NextRequest) {
 
     const slug = body.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Date.now();
 
+    // Dodatni lokali (zajednički događaj) — validacija
+    let additionalVenueIds: string[] = [];
+    if (Array.isArray(body.additionalVenueIds) && body.additionalVenueIds.length > 0) {
+      const unique: string[] = Array.from(new Set((body.additionalVenueIds as any[]).filter((v: any) => v && v !== body.venueId)));
+      const found = await prisma.venue.findMany({ where: { id: { in: unique } }, select: { id: true } });
+      additionalVenueIds = found.map((v) => v.id);
+    }
+
     const event = await prisma.event.create({
       data: {
         title: body.title,
@@ -265,6 +281,9 @@ export async function POST(_request: NextRequest) {
         facebookUrl: body.facebookUrl || null,
         createdBy: { connect: { id: session.user.id } },
         status: session.user.role === 'ADMIN' ? 'PUBLISHED' : 'PENDING',
+        additionalVenues: additionalVenueIds.length > 0
+          ? { create: additionalVenueIds.map((vid) => ({ venueId: vid })) }
+          : undefined,
       },
     });
 

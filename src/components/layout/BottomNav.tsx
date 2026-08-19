@@ -23,7 +23,8 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-md bg-surface/80 backdrop-blur-2xl border border-white/10 px-4 py-4 rounded-[2rem] flex justify-around items-center shadow-2xl z-50 animate-fade-up">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-safe">
+      <div className="mx-auto w-full max-w-md bg-surface/85 backdrop-blur-2xl border border-white/10 px-2 py-2.5 mb-3 rounded-[2rem] flex justify-around items-center shadow-2xl animate-fade-up">
       {navItems.map((item) => {
         const active = isActive(item.href);
         const Icon = item.icon;
@@ -31,16 +32,17 @@ export function BottomNav() {
           <Link 
             key={item.href}
             href={item.href} 
-            className={`flex flex-col items-center gap-1 transition-all duration-300 relative ${active ? 'text-primary' : 'text-muted hover:text-white'}`}
+            className={`touch-target flex flex-col items-center justify-center gap-1 px-2 py-1 transition-all duration-300 relative min-w-[52px] ${active ? 'text-primary' : 'text-muted hover:text-white'}`}
           >
             {active && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full shadow-[0_0_10px_#FF0080]" />
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full shadow-[0_0_10px_#FF0080]" />
             )}
-            <Icon size={20} className={`${active ? 'scale-110' : 'group-hover:scale-110'}`} />
-            <span className="text-[7px] font-black uppercase tracking-widest">{item.label}</span>
+            <Icon size={21} className={`${active ? 'scale-110' : 'group-hover:scale-110'}`} />
+            <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
           </Link>
         );
       })}
+      </div>
     </nav>
   );
 }

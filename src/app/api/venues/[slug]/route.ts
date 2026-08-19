@@ -15,11 +15,6 @@ export async function GET(
     const venue = await prisma.venue.findUnique({
       where: { slug },
       include: {
-        events: {
-          where: { status: 'PUBLISHED' },
-          orderBy: { startDateTime: 'asc' },
-          include: { venue: true }
-        },
         images: {
           orderBy: { createdAt: 'desc' },
           include: { event: { select: { title: true, startDateTime: true } } }
@@ -42,7 +37,23 @@ export async function GET(
       return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
     }
 
-    return NextResponse.json(venue);
+    // Događaji lokala: primarni lokal ILI zajednički (additionalVenues)
+    const events = await prisma.event.findMany({
+      where: {
+        status: 'PUBLISHED',
+        OR: [
+          { venueId: venue.id },
+          { additionalVenues: { some: { venueId: venue.id } } },
+        ],
+      },
+      orderBy: { startDateTime: 'asc' },
+      include: {
+        venue: true,
+        additionalVenues: { include: { venue: { select: { id: true, name: true, slug: true, city: true } } } },
+      },
+    });
+
+    return NextResponse.json({ ...venue, events });
   } catch (_unused) {
     console.error("API Error", _unused);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

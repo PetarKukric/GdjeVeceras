@@ -61,8 +61,8 @@ export default async function RootLayout({
     <html lang="bs" className={`${inter.variable} ${manrope.variable}`}>
       <body className="bg-background text-text min-h-screen antialiased flex flex-col relative overflow-x-clip">
         <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full" />
+           <div className="absolute top-0 left-0 w-[45%] h-[45%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+           <div className="absolute bottom-0 right-0 w-[45%] h-[45%] bg-accent/5 blur-[120px] rounded-full" />
         </div>
         <ToastProvider>
           <Header initialUser={user} />

@@ -45,6 +45,7 @@ export default function AdminUsers() {
       <AdminHeader title="Korisnici" />
       <main className="p-8 animate-fade-up relative z-[1]">
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-surface/50 border-b border-border">
@@ -90,6 +91,7 @@ export default function AdminUsers() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </main>
     </>

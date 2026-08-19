@@ -70,6 +70,7 @@ model Venue {
   messages     Message[]
   comments          Comment[]
   images       VenueImage[]
+  sharedEvents EventVenue[]
   liveMedia    EventLiveMedia[]
   openingHours VenueOpeningHour[]
   tags         VenueTag[]
@@ -187,6 +188,7 @@ model Event {
   updatedAt     DateTime        @updatedAt
   createdBy     User            @relation("CreatedBy", fields: [createdById], references: [id])
   venue         Venue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  additionalVenues EventVenue[]
   favorites     EventFavorite[]
   reports       Report[]
   comments      Comment[]
@@ -198,6 +200,17 @@ model Event {
   floorItems    EventFloorItem[]
   tableGroups   EventTableGroup[]
   reservations  Reservation[]
+}
+
+model EventVenue {
+  id        String   @id @default(cuid())
+  eventId   String
+  venueId   String
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, venueId])
 }
 
 model EventFavorite {

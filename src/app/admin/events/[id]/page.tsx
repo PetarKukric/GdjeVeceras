@@ -18,6 +18,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { toISOFromLocalInput, toLocalDatetimeValue } from '@/lib/bosnia-time';
 
 export default function EditEvent() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function EditEvent() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [eventFinished, setEventFinished] = useState(false);
+  const [additionalVenueIds, setAdditionalVenueIds] = useState<string[]>([]);
   const [eventSlug, setEventSlug] = useState('');
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
@@ -68,13 +70,15 @@ export default function EditEvent() {
         if (event) {
           setEventSlug(event.slug || '');
           setEventFinished(!!event.endDateTime && new Date(event.endDateTime) < new Date());
+          setAdditionalVenueIds((event.additionalVenues || []).map((av: any) => av.venueId));
           setFormData({
             title: event.title || '',
             description: event.description || '',
             category: event.category || 'PARTY',
             venueId: event.venueId || '',
-            startDateTime: event.startDateTime ? new Date(event.startDateTime).toISOString().slice(0, 16) : '',
-            endDateTime: event.endDateTime ? new Date(event.endDateTime).toISOString().slice(0, 16) : '',
+            // Lokalno vrijeme za input (a ne UTC isječak)
+            startDateTime: event.startDateTime ? toLocalDatetimeValue(new Date(event.startDateTime)) : '',
+            endDateTime: event.endDateTime ? toLocalDatetimeValue(new Date(event.endDateTime)) : '',
             price: event.price || 0,
             imageUrl: event.imageUrl || '',
             performers: event.performers || '',
@@ -106,6 +110,9 @@ export default function EditEvent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          startDateTime: toISOFromLocalInput(formData.startDateTime),
+          endDateTime: formData.endDateTime ? toISOFromLocalInput(formData.endDateTime) : undefined,
+          additionalVenueIds,
           price: parseFloat(formData.price.toString()),
         }),
       });
@@ -224,7 +231,10 @@ export default function EditEvent() {
                             required
                             className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
                             value={formData.venueId}
-                            onChange={(e) => setFormData({ ...formData, venueId: e.target.value })}
+                            onChange={(e) => {
+                              setFormData({ ...formData, venueId: e.target.value });
+                              setAdditionalVenueIds(prev => prev.filter(id => id !== e.target.value));
+                            }}
                           >
                              {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
                           </select>
@@ -236,8 +246,35 @@ export default function EditEvent() {
                               </p>
                             ) : null;
                           })()}
-
                        </div>
+
+                       {venues.length > 1 && (
+                         <div>
+                            <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Zajednički događaj — dodatni lokali (opciono)</label>
+                            <div className="max-h-44 overflow-y-auto pr-1 space-y-1.5 border border-border rounded-xl p-3 bg-surface/50">
+                              {venues.filter(v => v.id !== formData.venueId).map(v => {
+                                const checked = additionalVenueIds.includes(v.id);
+                                return (
+                                  <label key={v.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all ${checked ? 'bg-primary/10 border border-primary/30' : 'border border-transparent hover:bg-white/5'}`}>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e) => {
+                                        setAdditionalVenueIds(prev =>
+                                          e.target.checked ? [...prev, v.id] : prev.filter(id => id !== v.id)
+                                        );
+                                      }}
+                                      className="accent-pink-500 w-4 h-4 shrink-0"
+                                    />
+                                    <span className="text-xs font-bold text-white">{v.name}</span>
+                                    {v.city && <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{v.city}</span>}
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            <p className="text-[9px] text-muted font-medium mt-1.5">Ako se događaj održava u više lokala istovremeno — označi sve. Tretiraće se kao jedan zajednički događaj.</p>
+                         </div>
+                       )}
                     </div>
                  </div>
               </div>

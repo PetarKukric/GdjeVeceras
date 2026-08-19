@@ -54,7 +54,7 @@ export default function HowItWorks() {
           <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0 animate-bounce">
              Uputstvo za korišćenje
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase mb-6 leading-none">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter uppercase mb-4 sm:mb-6 leading-tight">
             Kako funkcioniše <br />
             <span className="text-primary italic">Gdje Večeras?</span>
           </h1>

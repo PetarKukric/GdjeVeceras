@@ -61,6 +61,16 @@ export async function PUT(
         if (!venue) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Dodatni lokali (zajednički događaj)
+    let additionalVenueIds: string[] = [];
+    if (Array.isArray(body.additionalVenueIds)) {
+      const unique: string[] = Array.from(new Set((body.additionalVenueIds as any[]).filter((v: any) => v && v !== body.venueId)));
+      if (unique.length > 0) {
+        const found = await prisma.venue.findMany({ where: { id: { in: unique } }, select: { id: true } });
+        additionalVenueIds = found.map((v) => v.id);
+      }
+    }
+
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
@@ -73,12 +83,24 @@ export async function PUT(
         price: body.price,
         imageUrl: body.imageUrl,
         performers: body.performers,
+        minimumAge: body.minimumAge ? parseInt(body.minimumAge) : null,
+        ticketUrl: body.ticketUrl || null,
+        instagramUrl: body.instagramUrl || null,
+        facebookUrl: body.facebookUrl || null,
         dressCodeType: body.dressCodeType || 'NONE',
         dressCodeName: body.dressCodeName || null,
         dressCodeDescription: body.dressCodeDescription || null,
         status: body.status,
       },
     });
+
+    // Zamijeni listu dodatnih lokala
+    await prisma.eventVenue.deleteMany({ where: { eventId: id } });
+    if (additionalVenueIds.length > 0) {
+      await prisma.eventVenue.createMany({
+        data: additionalVenueIds.map((vid) => ({ eventId: id, venueId: vid })),
+      });
+    }
 
     return NextResponse.json(updatedEvent);
   } catch (error) {

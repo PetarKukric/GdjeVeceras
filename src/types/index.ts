@@ -52,6 +52,19 @@ export interface Event {
   description?: string;
   venueId: string;
   venue: Venue;
+  additionalVenues?: {
+    id: string;
+    venue: {
+      id: string;
+      name: string;
+      city?: string | null;
+      slug: string;
+      address?: string | null;
+      latitude?: number | null;
+      longitude?: number | null;
+      imageUrl?: string | null;
+    };
+  }[];
   startDateTime: string;
   endDateTime: string;
   price?: number;

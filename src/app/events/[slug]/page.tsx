@@ -218,7 +218,7 @@ export default function EventPage() {
           <div className="lg:col-span-8 space-y-8">
             
             {/* HERO CARD */}
-            <div className="relative rounded-[3rem] overflow-hidden bg-card border border-white/5 shadow-2xl group">
+            <div className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card border border-white/5 shadow-2xl group">
               <div className="aspect-[16/9] sm:aspect-[21/9] relative">
                 {event.imageUrl ? (
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -421,6 +421,34 @@ export default function EventPage() {
                       </Link>
                    </div>
                 </div>
+
+                {(event.additionalVenues && event.additionalVenues.length > 0) && (
+                  <div className="space-y-3 mt-2">
+                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
+                        <Users size={14} /> Zajednički događaj — održava se i u:
+                     </p>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {event.additionalVenues.map((av: any) => (
+                          <div key={av.id} className="bg-card/50 border border-white/5 rounded-2xl p-4 flex items-center gap-4 hover:border-primary/20 transition-all">
+                             <div className="w-12 h-12 rounded-xl bg-surface border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
+                                {av.venue.imageUrl ? (
+                                  <img src={av.venue.imageUrl} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <MapPin size={18} className="text-primary" />
+                                )}
+                             </div>
+                             <div className="flex-grow min-w-0">
+                                <p className="text-sm font-black text-white uppercase tracking-tight truncate">{av.venue.name}</p>
+                                <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-0.5">{av.venue.city || ''}{av.venue.address ? ' · ' + av.venue.address : ''}</p>
+                             </div>
+                             <Link href={`/venues/${av.venue.slug}`} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black text-muted hover:text-white uppercase tracking-widest rounded-lg transition-all shrink-0">
+                                Profil
+                             </Link>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+                )}
               </section>
 
               {/* O LOKALU */}
@@ -473,7 +501,7 @@ export default function EventPage() {
           <aside className="lg:col-span-4 space-y-8">
             
             {/* INFO CARD */}
-            <div className="bg-card border border-white/5 rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group">
+            <div className="bg-card border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
                
                <h3 className="text-xl font-black uppercase tracking-tight text-white flex items-center gap-3">

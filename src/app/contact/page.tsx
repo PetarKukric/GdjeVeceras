@@ -91,7 +91,7 @@ export default function ContactPage() {
           <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0">
              Get In Touch
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase mb-6 leading-none">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter uppercase mb-4 sm:mb-6 leading-tight break-words">
             Kontaktirajte <span className="text-primary italic">Nas</span>
           </h1>
           <p className="text-muted text-lg font-medium max-w-2xl mx-auto md:mx-0 leading-relaxed">
@@ -102,7 +102,7 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
           
           {/* Contact Form */}
-          <div className="bg-surface/50 border border-border/50 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
+          <div className="bg-surface/50 border border-border/50 p-5 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-2xl relative overflow-hidden">
             <h2 className="text-2xl font-black uppercase mb-8 tracking-tight">Pošaljite poruku</h2>
             
             {error && (
@@ -197,7 +197,7 @@ export default function ContactPage() {
             )}
             
             {/* Background Glow */}
-            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
           </div>
 
           {/* Contact Info */}
@@ -205,31 +205,31 @@ export default function ContactPage() {
             <div className="space-y-8">
               <h2 className="text-2xl font-black uppercase tracking-tight">Informacije</h2>
               <div className="space-y-6">
-                <div className="flex items-center gap-6 group">
-                  <div className="w-14 h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all">
-                    <Mail size={24} />
+                <div className="flex items-center gap-4 sm:gap-6 group min-w-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all shrink-0">
+                    <Mail size={22} />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Email</p>
-                    <p className="text-lg font-bold text-white">gdjevecerasbusiness@gmail.com</p>
+                    <p className="text-lg font-bold text-white break-words">gdjevecerasbusiness@gmail.com</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 group">
-                  <div className="w-14 h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all">
-                    <Phone size={24} />
+                <div className="flex items-center gap-4 sm:gap-6 group min-w-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all shrink-0">
+                    <Phone size={22} />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Telefon</p>
-                    <p className="text-lg font-bold text-white">+387 66 771 086</p>
+                    <p className="text-lg font-bold text-white break-words">+387 66 771 086</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 group">
-                  <div className="w-14 h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all">
-                    <MapPin size={24} />
+                <div className="flex items-center gap-4 sm:gap-6 group min-w-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all shrink-0">
+                    <MapPin size={22} />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Lokacija</p>
-                    <p className="text-lg font-bold text-white">Bosna i Hercegovina</p>
+                    <p className="text-lg font-bold text-white break-words">Bosna i Hercegovina</p>
                   </div>
                 </div>
               </div>

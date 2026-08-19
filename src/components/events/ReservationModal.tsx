@@ -16,6 +16,7 @@ import {
 
 import { useToast } from '@/components/ui/Toast';
 import { isValidBosnianPhone } from '@/lib/validation';
+import { toISOFromLocalInput, toLocalDatetimeValue } from '@/lib/bosnia-time';
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
     email: user?.email || '',
     phone: '',
     numberOfPeople: 2,
-    startTime: new Date(event.startDateTime).toISOString().substring(0, 16),
+    startTime: event.startDateTime ? toLocalDatetimeValue(new Date(event.startDateTime)) : '',
     notes: ''
   });
 
@@ -59,6 +60,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          startTime: toISOFromLocalInput(formData.startTime),
           eventId: event.id
         })
       });
@@ -82,10 +84,10 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
       className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-card border border-white/10 rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+      <div className="bg-card border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-lg max-h-[calc(100dvh-32px)] overflow-y-auto scrollbar-hide shadow-2xl animate-in zoom-in-95 duration-300">
         
         {/* HEADER */}
-        <div className="p-8 border-b border-white/5 bg-surface/50 flex items-center justify-between">
+        <div className="p-5 sm:p-8 border-b border-white/5 bg-surface/50 flex items-center justify-between">
            <div>
               <h3 className="text-2xl font-black uppercase tracking-tight">Rezervacija</h3>
               <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">{event.title}</p>
@@ -95,7 +97,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
            </button>
         </div>
 
-        <div className="p-8">
+        <div className="p-5 sm:p-8">
            {success ? (
               <div className="py-12 text-center space-y-6 animate-fade-up">
                  <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto text-green-500 shadow-lg shadow-green-500/10">
