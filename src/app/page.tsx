@@ -232,7 +232,7 @@ export default function Home() {
                 PRONAĐI. IZABERI. <span className="text-primary italic animate-pulse">IZAĐI.</span>
               </h1>
               <p className="text-muted text-sm sm:text-2xl font-medium mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed opacity-80 uppercase tracking-widest">
-                NAJBOLJA MJESTA ZA PROVOD U <span className="text-white">GRADU.</span>
+                NAJBOLJA MJESTA ZA PROVOD U <span className="text-white">{getCityBySlug(selectedCity) ? getCityBySlug(selectedCity)!.locative.toUpperCase() + '.' : 'GRADU.'}</span>
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
@@ -371,7 +371,7 @@ export default function Home() {
             <div className="flex justify-between items-end gap-4 mb-8 md:mb-12">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-primary animate-pulse">🔥</span> {getCityBySlug(selectedCity) ? `VEČERAS U ${getCityBySlug(selectedCity)!.name.toUpperCase()}` : 'VEČERAS U GRADU'}
+                   <span className="text-primary animate-pulse">🔥</span> {getCityBySlug(selectedCity) ? `VEČERAS U ${getCityBySlug(selectedCity)!.locative.toUpperCase()}` : 'VEČERAS U GRADU'}
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-80 mt-4">Najbolja mjesta za izlazak večeras.</p>
               </div>

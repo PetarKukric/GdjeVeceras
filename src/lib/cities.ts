@@ -5,8 +5,10 @@
 export interface City {
   /** Stabilni identifikator (za URL parametre) */
   slug: string;
-  /** Prikazno ime */
+  /** Prikazno ime (nominativ) — dropdown, forme, baza */
   name: string;
+  /** Lokativ — za rečenice "u [GRADU]" */
+  locative: string;
   /** Koordinate centra (za mapu) */
   lat: number;
   lng: number;
@@ -15,10 +17,17 @@ export interface City {
 }
 
 export const SUPPORTED_CITIES: City[] = [
-  { slug: 'gradiska', name: 'Gradiška', lat: 45.1465, lng: 17.2536, zoom: 13 },
-  { slug: 'banja-luka', name: 'Banja Luka', lat: 44.7722, lng: 17.1910, zoom: 13 },
-  { slug: 'prnjavor', name: 'Prnjavor', lat: 44.8700, lng: 17.6625, zoom: 13 },
+  { slug: 'gradiska', name: 'Gradiška', locative: 'Gradišci', lat: 45.1465, lng: 17.2536, zoom: 13 },
+  { slug: 'banja-luka', name: 'Banja Luka', locative: 'Banjoj Luci', lat: 44.7722, lng: 17.1910, zoom: 13 },
+  { slug: 'prnjavor', name: 'Prnjavor', locative: 'Prnjavoru', lat: 44.8700, lng: 17.6625, zoom: 13 },
+  { slug: 'srbac', name: 'Srbac', locative: 'Srpcu', lat: 45.0966, lng: 17.5242, zoom: 13 },
 ];
+
+/** Lokativni oblik grada ("u Banjoj Luci") — za rečenice */
+export function getCityLocative(slugOrName: string | null | undefined): string | null {
+  const city = getCityBySlug(slugOrName) || getCityByName(slugOrName);
+  return city ? city.locative : null;
+}
 
 /** Pronađi grad po slug-u */
 export function getCityBySlug(slug: string | null | undefined): City | null {
