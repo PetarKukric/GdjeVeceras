@@ -226,7 +226,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
           </div>
 
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-20 relative z-10 w-full">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20 relative z-10 w-full">
             <div className="lg:w-3/5 text-center lg:text-left animate-fade-up">
               <h1 className="text-4xl sm:text-6xl lg:text-9xl font-black text-white mb-4 sm:mb-6 tracking-tighter leading-none uppercase">
                 PRONAĐI. IZABERI. <span className="text-primary italic animate-pulse">IZAĐI.</span>
@@ -296,7 +296,7 @@ export default function Home() {
         {/* ISTAKNUTI LOKALI (Promoted Venues) - ON TOP */}
         {promotedVenues.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 py-16 animate-fade-up">
-            <div className="flex justify-between items-end mb-12 px-4">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                    <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
@@ -322,8 +322,8 @@ export default function Home() {
 
         {/* PROMOTED EVENTS SECTION */}
         {promotedEvents.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
-            <div className="flex justify-between items-end mb-12 px-4">
+          <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary"><Zap size={32} fill="currentColor" className="animate-bounce" /></span> ISTAKNUTI DOGAĐAJI
@@ -342,7 +342,7 @@ export default function Home() {
 
         {/* PERSONALIZED RECOMMENDATIONS SECTION */}
         {visibleRecommendations.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
+          <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
             <div className="flex justify-between items-end mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
@@ -361,14 +361,14 @@ export default function Home() {
         )}
 
         {/* TONIGHT SECTION */}
-        <section className="relative max-w-7xl mx-auto px-4 py-10 sm:py-16 animate-fade-up overflow-hidden rounded-[3rem] my-6">
+        <section className="relative max-w-7xl mx-auto px-4 py-14 sm:py-16 animate-fade-up overflow-hidden rounded-[3rem] my-8">
           <div className="absolute inset-0 -z-10">
             <img src="/bg-tonight.jpg" alt="" className="w-full h-full object-cover opacity-[0.35] blur-[3px]" />
             <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
           </div>
 
           <div className="relative z-10 px-4">
-            <div className="flex justify-between items-end mb-12">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary animate-pulse">🔥</span> {getCityBySlug(selectedCity) ? `VEČERAS U ${getCityBySlug(selectedCity)!.name.toUpperCase()}` : 'VEČERAS U GRADU'}
@@ -400,8 +400,8 @@ export default function Home() {
 
         {/* POPULAR EVENTS SECTION */}
         {popularEvents.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
-            <div className="flex justify-between items-end mb-12 px-4">
+          <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-accent italic">✨</span> POPULARNI DOGAĐAJI
@@ -425,8 +425,8 @@ export default function Home() {
 
         {/* POPULAR VENUES SECTION */}
         {popularVenues.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
-            <div className="flex justify-between items-end mb-12 px-4">
+          <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary"><Trophy size={32} className="text-yellow-500" /></span> POPULARNI LOKALI
@@ -449,7 +449,7 @@ export default function Home() {
         )}
 
         {/* MAP SECTION */}
-        <section className="max-w-7xl mx-auto px-4 py-10 md:py-16 lg:py-24 animate-fade-up">
+        <section className="max-w-7xl mx-auto px-4 py-14 md:py-16 lg:py-24 animate-fade-up">
            <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 mb-6 md:mb-12 px-0 md:px-4">
               <div className="text-center md:text-left">
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none mb-3 sm:mb-4">
@@ -490,7 +490,7 @@ export default function Home() {
         </section>
 
         {/* UPRAVO SE DEŠAVA SECTION */}
-        <section className="max-w-7xl mx-auto px-4 py-10 sm:py-16 lg:py-20 animate-fade-up">
+        <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
            <div className="flex items-center gap-4 mb-8 px-4 text-left">
               <div className="w-3 h-3 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(255,0,128,0.8)]" />
               <h2 className="text-3xl font-black text-white tracking-tighter uppercase">UPRAVO SE DEŠAVA</h2>
@@ -529,7 +529,7 @@ export default function Home() {
           </div>
 
           <div className="relative z-10 px-4">
-            <div className="flex justify-between items-end mb-12">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12">
               <div>
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary"><MapPin size={32} /></span> SVI LOKALI
@@ -558,7 +558,7 @@ export default function Home() {
           </div>
 
           <div className="max-w-7xl mx-auto relative z-10 px-4">
-            <div className="flex justify-between items-end mb-12">
+            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12">
               <div>
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
                    <span className="text-primary"><Calendar size={32} /></span> OVAJ VIKEND
@@ -574,19 +574,19 @@ export default function Home() {
                onClick={() => setActiveWeekendTab('PET')}
                className={`pb-5 text-[10px] font-black uppercase tracking-[0.3em] transition-all border-b-2 ${activeWeekendTab === 'PET' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-white'}`}
              >
-               PET 14. AVG
+               PETAK
              </button>
              <button 
                onClick={() => setActiveWeekendTab('SUB')}
                className={`pb-5 text-[10px] font-black uppercase tracking-[0.3em] transition-all border-b-2 ${activeWeekendTab === 'SUB' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-white'}`}
              >
-               SUB 15. AVG
+               SUBOTA
              </button>
              <button 
                onClick={() => setActiveWeekendTab('NED')}
                className={`pb-5 text-[10px] font-black uppercase tracking-[0.3em] transition-all border-b-2 ${activeWeekendTab === 'NED' ? 'text-primary border-primary' : 'text-muted border-transparent hover:text-white'}`}
              >
-               NED 16. AVG
+               NEDJELJA
              </button>
           </div>
 

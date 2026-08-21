@@ -167,7 +167,7 @@ export default function VenuePage() {
 
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow pb-24 animate-fade-up">
+      <main className="flex-grow pb-28 md:pb-24 animate-fade-up">
         
         {/* BREADCRUMB */}
         <nav className="max-w-[1440px] mx-auto px-4 py-4 flex items-center gap-2 text-[10px] font-bold text-muted uppercase tracking-widest">
@@ -178,7 +178,7 @@ export default function VenuePage() {
            <span className="text-white truncate max-w-[200px]">{venue.name}</span>
         </nav>
 
-        <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
           
           {/* LEFT COLUMN */}
           <div className="lg:col-span-8 space-y-8">

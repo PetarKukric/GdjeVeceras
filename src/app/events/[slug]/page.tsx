@@ -202,7 +202,7 @@ export default function EventPage() {
 
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow pb-24 animate-fade-up">
+      <main className="flex-grow pb-28 md:pb-24 animate-fade-up">
         {/* BREADCRUMBS */}
         <nav className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-2 text-[10px] font-bold text-muted uppercase tracking-widest">
            <Link href="/" className="hover:text-primary transition-colors">Početna</Link>
@@ -212,10 +212,10 @@ export default function EventPage() {
            <span className="text-white truncate max-w-[200px]">{event.title}</span>
         </nav>
 
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 pt-4">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 pt-6">
           
           {/* LEFT COLUMN (8 cols) */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-8 space-y-10 md:space-y-8">
             
             {/* HERO CARD */}
             <div className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card border border-white/5 shadow-2xl group">
@@ -498,7 +498,7 @@ export default function EventPage() {
           </div>
 
           {/* RIGHT COLUMN (4 cols) */}
-          <aside className="lg:col-span-4 space-y-8">
+          <aside className="lg:col-span-4 space-y-10 md:space-y-8">
             
             {/* INFO CARD */}
             <div className="bg-card border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
@@ -588,7 +588,7 @@ export default function EventPage() {
                   </div>
                )}
 
-               <div className="space-y-4 pt-4">
+               <div className="space-y-5 md:space-y-4 pt-6 md:pt-4">
                   <button 
                     onClick={() => setIsReservationModalOpen(true)}
                     disabled={availableUnits === 0 && totalUnits > 0}

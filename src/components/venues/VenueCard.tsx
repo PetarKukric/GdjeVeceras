@@ -58,11 +58,11 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
         </div>
       </div>
       
-      <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-tight mb-1 truncate uppercase tracking-tight">
+      <div className="p-5 sm:p-6 flex flex-col flex-grow">
+        <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-snug mb-2 truncate uppercase tracking-tight">
           {venue.name}
         </h3>
-        <p className="text-muted text-[9px] font-bold flex items-center gap-1.5 mb-3 uppercase tracking-widest">
+        <p className="text-muted text-[9px] font-bold flex items-center gap-1.5 mb-4 uppercase tracking-widest">
           {venue.city}
         </p>
         
@@ -82,7 +82,7 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
           </div>
         )}
 
-        <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+        <div className="mt-auto pt-5 border-t border-white/5 flex items-center justify-between">
           <div className="flex flex-col gap-1">
              <span className="text-[7px] font-black text-muted uppercase tracking-[0.2em] opacity-60">
                {venue._count?.events || 0} AKTIVNIH DOGAĐAJA

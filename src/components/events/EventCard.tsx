@@ -128,15 +128,15 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
       </div>
 
-      <div className="p-6 flex flex-col flex-grow">
-        <div className="mb-2">
-           <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">
+      <div className="p-5 sm:p-6 flex flex-col flex-grow">
+        <div className="mb-3">
+           <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1.5">
              {formattedTime(startDate)}
            </p>
-           <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-tight mb-2 uppercase tracking-tight line-clamp-2">
+           <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-snug mb-2.5 uppercase tracking-tight line-clamp-2">
             {event.title}
           </h3>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-1.5 text-muted text-[9px] font-bold uppercase tracking-widest truncate">
                <MapPin size={10} className="text-primary shrink-0" /> {event.venue?.name || 'Nepoznata lokacija'}
                {(event.additionalVenues && event.additionalVenues.length > 0) && (
@@ -149,7 +149,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
           </div>
         </div>
         
-        <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/5">
+        <div className="mt-auto pt-5 flex justify-between items-center border-t border-white/5">
            <div className="flex items-center gap-3">
              <div className="text-[10px] font-black text-white bg-white/5 px-2.5 py-1 rounded-md">
                {event.price === 0 ? 'BESPLATNO' : `${event.price} KM`}

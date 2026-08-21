@@ -126,7 +126,7 @@ export default function ContactPage() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+              <form onSubmit={handleSubmit} className="space-y-7 md:space-y-6 relative z-10">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Lokal</label>
                   <select 
@@ -157,7 +157,7 @@ export default function ContactPage() {
                     <input 
                       type="email" 
                       required
-                      placeholder="tvoj@email.com"
+                      placeholder="ime@gmail.com"
                       className="w-full h-14 px-6 bg-background border border-border/50 rounded-2xl text-sm focus:outline-none focus:border-primary transition-all"
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}

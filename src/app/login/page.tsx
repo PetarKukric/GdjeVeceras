@@ -141,7 +141,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-4">
           <div>
             <label className="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2">Email adresa</label>
             <div className="relative group">
@@ -150,7 +150,7 @@ export default function Login() {
                 type="text"
                 required
                 className={`w-full h-14 pl-12 pr-4 bg-surface border ${emailError ? 'border-red-500/50 focus:border-red-500' : 'border-border focus:border-primary'} rounded-xl focus:outline-none transition-all text-sm`}
-                placeholder="admin@gradiskaevents.com"
+                placeholder="ime@gmail.com"
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
