@@ -35,11 +35,34 @@ async function main() {
     },
   });
 
+  // Novi profil koji je odmah verifikovan (emailVerified postavljen, bez tokena).
+  // Upsert je idempotentan: ponovnim pokretanjem seed-a se samo osvježi lozinka/ime.
+  const verifiedUserEmail = 'petlampi@gmail.com';
+  const verifiedUserHash = await bcrypt.hash('0406petlampi', 10);
+  const verifiedUser = await prisma.user.upsert({
+    where: { email: verifiedUserEmail },
+    update: {
+      name: 'Branko Djuric',
+      passwordHash: verifiedUserHash,
+      emailVerified: new Date(),
+      verificationToken: null,
+      tokenExpires: null,
+    },
+    create: {
+      email: verifiedUserEmail,
+      name: 'Branko Djuric',
+      passwordHash: verifiedUserHash,
+      role: Role.USER,
+      emailVerified: new Date(),
+    },
+  });
+
   // Demo podaci (lokali, događaji, Marko korisnik) NE stvaraju se po defaultu.
   // Vraćaju se samo eksplicitno: SEED_DEMO=true npm run seed
   if (process.env.NODE_ENV === 'production' || process.env.SEED_DEMO !== 'true') {
     console.log('🌱 Seed: kreiran samo admin nalog (bez demo podataka).');
     console.log(`Admin: ${adminEmail} (prijava preko jednokratne lozinke na email)`);
+    console.log(`Verifikovani korisnik: ${verifiedUser.email} (${verifiedUser.name})`);
     console.log('   Za demo podatke pokreni: SEED_DEMO=true npm run seed');
     return;
   }
