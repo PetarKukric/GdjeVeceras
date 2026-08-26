@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { hashToken } from '@/lib/password';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const user = await prisma.user.findUnique({
-      where: { verificationToken: token },
+      where: { verificationToken: hashToken(token) },
     });
 
     if (!user) {

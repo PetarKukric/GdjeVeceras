@@ -21,6 +21,15 @@ export function generateResetToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
+/**
+ * Hash tokena (SHA-256) prije nego što se upiše u bazu.
+ * Email linkovi i dalje nose originalni token — u bazi se čuva samo hash,
+ * pa curanje baze ne otkriva validne linkove za reset/verifikaciju.
+ */
+export function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }

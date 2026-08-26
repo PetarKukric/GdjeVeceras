@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 import { sendVerificationEmail } from '@/lib/email';
 import { normalizeEmail } from '@/lib/validation';
+import { hashToken } from '@/lib/password';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        verificationToken,
+        verificationToken: hashToken(verificationToken),
         tokenExpires,
         lastResentAt: new Date(),
       },

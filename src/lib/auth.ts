@@ -2,11 +2,26 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Tajni ključ iz env varijable (produkcija); fallback za lokalni razvoj.
-// Važno: fallback je identičan JWT_SECRET iz .env — tako da ne može doći do
-// neusklađenosti između Node runtime-a i middleware-a ni u jednoj kombinaciji.
-const secretKey = process.env.JWT_SECRET || 'gradiska-events-very-secret-key-123456789'; 
-const key = new TextEncoder().encode(secretKey);
+// Tajni ključ iz env varijable (produkcija); fallback SAMO za lokalni razvoj.
+// U produkciji JWT_SECRET MORA biti postavljen — fallback ključ je javno vidljiv
+// u repu, pa bi bez env varijable bilo ko mogao kovati sesijski kolačić (i ADMIN
+// sesiju). Zato fail-closed: prijava odbija da radi bez JWT_SECRET.
+const DEV_FALLBACK_SECRET = 'gradiska-events-very-secret-key-123456789';
+
+function getKey(): Uint8Array {
+  if (process.env.JWT_SECRET) return new TextEncoder().encode(process.env.JWT_SECRET);
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'JWT_SECRET nije postavljen! Postavi ga u Vercel → Settings → Environment Variables (nasumičan, dug niz).'
+    );
+  }
+  return new TextEncoder().encode(DEV_FALLBACK_SECRET);
+}
+
+// SameSite: 'lax' u produkciji (zaštita od CSRF); 'none' samo u razvoju
+// (cross-origin preview iframe-ovi). Aplikacija i API su na istom domenu,
+// pa 'lax' ne smeta normalnom radu sajta.
+const COOKIE_SAMESITE: 'lax' | 'none' = process.env.NODE_ENV === 'production' ? 'lax' : 'none';
 
 export interface JWTPayload {
   user: { id: string; email: string; role: string; name: string };
@@ -18,13 +33,13 @@ export async function encrypt(payload: JWTPayload) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('24h')
-    .sign(key);
+    .sign(getKey());
 }
 
 export async function decrypt(input: string): Promise<JWTPayload | null> {
   if (!input) return null;
   try {
-    const { payload } = await jwtVerify(input, key, {
+    const { payload } = await jwtVerify(input, getKey(), {
       algorithms: ['HS256'],
     });
     return payload as unknown as JWTPayload;
@@ -43,7 +58,7 @@ export async function login(user: { id: string; email: string; role: string; nam
     expires, 
     httpOnly: true, 
     secure: true, 
-    sameSite: 'none', 
+    sameSite: COOKIE_SAMESITE, 
     path: '/',
   });
 }
@@ -86,7 +101,7 @@ export async function updateSession(request: NextRequest) {
     value: await encrypt(parsed),
     httpOnly: true,
     secure: true,
-    sameSite: 'none',
+    sameSite: COOKIE_SAMESITE,
     expires: new Date(parsed.expires),
     path: '/',
   });

@@ -17,6 +17,7 @@ export default function Signup() {
     name: '',
     email: '',
     password: '',
+    company: '', // honeypot — skriveno polje protiv botova (ljudi ga nikad ne popune)
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +34,11 @@ export default function Signup() {
 
     if (!isValidEmail(normalizedEmail)) {
       setEmailError('Unesite ispravnu email adresu.');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Lozinka mora imati najmanje 8 znakova.');
       return;
     }
 
@@ -153,6 +159,7 @@ export default function Signup() {
                 <input
                   type="password"
                   required
+                  minLength={8}
                   className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-all text-sm text-text"
                   placeholder="••••••••"
                   value={formData.password}
@@ -160,6 +167,18 @@ export default function Signup() {
                 />
               </div>
             </div>
+
+            {/* Honeypot: skriveno polje za botove — ne dirati */}
+            <input
+              type="text"
+              name="company"
+              value={formData.company}
+              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, opacity: 0 }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
 
             <button
               type="submit"

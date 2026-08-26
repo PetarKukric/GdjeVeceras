@@ -187,6 +187,16 @@ iOS (App Store) dodatno traži Apple Developer nalog (~$99/godišnje) i Mac za b
 
 ## Česta pitanja
 
+### 🔐 Sigurnost — checklist
+
+| Stavka | Status | Napomena |
+|---|---|---|
+| API ključevi skriveni | ✅ | Sve tajne su u Vercel Environment Variables; `.env*` je u `.gitignore`-u i nikad nije komitovan |
+| Token baze (Turso) | ⚠️ | Koristi **token samo te baze** (database-scoped), NE platform-in token. Sve DB konekcije su server-side — token nikad ne ide u browser |
+| `JWT_SECRET` | ⚠️ | **Obavezan u produkciji** — bez njega prijava odbija da radi (nasumičan dug niz, npr. `openssl rand -base64 32`) |
+| Lozinke | ✅ | bcrypt (10 rundi); reset/verifikacioni tokeni se čuvaju u bazi samo kao SHA-256 hash |
+| Git istorija | ✅ | Skenirana — nema komitovanih tajni. Ako IKAD slučajno komituješ tajnu: odmah **rotiraj** (novi token) — brisanje iz istorije ne pomaže ako je neko već klonirao |
+
 **Koliko košta?** Vercel + Turso + Resend imaju besplatne planove koji su
 sasvim dovoljni za početak (stotine korisnika).
 

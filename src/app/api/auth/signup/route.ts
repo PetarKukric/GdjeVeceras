@@ -6,14 +6,32 @@ import {} from 'next/headers';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 import { hasValidMxRecord } from '@/lib/server-validation';
 import { sendVerificationEmail } from '@/lib/email';
+import { hashToken } from '@/lib/password';
 import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, name } = await request.json();
+    const { email, password, name, company } = await request.json();
 
     if (!email || !password || !name) {
       return NextResponse.json({ error: 'Sva polja su obavezna' }, { status: 400 });
+    }
+
+    // Honeypot protiv botova: skriveno polje koje ljudi nikad ne popune.
+    // Botu se vraća ista "uspješna" poruka da ne zna da je odbijen.
+    if (typeof company === 'string' && company.trim() !== '') {
+      return NextResponse.json({
+        message: 'Poslali smo verifikacioni email na tvoju adresu.',
+        requiresVerification: true
+      }, { status: 201 });
+    }
+
+    // Validacija unosa (dužine/type)
+    if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 80) {
+      return NextResponse.json({ error: 'Ime mora imati 2–80 znakova.' }, { status: 400 });
+    }
+    if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
+      return NextResponse.json({ error: 'Lozinka mora imati najmanje 8 znakova.' }, { status: 400 });
     }
 
     const normalizedEmail = normalizeEmail(email);
@@ -44,9 +62,9 @@ export async function POST(request: NextRequest) {
       data: {
         email: normalizedEmail,
         passwordHash,
-        name,
+        name: name.trim(),
         role: 'USER',
-        verificationToken,
+        verificationToken: hashToken(verificationToken),
         tokenExpires,
       },
     });

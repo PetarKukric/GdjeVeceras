@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { hashPassword } from '@/lib/password';
+import { hashPassword, hashToken } from '@/lib/password';
 
 /**
  * Postavljanje nove lozinke preko tokena iz email-a.
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { verificationToken: token },
+      where: { verificationToken: hashToken(token) },
     });
 
     if (!user) {

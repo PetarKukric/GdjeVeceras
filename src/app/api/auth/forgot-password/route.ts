@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
-import { generateRandomPassword, generateResetToken, hashPassword } from '@/lib/password';
+import { generateRandomPassword, generateResetToken, hashPassword, hashToken } from '@/lib/password';
 import { sendAdminPasswordEmail, sendPasswordResetEmail } from '@/lib/email';
 
 const RESEND_COOLDOWN_MS = 60 * 1000;
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       await prisma.user.update({
         where: { id: user.id },
         data: {
-          verificationToken: token,
+          verificationToken: hashToken(token),
           tokenExpires: new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000),
         },
       });

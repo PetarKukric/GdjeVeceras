@@ -22,7 +22,7 @@ async function createSession(user: { id: string; email: string; role: string; na
     expires,
     httpOnly: true,
     secure: true,
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
     path: '/',
   });
   return { id: user.id, email: user.email, role: user.role, name: user.name || '' };
