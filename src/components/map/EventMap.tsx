@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MAP_TILES_URL, MAP_TILES_LABELS_URL, MAP_TILES_ATTRIBUTION } from './tiles';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Event } from '@/types';
@@ -86,8 +87,11 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
         zoomControl={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution={MAP_TILES_ATTRIBUTION}
+          url={MAP_TILES_URL}
+        />
+        <TileLayer
+          url={MAP_TILES_LABELS_URL}
         />
 
         {userLocation && (
