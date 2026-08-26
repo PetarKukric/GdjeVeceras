@@ -58,7 +58,7 @@ export async function login(user: { id: string; email: string; role: string; nam
     expires, 
     httpOnly: true, 
     secure: true, 
-    sameSite: COOKIE_SAMESITE, 
+    sameSite: COOKIE_SAMESITE,
     path: '/',
   });
 }

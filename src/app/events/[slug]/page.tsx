@@ -358,7 +358,7 @@ export default function EventPage() {
                         </div>
                         <div>
                            <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
-                           <p className="text-xs font-bold text-white uppercase">18+</p>
+                           <p className="text-xs font-bold text-white uppercase">{event.minimumAge ? `${event.minimumAge}+` : 'Svi'}</p>
                         </div>
                      </div>
                      <div className="flex items-center gap-4 group">
@@ -554,7 +554,7 @@ export default function EventPage() {
                      </div>
                      <div>
                         <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
-                        <p className="text-sm font-bold text-white uppercase">18+</p>
+                        <p className="text-sm font-bold text-white uppercase">{event.minimumAge ? `${event.minimumAge}+` : 'Svi'}</p>
                      </div>
                   </div>
                   <div className="flex gap-4">
