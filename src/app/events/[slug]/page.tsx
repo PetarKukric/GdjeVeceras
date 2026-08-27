@@ -32,8 +32,7 @@ import {
   Shirt,
   Beer,
   Tag as TagIcon,
-  Loader2,
-  Zap
+  Loader2
 } from 'lucide-react';
 import {} from '@/lib/services';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -42,7 +41,6 @@ import { VenueLocation } from '@/components/venues/VenueLocation';
 import { CommentSection } from '@/components/comments/CommentSection';
 import Link from 'next/link';
 import { ShareModal } from '@/components/share/ShareModal';
-import { PromotionModal } from '@/components/share/PromotionModal';
 import { LiveFeed } from '@/components/events/LiveFeed';
 import { ReservationModal } from '@/components/events/ReservationModal';
 import { useToast } from '@/components/ui/Toast';
@@ -82,7 +80,6 @@ export default function EventPage() {
   const [reportSuccess, setReportSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('detalji');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [floorItems, setFloorItems] = useState<any[]>([]);
   const { showToast } = useToast();
@@ -616,14 +613,6 @@ export default function EventPage() {
                      <Share2 size={18} className="group-hover/share:scale-110 transition-transform" /> Podijeli događaj
                   </button>
                   {isOwner && (
-                    <button 
-                      onClick={() => setIsPromotionModalOpen(true)}
-                      className="w-full py-5 bg-primary text-white font-black rounded-[1.25rem] flex items-center justify-center gap-3 hover:bg-primary-hover shadow-xl shadow-primary/20 uppercase tracking-[0.2em] text-[10px]"
-                    >
-                       <Zap size={18} fill="currentColor" /> Istakni događaj
-                    </button>
-                  )}
-                  {isOwner && (
                     <Link
                       href={`/admin/reservations?event=${event.id}`}
                       className="w-full py-5 bg-white/5 border border-white/10 text-white font-black rounded-[1.25rem] flex items-center justify-center gap-3 hover:bg-white/10 transition-all uppercase tracking-[0.2em] text-[10px]"
@@ -777,14 +766,6 @@ export default function EventPage() {
             slug: event.slug,
             imageUrl: event.imageUrl
           }}
-        />
-
-        <PromotionModal 
-          isOpen={isPromotionModalOpen}
-          onClose={() => setIsPromotionModalOpen(false)}
-          type="EVENT"
-          id={event.id}
-          title={event.title}
         />
 
         <ReservationModal 

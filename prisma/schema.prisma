@@ -40,7 +40,6 @@ model User {
   blockedBy         Block[]          @relation("Blocked")
   chatReports       ChatReport[]
   comments          Comment[]
-  promotions        Promotion[]
   liveMedia         EventLiveMedia[]
   reservations      Reservation[]
 }
@@ -60,7 +59,6 @@ model Venue {
   facebookUrl  String?
   tiktokUrl    String?
   imageUrl     String?
-  promoted     Boolean         @default(false)
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   ownerId      String?
@@ -75,7 +73,6 @@ model Venue {
   openingHours VenueOpeningHour[]
   tags         VenueTag[]
   sharedInChats ChatMessage[]
-  promotions    Promotion[]
   floorItems    VenueFloorItem[]
   reservations  Reservation[]
 }
@@ -151,7 +148,7 @@ model Notification {
   userId    String
   messageId String?
   eventId   String?
-  type      String   // NEW_MESSAGE, PROMOTED_EVENT, etc.
+  type      String   // NEW_MESSAGE, EVENT_LIVE_UPDATE, etc.
   content   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -181,8 +178,6 @@ model Event {
   instagramUrl  String?
   facebookUrl   String?
   status        Status          @default(PENDING)
-  featured      Boolean         @default(false)
-  promoted      Boolean         @default(false)
   createdById   String
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -193,7 +188,6 @@ model Event {
   reports       Report[]
   comments      Comment[]
   sharedInChats ChatMessage[]
-  promotions    Promotion[]
   notifications Notification[]
   liveMedia     EventLiveMedia[]
   venueImages   VenueImage[]
@@ -340,53 +334,6 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   venue     Venue?   @relation(fields: [venueId], references: [id], onDelete: Cascade)
-}
-
-model Promotion {
-  id              String          @id @default(cuid())
-  ownerId         String
-  venueId         String?
-  eventId         String?
-  type            PromotionType
-  status          PromotionStatus @default(PENDING_PAYMENT)
-  startAt         DateTime?
-  endAt           DateTime?
-  price           Float
-  currency        String          @default("EUR")
-  durationDays    Int
-  paypalOrderId   String?         @unique
-  paypalCaptureId String?         @unique
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  owner           User            @relation(fields: [ownerId], references: [id])
-  venue           Venue?          @relation(fields: [venueId], references: [id])
-  event           Event?          @relation(fields: [eventId], references: [id])
-  sentNotifications PromotedEventNotification[]
-}
-
-model PromotedEventNotification {
-  id          String   @id @default(cuid())
-  userId      String
-  eventId     String
-  promotionId String
-  createdAt   DateTime @default(now())
-  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, eventId, promotionId])
-}
-
-enum PromotionType {
-  VENUE
-  EVENT
-}
-
-enum PromotionStatus {
-  PENDING_PAYMENT
-  ACTIVE
-  EXPIRED
-  CANCELLED
-  PAYMENT_FAILED
-  REFUNDED
 }
 
 model VenueFloorItem {

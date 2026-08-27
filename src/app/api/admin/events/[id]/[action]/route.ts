@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Status } from '@prisma/client';
 import { getSession } from '@/lib/auth';
-import { sendPromotedEventNotifications } from '@/lib/promotion-service';
 
 export async function POST(
   _request: NextRequest,
@@ -36,10 +35,6 @@ export async function POST(
       where: { id },
       data: { status: newStatus },
     });
-
-    if (newStatus === Status.PUBLISHED) {
-      await sendPromotedEventNotifications(event.id, event.venueId);
-    }
 
     return NextResponse.json(event);
   } catch (_unused) {

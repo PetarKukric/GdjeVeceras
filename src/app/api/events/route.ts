@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Category, Status } from '@prisma/client';
-import { cleanupExpiredPromotions } from '@/lib/promotion-service';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 import { getSarajevoNow, sarajevoStartOfDay } from '@/lib/bosnia-time';
 
 export async function GET(_request: NextRequest) {
   try {
-    await cleanupExpiredPromotions();
     const { searchParams } = new URL(_request.url);
     
     // Pagination
@@ -120,9 +118,6 @@ export async function GET(_request: NextRequest) {
 
     // Sorting logic
     const orderBy: any = [];
-    
-    // Always put promoted first
-    orderBy.push({ promoted: 'desc' });
 
     if (sort === 'startTime') {
       orderBy.push({ startDateTime: 'asc' });
@@ -134,8 +129,6 @@ export async function GET(_request: NextRequest) {
       orderBy.push({ favorites: { _count: 'desc' } });
       orderBy.push({ startDateTime: 'asc' });
     } else if (sort === 'relevance') {
-      orderBy.push({ featured: 'desc' });
-      orderBy.push({ promoted: 'desc' });
       orderBy.push({ startDateTime: 'asc' });
     }
 
@@ -156,12 +149,6 @@ export async function GET(_request: NextRequest) {
               venue: {
                 select: { id: true, name: true, city: true, slug: true, address: true }
               }
-            }
-          },
-          promotions: {
-            where: {
-              status: 'ACTIVE',
-              endAt: { gte: new Date() }
             }
           },
           _count: {
@@ -219,7 +206,6 @@ export async function GET(_request: NextRequest) {
 }
 
 import {  getSession } from '@/lib/auth';
-import { sendPromotedEventNotifications } from '@/lib/promotion-service';
 
 export async function POST(_request: NextRequest) {
   try {
@@ -286,11 +272,6 @@ export async function POST(_request: NextRequest) {
           : undefined,
       },
     });
-
-    // If published, check for promotions
-    if (event.status === 'PUBLISHED') {
-      await sendPromotedEventNotifications(event.id, event.venueId);
-    }
 
     return NextResponse.json(event, { status: 201 });
   } catch (_unused) {

@@ -53,7 +53,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-white font-black uppercase tracking-tight text-lg">5. Plaćanja i promocije</h2>
             <p>
-              Usluge isticanja (promocije) naplaćuju se preko PayPal-a. Nakon uspješne uplate promocija se aktivira
+              Sve funkcionalnosti sajta su trenutno besplatne za korisnike i vlasnike lokala.
               automatski. Uplata je povratna isključivo u slučajevima predviđenim zakonom.
             </p>
           </section>

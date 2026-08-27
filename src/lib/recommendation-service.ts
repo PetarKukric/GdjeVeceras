@@ -103,7 +103,7 @@ async function getColdStartRecommendations(userId: string | null, limit: number 
     excludeIds = favorites.map((f) => f.eventId);
   }
 
-  // Just return popular/featured upcoming events
+  // Vrati popularne nadolazeće događaje
   return await prisma.event.findMany({
     where: {
       status: Status.PUBLISHED,
@@ -111,8 +111,6 @@ async function getColdStartRecommendations(userId: string | null, limit: number 
       id: { notIn: excludeIds },
     },
     orderBy: [
-      { promoted: 'desc' },
-      { featured: 'desc' },
       { favorites: { _count: 'desc' } },
       { startDateTime: 'asc' },
     ],

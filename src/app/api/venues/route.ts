@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { cleanupExpiredPromotions } from '@/lib/promotion-service';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 
 export async function GET(_request: NextRequest) {
   try {
-    await cleanupExpiredPromotions();
     const { searchParams } = new URL(_request.url);
     const sort = searchParams.get('sort');
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
 
     const orderBy: any = [];
-    
-    // Always put promoted first
-    orderBy.push({ promoted: 'desc' });
 
     if (sort === 'popularity') {
       orderBy.push({ favorites: { _count: 'desc' } });
@@ -30,12 +25,6 @@ export async function GET(_request: NextRequest) {
       include: {
         openingHours: true,
         tags: true,
-        promotions: {
-          where: {
-            status: 'ACTIVE',
-            endAt: { gte: new Date() }
-          }
-        },
         _count: {
           select: { events: true, favorites: true }
         }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Heart, Zap } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 import { Event } from '@/types';
 import Link from 'next/link';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
@@ -22,7 +22,6 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
 
   const favoriteCount = event._count?.favorites || 0;
   const isPopular = favoriteCount >= POPULARITY_THRESHOLD;
-  const isPromoted = event.promoted || (event.promotions && event.promotions.some((p: any) => p.status === 'ACTIVE' && new Date(p.endAt) >= new Date()));
   const liveMediaCount = event._count?.liveMedia || 0;
   const isLiveNow = mounted && new Date() >= new Date(event.startDateTime) && new Date() <= new Date(event.endDateTime) && liveMediaCount > 0;
 
@@ -98,11 +97,6 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
              <span className="bg-red-500 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-[0_0_15px_rgba(239,68,68,0.6)] w-fit animate-pulse">
                <div className="w-1.5 h-1.5 rounded-full bg-white animate-ping" /> UŽIVO
              </span>
-          )}
-          {isPromoted && (
-            <span className="bg-primary backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-[0_0_15px_rgba(255,0,128,0.4)] w-fit">
-              <Zap size={10} fill="currentColor" /> ISTAKNUTO
-            </span>
           )}
           <span className="bg-primary/90 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 w-fit">
             {event.category === 'PARTY' ? 'ŽURKA' : 'MUZIKA UŽIVO'}

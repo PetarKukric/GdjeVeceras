@@ -22,22 +22,6 @@ export async function GET() {
           }
         }
       });
-    } else if (session.user.role === 'OWNER') {
-      // Owners see messages for their venues
-      messages = await prisma.message.findMany({
-        where: {
-          venue: {
-            ownerId: session.user.id
-          }
-        },
-        orderBy: { createdAt: 'desc' },
-        include: {
-          venue: true,
-          sender: {
-            select: { name: true, email: true }
-          }
-        }
-      });
     } else {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

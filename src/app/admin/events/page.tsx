@@ -162,7 +162,6 @@ export default function AdminEvents() {
                           </div>
                           <div>
                             <p className="font-bold text-sm text-text line-clamp-1">{event.title}</p>
-                            <p className="text-xs text-muted">{event.featured && '⭐ Featured'} {event.promoted && '🔥 Promoted'}</p>
                           </div>
                         </div>
                       </td>

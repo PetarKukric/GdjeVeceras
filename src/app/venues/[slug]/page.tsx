@@ -26,8 +26,8 @@ import {
   Share2,
   Heart,
   ChevronRight,
-  ExternalLink,
-  Zap} from 'lucide-react';
+  ExternalLink
+} from 'lucide-react';
 
 const Instagram = (props: any) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
@@ -48,7 +48,6 @@ import { CommentSection } from '@/components/comments/CommentSection';
 import { getVenueStatus } from '@/lib/venue-utils';
 import Link from 'next/link';
 import { ShareModal } from '@/components/share/ShareModal';
-import { PromotionModal } from '@/components/share/PromotionModal';
 import { useToast } from '@/components/ui/Toast';
 
 const TAG_ICONS: Record<string, any> = {
@@ -81,7 +80,6 @@ export default function VenuePage() {
   const [activeTab, setActiveTab] = useState('pregled');
   const [isFavorited, setIsFavorited] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [showAllEvents, setShowAllEvents] = useState(false);
   const [showAllGallery, setShowAllGallery] = useState(false);
   const { showToast } = useToast();
@@ -285,12 +283,6 @@ export default function VenuePage() {
                       <Link href={`/admin/venues/${venue.slug}`} className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
                         Uredi profil
                       </Link>
-                      <button 
-                        onClick={() => setIsPromotionModalOpen(true)}
-                        className="px-4 py-2 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 flex items-center gap-1.5"
-                      >
-                         <Zap size={12} fill="currentColor" /> Istakni lokal
-                      </button>
                     </div>
                   )}
                 </div>
@@ -569,14 +561,6 @@ export default function VenuePage() {
             slug: venue.slug,
             imageUrl: venue.imageUrl
           }}
-        />
-
-        <PromotionModal 
-          isOpen={isPromotionModalOpen}
-          onClose={() => setIsPromotionModalOpen(false)}
-          type="VENUE"
-          id={venue.id}
-          title={venue.name}
         />
       </main>
 

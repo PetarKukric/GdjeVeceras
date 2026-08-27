@@ -33,7 +33,6 @@ export async function DELETE(_request: NextRequest) {
       await prisma.eventFavorite.deleteMany({ where: { eventId: event.id } });
       await prisma.comment.deleteMany({ where: { eventId: event.id } });
       await prisma.report.deleteMany({ where: { eventId: event.id } });
-      await prisma.promotion.deleteMany({ where: { eventId: event.id } });
       await prisma.eventLiveMedia.deleteMany({ where: { eventId: event.id } });
       await prisma.event.delete({ where: { id: event.id } });
     }
@@ -48,7 +47,6 @@ export async function DELETE(_request: NextRequest) {
     await prisma.message.deleteMany({ where: { senderUserId: userId } });
     await prisma.notification.deleteMany({ where: { userId } });
     await prisma.eventLiveMedia.deleteMany({ where: { uploadedByUserId: userId } });
-    await prisma.promotion.deleteMany({ where: { ownerId: userId } });
     await prisma.block.deleteMany({ where: { OR: [{ blockerId: userId }, { blockedId: userId }] } });
 
     // Rezervacije korisnika (prvo oslobodi stolove)

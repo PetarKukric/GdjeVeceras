@@ -13,7 +13,6 @@ import {
   Clock,
   Globe,
   MessageSquare,
-  Zap,
   AlertTriangle,
   XCircle
 } from 'lucide-react';
@@ -40,12 +39,11 @@ export function AdminSidebar() {
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: ['ADMIN', 'OWNER'] },
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: ['ADMIN'] },
     { name: 'Događaji', href: '/admin/events', icon: Calendar, roles: ['ADMIN', 'OWNER'] },
-    { name: 'Rezervacije', href: '/admin/reservations', icon: Clock, roles: ['ADMIN', 'OWNER'] },
-    { name: 'Stolovi', href: '/admin/floor-plan', icon: MapPin, roles: ['ADMIN', 'OWNER'] },
-    { name: 'Promocije', href: '/admin/promotions', icon: Zap, roles: ['ADMIN', 'OWNER'] },
-    { name: 'Poruke', href: '/admin/messages', icon: MessageSquare, roles: ['ADMIN', 'OWNER'] },
+    { name: 'Rezervacije', href: '/admin/reservations', icon: Clock, roles: ['ADMIN'] },
+    { name: 'Stolovi', href: '/admin/floor-plan', icon: MapPin, roles: ['ADMIN'] },
+    { name: 'Poruke', href: '/admin/messages', icon: MessageSquare, roles: ['ADMIN'] },
     { name: 'Na čekanju', href: '/admin/events/pending', icon: AlertTriangle, roles: ['ADMIN'] },
     { name: 'Lokali', href: '/admin/venues', icon: Globe, roles: ['ADMIN'] },
     { name: 'Prijave', href: '/admin/reports', icon: Flag, roles: ['ADMIN'] },

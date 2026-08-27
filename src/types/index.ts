@@ -32,11 +32,9 @@ export interface Venue {
   facebookUrl?: string;
   tiktokUrl?: string;
   imageUrl?: string;
-  promoted?: boolean;
   ownerId?: string | null;
   openingHours?: OpeningHour[];
   tags?: VenueTag[];
-  promotions?: any[];
   _count?: {
     events: number;
     comments: number;
@@ -80,9 +78,6 @@ export interface Event {
   dressCodeName?: string;
   dressCodeDescription?: string;
   status: Status;
-  featured: boolean;
-  promoted: boolean;
-  promotions?: any[];
   distance?: number | null;
   recommendationReason?: string;
   _count?: {

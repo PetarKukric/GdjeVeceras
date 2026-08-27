@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AdminHeader } from '@/components/admin/AdminLayout';
 import { 
   Calendar, 
@@ -13,12 +14,23 @@ import {
 import Link from 'next/link';
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchStats() {
+    async function fetchSessionAndStats() {
       try {
+        // Vlasnici (gazde) nemaju pristup dashboardu — samo svojim događajima
+        const sessionRes = await fetch('/api/auth/session');
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          if (sessionData.user?.role === 'OWNER') {
+            router.replace('/admin/events');
+            return;
+          }
+        }
+
         const res = await fetch('/api/admin/stats');
         if (res.ok) {
           const data = await res.json();
@@ -30,7 +42,7 @@ export default function AdminDashboard() {
         setLoading(false);
       }
     }
-    fetchStats();
+    fetchSessionAndStats();
   }, []);
 
   if (loading) return <div className="p-8 text-center animate-pulse">Učitavanje Dashboarda...</div>;

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Heart, ArrowRight, Zap } from 'lucide-react';
+import { Heart, ArrowRight } from 'lucide-react';
 import { Venue } from '@/types';
 import Link from 'next/link';
 import { getVenueStatus } from '@/lib/venue-utils';
@@ -19,7 +19,6 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
 
   const favoriteCount = venue._count?.favorites || 0;
   const isPopular = favoriteCount >= POPULARITY_THRESHOLD;
-  const isPromoted = venue.promoted || (venue.promotions && venue.promotions.some((p: any) => p.status === 'ACTIVE' && new Date(p.endAt) >= new Date()));
 
   useEffect(() => {
     setIsFavorited(isFavoritedInitial);
@@ -45,11 +44,6 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
         
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          {isPromoted && (
-            <span className="bg-primary backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-[0_0_15px_rgba(255,0,128,0.4)] w-fit">
-              <Zap size={10} fill="currentColor" /> ISTAKNUTO
-            </span>
-          )}
           {isPopular && (
             <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 animate-pulse w-fit">
               🔥 POPULARNO

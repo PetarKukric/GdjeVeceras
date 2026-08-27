@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Music, ArrowRight, Calendar, Navigation, Zap, Trophy, Star } from 'lucide-react';
+import { Search, MapPin, Music, ArrowRight, Calendar, Navigation, Trophy } from 'lucide-react';
 import { BottomNav } from '@/components/layout/BottomNav';
 
 const Instagram = (props: any) => (
@@ -157,29 +157,10 @@ export default function Home() {
     return popularVenuesData.filter(v => (v._count?.favorites || 0) >= POPULARITY_THRESHOLD).slice(0, 5);
   }, [popularVenuesData]);
 
-  const promotedVenues = React.useMemo(() => {
-    if (!venuesData) return [];
-    return venuesData.filter(v => v.promoted).slice(0, 5);
-  }, [venuesData]);
-
   const {
     data: weekendData,
     loading: weekendLoading
   } = useEvents({ date: 'weekend', city: selectedCity });
-
-  const {
-    data: promotedEventsData
-  } = useEvents({
-    date: 'upcoming',
-    limit: 4,
-    sort: 'relevance',
-    city: selectedCity
-  });
-
-  const promotedEvents = React.useMemo(() => {
-    if (!promotedEventsData) return [];
-    return promotedEventsData.events.filter(e => e.promoted);
-  }, [promotedEventsData]);
 
   // Mapa: svi nadolazeći događaji izabranog grada (ne samo večerašnji)
   const {
@@ -292,53 +273,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* ISTAKNUTI LOKALI (Promoted Venues) - ON TOP */}
-        {promotedVenues.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-16 animate-fade-up">
-            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                   <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Premium Preporuka</span>
-                </div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-primary"><Star size={32} fill="currentColor" className="animate-spin-slow" /></span> ISTAKNUTI LOKALI
-                </h2>
-                <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60">Najbolje ocijenjeni klubovi i kafići u gradu.</p>
-              </div>
-              <button onClick={() => router.push('/venues')} className="text-primary text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors flex items-center gap-2 group">
-                Svi lokali <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5 px-4">
-               {promotedVenues.map((venue) => (
-                  <VenueCard key={venue.id} venue={venue} isFavoritedInitial={favoriteIds.venues.includes(venue.id)} />
-               ))}
-            </div>
-          </section>
-        )}
-
-        {/* PROMOTED EVENTS SECTION */}
-        {promotedEvents.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
-            <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
-              <div>
-                <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-primary"><Zap size={32} fill="currentColor" className="animate-bounce" /></span> ISTAKNUTI DOGAĐAJI
-                </h2>
-                <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-4">Preporučeni događaji za vas.</p>
-              </div>
-            </div>
-
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 px-4">
-               {promotedEvents.map((event) => (
-                 <EventCard key={event.id} event={event} isFavoritedInitial={favoriteIds.events.includes(event.id)} />
-               ))}
-            </div>
-          </section>
-        )}
 
         {/* PERSONALIZED RECOMMENDATIONS SECTION */}
         {visibleRecommendations.length > 0 && (

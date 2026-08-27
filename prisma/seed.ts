@@ -140,7 +140,6 @@ async function main() {
       price: 10,
       category: Category.PARTY,
       status: Status.PUBLISHED,
-      featured: true,
       imageUrl: '/events/party-1.jpg',
       createdById: admin.id,
     },

@@ -57,7 +57,7 @@ export default function PrivacyPage() {
             <h2 className="text-white font-black uppercase tracking-tight text-lg">5. Usluge trećih strana</h2>
             <p>
               Koristimo sljedeće usluge koje mogu obraditi podatke u naše ime: Vercel (hosting), Turso (baza),
-              Resend (email), PayPal (plaćanja), Google Maps/OpenStreetMap (prikaz mapa).
+              Resend (email), Google Maps/OpenStreetMap (prikaz mapa).
             </p>
           </section>
 

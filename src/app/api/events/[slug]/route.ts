@@ -16,12 +16,6 @@ export async function GET(
           include: {
             openingHours: true,
             tags: true,
-            promotions: {
-              where: {
-                status: 'ACTIVE',
-                endAt: { gte: new Date() }
-              }
-            },
             _count: {
               select: { events: true }
             }
@@ -32,12 +26,6 @@ export async function GET(
             venue: {
               select: { id: true, name: true, city: true, slug: true, address: true, latitude: true, longitude: true, imageUrl: true }
             }
-          }
-        },
-        promotions: {
-          where: {
-            status: 'ACTIVE',
-            endAt: { gte: new Date() }
           }
         },
         _count: {

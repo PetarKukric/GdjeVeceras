@@ -70,10 +70,6 @@ Zapiši `URL` i `token` — trebat će ti za Vercel (Korak 3).
 | `EMAIL_PASS` | API ključ sa Resend-a |
 | `EMAIL_FROM` | `gdjevecerasbusiness@gmail.com` (mora biti verifikovan na Resend-u) |
 | `BLOB_READ_WRITE_TOKEN` | iz Vercel → Storage → Blob (za upload slika) |
-| `PAYPAL_CLIENT_ID` | tvoj PayPal ključ (opciono do live-a) |
-| `PAYPAL_CLIENT_SECRET` | tvoj PayPal secret (opciono) |
-| `PAYPAL_WEBHOOK_ID` | ID webhook-a (korak 5) |
-| `PAYPAL_ENVIRONMENT` | `sandbox` ili `live` |
 
 > ⚠️ **Važno za Gmail:** uključi **2FA (dvofaktorsku autentifikaciju)** na
 > `gdjevecerasbusiness@gmail.com` — na taj email stižu jednokratne admin lozinke.
@@ -140,22 +136,6 @@ Admin: `gdjevecerasbusiness@gmail.com` — prijava preko **jednokratne lozinke n
 3. Gotovo — uploadovi slika (live feed, galerija lokala) idu u Blob
 
 Bez ovoga: upload radi samo lokalno (disk), na Vercelu bi failovao.
-
----
-
-## Korak 5c — PayPal (opciono — za naplatu promocija)
-
-1. Napravi **PayPal Business** nalog: https://business.paypal.com
-2. Idi na https://developer.paypal.com → **Apps & Credentials** → Create App
-3. Kopiraj `Client ID` i `Secret` (sandbox = za test, live = prave uplate)
-4. **Webhooks** → Add Webhook:
-   - URL: `https://tvoj-domen.vercel.app/api/promotions/webhook`
-   - Event: `PAYMENT.CAPTURE.COMPLETED`
-   - Kopiraj `Webhook ID` u env
-5. Za test: sandbox naloge (kupac/prodavac) praviš na developer portalu
-
-> Bez PayPal podataka: promocije rade u **simulator modu** (ništa se ne naplaćuje —
-> dobro za razvoj, NIJE za produkciju sa pravim korisnicima).
 
 ---
 

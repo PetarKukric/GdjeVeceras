@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '4');
 
     if (!session) {
-      // For non-logged in users, we could return featured/popular, 
+      // Za neprijavljene korisnike vraćamo popularne događaje,
       // but the prompt says: "Ako korisnik nije prijavljen: NE prikazuj personalizovanu sekciju"
       // So we'll return an empty list or 401. 
       // Actually, returning empty is better for the UI to just hide the section.

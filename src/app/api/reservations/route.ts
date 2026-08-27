@@ -55,18 +55,8 @@ export async function GET(request: NextRequest) {
     if (eventId) where.eventId = eventId;
     if (venueId) where.venueId = venueId;
 
-    // Owners can only see reservations for their venues
-    if (session.user.role === 'OWNER') {
-        const ownedVenues = await prisma.venue.findMany({
-            where: { ownerId: session.user.id },
-            select: { id: true }
-        });
-        const ownedVenueIds = ownedVenues.map(v => v.id);
-        where.venueId = { in: ownedVenueIds };
-    }
-
     // Obični korisnici vide samo svoje rezervacije
-    if (session.user.role === 'USER') {
+    if (session.user.role !== 'ADMIN') {
         where.userId = session.user.id;
     }
 

@@ -19,12 +19,6 @@ export async function GET(
           orderBy: { createdAt: 'desc' },
           include: { event: { select: { title: true, startDateTime: true } } }
         },
-        promotions: {
-          where: {
-            status: 'ACTIVE',
-            endAt: { gte: new Date() }
-          }
-        },
         openingHours: true,
         tags: true,
         _count: {
@@ -175,8 +169,6 @@ export async function DELETE(
         prisma.eventFloorItem.deleteMany({ where: { eventId: { in: eventIds } } }),
         prisma.eventTableGroup.deleteMany({ where: { eventId: { in: eventIds } } }),
         prisma.reservation.deleteMany({ where: { eventId: { in: eventIds } } }),
-        prisma.promotedEventNotification.deleteMany({ where: { eventId: { in: eventIds } } }),
-        prisma.promotion.deleteMany({ where: { eventId: { in: eventIds } } }),
         
         // Cleanup for venue itself
         prisma.venueFavorite.deleteMany({ where: { venueId: venue.id } }),
@@ -187,7 +179,6 @@ export async function DELETE(
         prisma.venueFloorItem.deleteMany({ where: { venueId: venue.id } }),
         prisma.reservation.deleteMany({ where: { venueId: venue.id } }),
         prisma.comment.deleteMany({ where: { venueId: venue.id } }),
-        prisma.promotion.deleteMany({ where: { venueId: venue.id } }),
 
         // Finally delete events and venue
         prisma.event.deleteMany({ where: { venueId: venue.id } }),
