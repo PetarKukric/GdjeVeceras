@@ -49,6 +49,8 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
     { name: 'Početna', href: '/' },
     { name: 'Događaji', href: '/events' },
     { name: 'Lokali', href: '/venues' },
+    { name: 'Rezervacije', href: '/reservations' },
+    { name: 'Kontakt', href: '/contact' },
   ];
 
   // Robust check to hide public header on admin pages
@@ -67,13 +69,13 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
             />
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 mx-4">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8 mx-4" aria-label="Glavna navigacija">
             {navLinks.map((link) => (
               <Link 
                 key={link.href}
                 href={link.href} 
                 className={`text-sm font-bold transition-all tracking-wide ${
-                  pathname === link.href ? 'text-white nav-link-active' : 'text-muted hover:text-text'
+                  pathname === link.href ? 'text-primary nav-link-active' : 'text-muted hover:text-text'
                 }`}
               >
                 {link.name}
