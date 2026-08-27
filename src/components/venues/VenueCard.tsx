@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Heart, ArrowRight } from 'lucide-react';
+import { Heart, ArrowRight, Flame, MapPin } from 'lucide-react';
 import { Venue } from '@/types';
 import Link from 'next/link';
 import { getVenueStatus } from '@/lib/venue-utils';
@@ -38,7 +38,7 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
           <img src={venue.imageUrl} alt={venue.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-border bg-gradient-to-br from-surface to-card">
-            <span className="text-4xl opacity-10 group-hover:scale-110 transition-transform duration-700">🏢</span>
+            <MapPin size={40} className="opacity-10 group-hover:scale-110 transition-transform duration-700" aria-hidden="true" />
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
@@ -46,7 +46,7 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {isPopular && (
             <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 animate-pulse w-fit">
-              🔥 POPULARNO
+              <Flame size={10} /> POPULARNO
             </span>
           )}
         </div>

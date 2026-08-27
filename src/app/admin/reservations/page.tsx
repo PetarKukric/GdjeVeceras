@@ -113,7 +113,7 @@ export default function AdminReservations() {
            ))}
         </div>
 
-        <div className="bg-card border border-white/5 rounded-[2.5rem] overflow-hidden">
+        <div className="bg-card border border-white/5 rounded-3xl overflow-hidden">
            {/* FILTER BAR */}
            <div className="p-6 border-b border-white/5 bg-surface/50 flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-4">
@@ -271,7 +271,7 @@ export default function AdminReservations() {
                         </button>
                     </div>
 
-                    <div className="flex-grow min-h-0 bg-background/50 rounded-3xl md:rounded-[3rem] border border-white/5 overflow-y-auto shadow-2xl relative">
+                    <div className="flex-grow min-h-0 bg-background/50 rounded-3xl md:rounded-3xl border border-white/5 overflow-y-auto shadow-2xl relative">
                         <FloorPlanEditor 
                             venueSlug={assigningRes.venue.slug} 
                             eventSlug={assigningRes.event.slug} 

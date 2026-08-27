@@ -81,8 +81,8 @@ export default function UserReservations() {
                     const status = getStatusLabel(res.status);
                     const StatusIcon = status.icon;
                     return (
-                        <div key={res.id} className="bg-card border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 flex flex-col md:flex-row items-center gap-5 md:gap-8 group hover:border-primary/20 transition-all shadow-2xl">
-                           <div className="w-full md:w-40 aspect-square rounded-[2rem] overflow-hidden bg-surface shrink-0 relative">
+                        <div key={res.id} className="bg-card border border-white/5 rounded-3xl sm:rounded-3xl p-5 sm:p-8 flex flex-col md:flex-row items-center gap-5 md:gap-8 group hover:border-primary/20 transition-all shadow-2xl">
+                           <div className="w-full md:w-40 aspect-square rounded-3xl overflow-hidden bg-surface shrink-0 relative">
                               <img src={res.event.imageUrl || '/hero-bg.jpg'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                               <div className="absolute inset-0 bg-black/20" />
                            </div>

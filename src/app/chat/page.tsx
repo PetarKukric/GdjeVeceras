@@ -236,7 +236,7 @@ export default function ChatPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md bg-card border border-border rounded-[3rem] p-12 text-center shadow-2xl animate-fade-up">
+        <div className="w-full max-w-md bg-card border border-border rounded-3xl p-12 text-center shadow-2xl animate-fade-up">
           <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-8 text-primary shadow-xl">
             <MessageSquare size={40} />
           </div>
@@ -362,7 +362,7 @@ export default function ChatPage() {
                     )}
                   </div>
                   {conv.unreadCount > 0 && (
-                    <div className="absolute right-6 bottom-6 w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shadow-[0_0_10px_#FF0080]">
+                    <div className="absolute right-6 bottom-6 w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center shadow-[0_0_10px_#FF006E]">
                       {conv.unreadCount}
                     </div>
                   )}
@@ -411,7 +411,7 @@ export default function ChatPage() {
               <div className="flex-grow overflow-y-auto p-8 space-y-6 scrollbar-hide bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-80">
                 {messages.length === 0 ? (
                   <div className="h-full flex items-center justify-center text-center opacity-50">
-                    <div className="bg-surface/50 border border-border/50 p-10 rounded-[3rem] max-w-xs">
+                    <div className="bg-surface/50 border border-border/50 p-10 rounded-3xl max-w-xs">
                        <Info size={32} className="mx-auto mb-6 text-primary" />
                        <p className="text-[10px] font-black uppercase tracking-widest text-white leading-relaxed">Ovdje će biti prikazane vaše poruke. Započnite razgovor.</p>
                     </div>
@@ -502,7 +502,7 @@ export default function ChatPage() {
               <div className="p-3 pb-safe md:p-8 border-t border-border/50 bg-surface/10 backdrop-blur-xl">
                 <form 
                   onSubmit={handleSend}
-                  className="flex gap-4 items-center bg-card border border-border/50 p-2 rounded-[2rem] shadow-2xl focus-within:border-primary/50 transition-all"
+                  className="flex gap-4 items-center bg-card border border-border/50 p-2 rounded-3xl shadow-2xl focus-within:border-primary/50 transition-all"
                 >
                   <input
                     type="text"

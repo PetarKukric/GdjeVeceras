@@ -22,12 +22,12 @@ export function VenueLocation({ venue, hideHeader = false }: { venue: Venue, hid
            <div className="w-8 h-px bg-primary" /> LOKACIJA
         </h2>
       )}
-      <div className={`bg-card border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl ${hideHeader ? 'border-none shadow-none bg-transparent' : ''}`}>
+      <div className={`bg-card border border-border/50 rounded-3xl overflow-hidden shadow-2xl ${hideHeader ? 'border-none shadow-none bg-transparent' : ''}`}>
          <div className="aspect-video bg-surface relative z-0">
             {venue.latitude && venue.longitude ? (
               <VenueMap venue={venue} />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-border text-6xl opacity-10">🗺️</div>
+              <div className="w-full h-full flex items-center justify-center text-border text-xs font-black uppercase tracking-widest opacity-30">Učitavanje mape…</div>
             )}
          </div>
          <div className="p-8">

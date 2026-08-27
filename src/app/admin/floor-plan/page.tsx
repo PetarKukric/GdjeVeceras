@@ -56,7 +56,7 @@ export default function AdminFloorPlan() {
       <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
         
         {venues.length === 0 ? (
-          <div className="bg-card border border-border rounded-[2.5rem] p-20 text-center space-y-4">
+          <div className="bg-card border border-border rounded-3xl p-20 text-center space-y-4">
              <MapPin size={48} className="mx-auto text-muted opacity-20" />
              <h3 className="text-xl font-black uppercase tracking-tight">Nemate dodijeljenih lokala</h3>
              <p className="text-muted text-xs font-bold uppercase tracking-widest">Samo vlasnici lokala mogu upravljati rasporedom stolova.</p>
@@ -141,7 +141,7 @@ export default function AdminFloorPlan() {
                   {tab === 'DEFAULT' && selectedVenue && (
                       <div className="space-y-4 animate-in fade-in duration-500">
                          <div className="flex items-center gap-3 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_8px_#7C3AED]" />
+                            <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_8px_#F5C518]" />
                             <h3 className="text-lg font-black uppercase tracking-tight">Uređivanje osnovnog plana: {selectedVenue.name}</h3>
                          </div>
                          <ClientOnly>
@@ -152,7 +152,7 @@ export default function AdminFloorPlan() {
                   {tab === 'EVENT' && selectedVenue && (
                       <div className="space-y-4 animate-in fade-in duration-500">
                          {!selectedEvent ? (
-                            <div className="bg-card/50 border border-white/5 rounded-[2.5rem] p-40 text-center flex flex-col items-center justify-center gap-6">
+                            <div className="bg-card/50 border border-white/5 rounded-3xl p-40 text-center flex flex-col items-center justify-center gap-6">
                                <Calendar size={48} className="text-muted opacity-10" />
                                <p className="text-muted text-xs font-bold uppercase tracking-widest">Izaberi događaj sa liste da urediš raspored za to veče.</p>
                             </div>
@@ -160,7 +160,7 @@ export default function AdminFloorPlan() {
                             <>
                                <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-3">
-                                     <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_8px_#FF0080]" />
+                                     <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_8px_#FF006E]" />
                                      <h3 className="text-lg font-black uppercase tracking-tight">{selectedEvent.title} @ {selectedVenue.name}</h3>
                                   </div>
                                   <div className="px-4 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full text-[10px] font-black text-pink-500 uppercase tracking-[0.2em]">

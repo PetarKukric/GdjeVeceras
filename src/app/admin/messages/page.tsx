@@ -47,7 +47,7 @@ export default function AdminMessages() {
             {[1, 2, 3].map(i => <div key={i} className="h-24 bg-card border border-border rounded-2xl animate-pulse" />)}
           </div>
         ) : messages.length === 0 ? (
-          <div className="bg-card border border-border rounded-[3rem] p-16 text-center shadow-xl">
+          <div className="bg-card border border-border rounded-3xl p-16 text-center shadow-xl">
              <div className="text-4xl mb-6">📩</div>
              <h3 className="text-xl font-bold uppercase tracking-tight">Nema poruka</h3>
              <p className="text-muted mt-2 font-medium">Trenutno nemate novih upita od korisnika.</p>
@@ -58,7 +58,7 @@ export default function AdminMessages() {
               <Link 
                 key={m.id} 
                 href={`/admin/messages/${m.id}`}
-                className={`bg-card border ${!m.isRead ? 'border-primary/50 bg-primary/5 shadow-[0_0_20px_rgba(255,0,128,0.1)]' : 'border-border'} rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 items-start md:items-center hover:border-primary/50 transition-all group`}
+                className={`bg-card border ${!m.isRead ? 'border-primary/50 bg-primary/5 shadow-[0_0_20px_rgba(255,0,110,0.1)]' : 'border-border'} rounded-3xl p-6 flex flex-col md:flex-row gap-6 items-start md:items-center hover:border-primary/50 transition-all group`}
               >
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${!m.isRead ? 'bg-primary text-white' : 'bg-surface text-muted'}`}>
                   <MessageSquare size={24} />

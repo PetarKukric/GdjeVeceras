@@ -102,7 +102,7 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
           
           {/* Contact Form */}
-          <div className="bg-surface/50 border border-border/50 p-5 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-2xl relative overflow-hidden">
+          <div className="bg-surface/50 border border-border/50 p-5 sm:p-10 rounded-3xl sm:rounded-3xl shadow-2xl relative overflow-hidden">
             <h2 className="text-2xl font-black uppercase mb-8 tracking-tight">Pošaljite poruku</h2>
             
             {error && (

@@ -193,7 +193,7 @@ export function VenueGallery({ venueId, ownerId, images, currentUser, onRefresh,
       )}
 
       {images.length === 0 ? (
-        <div className="bg-surface/30 border border-dashed border-border/50 rounded-[2.5rem] p-16 text-center">
+        <div className="bg-surface/30 border border-dashed border-border/50 rounded-3xl p-16 text-center">
            <ImageIcon size={48} className="mx-auto mb-6 text-muted opacity-20" />
            <p className="text-muted text-sm font-medium uppercase tracking-widest">
              {isOwner ? 'Još nemaš fotografija ovog lokala.' : 'Galerija još nema fotografija.'}
@@ -206,7 +206,7 @@ export function VenueGallery({ venueId, ownerId, images, currentUser, onRefresh,
             return (
               <div 
                 key={image.id} 
-                className="aspect-square relative group rounded-[2rem] overflow-hidden cursor-pointer shadow-xl border border-white/5"
+                className="aspect-square relative group rounded-3xl overflow-hidden cursor-pointer shadow-xl border border-white/5"
                 onClick={() => openLightbox(originalIndex)}
               >
                 <img 

@@ -68,7 +68,7 @@ export default function HowItWorks() {
           {steps.map((step, i) => (
             <div 
               key={i} 
-              className="bg-surface/50 border border-border/50 p-10 rounded-[3rem] hover:border-primary/30 transition-all group hover:-translate-y-2 duration-300"
+              className="bg-surface/50 border border-border/50 p-10 rounded-3xl hover:border-primary/30 transition-all group hover:-translate-y-2 duration-300"
               style={{ animationDelay: `${i * 100}ms` }}
             >
               <div className={`w-16 h-16 rounded-2xl bg-card border border-border/50 flex items-center justify-center ${step.color} shadow-2xl mb-8 group-hover:scale-110 transition-transform`}>
@@ -83,7 +83,7 @@ export default function HowItWorks() {
         </div>
 
         {/* Info Section for Owners */}
-        <section className="bg-primary/5 border border-primary/20 rounded-[3rem] p-12 md:p-16 relative overflow-hidden">
+        <section className="bg-primary/5 border border-primary/20 rounded-3xl p-12 md:p-16 relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-6 flex items-center gap-4">
               <Disc className="text-primary animate-spin-slow" size={32} /> Posjedujete lokal?

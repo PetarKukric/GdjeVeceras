@@ -33,7 +33,7 @@ Ovaj sajt ima svoj dizajn sistem → **docs/DESIGN-SYSTEM.md** + AI skill
 Zlatno pravilo:
 
 > 21st MCP služi za **strukturu i inspiraciju** (layout, animacije, pattern).
-> Boje, fontovi i komponentni recepti ostaju NAŠI (roza #FF0080, tamna tema,
+> Boje, fontovi i komponentni recepti ostaju NAŠI (roza #FF006E, tamna tema,
 > tokeni iz skill-a).
 
 Primjeri dobrih prompta:

@@ -84,7 +84,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
       className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-card border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-lg max-h-[calc(100dvh-32px)] overflow-y-auto scrollbar-hide shadow-2xl animate-in zoom-in-95 duration-300">
+      <div className="bg-card border border-white/10 rounded-3xl sm:rounded-3xl w-full max-w-lg max-h-[calc(100dvh-32px)] overflow-y-auto scrollbar-hide shadow-2xl animate-in zoom-in-95 duration-300">
         
         {/* HEADER */}
         <div className="p-5 sm:p-8 border-b border-white/5 bg-surface/50 flex items-center justify-between">

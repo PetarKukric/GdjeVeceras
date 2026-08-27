@@ -150,7 +150,7 @@ export function AdminHeader({ title }: { title: string }) {
   return (
     <header className="h-20 border-b border-border/50 bg-background/50 backdrop-blur-md flex items-center justify-between px-4 md:px-10 sticky top-0 z-[100] shadow-xl">
       <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-         <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_10px_rgba(255,0,128,0.5)] shrink-0" />
+         <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_10px_rgba(255,0,110,0.5)] shrink-0" />
          <h1 className="text-sm md:text-lg font-black text-white uppercase tracking-tighter truncate">{title}</h1>
       </div>
       <div className="flex items-center gap-2 md:gap-6 shrink-0">

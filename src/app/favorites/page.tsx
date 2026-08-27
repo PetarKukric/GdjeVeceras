@@ -90,7 +90,7 @@ export default function FavoritesPage() {
         {loading ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => (
-              <div key={i} className="h-80 bg-surface border border-border/50 rounded-[2.5rem] animate-pulse" />
+              <div key={i} className="h-80 bg-surface border border-border/50 rounded-3xl animate-pulse" />
             ))}
           </div>
         ) : activeTab === 'events' ? (

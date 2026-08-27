@@ -21,7 +21,7 @@ export default function AboutPage() {
         </header>
 
         <div className="grid gap-8 md:grid-cols-2">
-           <div className="bg-card/50 border border-white/5 p-10 rounded-[3rem] space-y-6 shadow-2xl relative overflow-hidden group">
+           <div className="bg-card/50 border border-white/5 p-10 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full group-hover:bg-primary/10 transition-all" />
               <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4">
                  <Target size={28} />
@@ -32,7 +32,7 @@ export default function AboutPage() {
               </p>
            </div>
 
-           <div className="bg-card/50 border border-white/5 p-10 rounded-[3rem] space-y-6 shadow-2xl relative overflow-hidden group">
+           <div className="bg-card/50 border border-white/5 p-10 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full group-hover:bg-accent/10 transition-all" />
               <div className="w-14 h-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent mb-4">
                  <Users size={28} />
@@ -45,7 +45,7 @@ export default function AboutPage() {
         </div>
 
         <section className="bg-surface/50 border border-white/5 rounded-[4rem] p-12 md:p-20 text-center space-y-10 relative overflow-hidden">
-           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,0,128,0.03)_0%,transparent_70%)]" />
+           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,0,110,0.03)_0%,transparent_70%)]" />
            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter relative z-10">Zašto izabrati nas?</h2>
            <div className="grid gap-12 md:grid-cols-3 relative z-10">
               <div className="space-y-4">

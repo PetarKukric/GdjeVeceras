@@ -14,7 +14,7 @@ import {
 // Lokalna divIcon ikonica — ne zavisi od CDN-a (radi i offline)
 const icon = L.divIcon({
   className: 'custom-div-icon',
-  html: `<div style="background-color: #FF0080; width: 14px; height: 14px; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px #FF0080;"></div>`,
+  html: `<div style="background-color: #FF006E; width: 14px; height: 14px; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px #FF006E;"></div>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
@@ -33,7 +33,7 @@ export default function VenueMap({ venue }: VenueMapProps) {
       <MapContainer 
         center={position} 
         zoom={16} 
-        style={{ height: '100%', width: '100%', background: '#020106' }}
+        style={{ height: '100%', width: '100%', background: '#050505' }}
         scrollWheelZoom={false}
       >
         <TileLayer
@@ -55,9 +55,9 @@ export default function VenueMap({ venue }: VenueMapProps) {
 
       <style jsx global>{`
         .leaflet-popup-content-wrapper {
-          background: #0F0E17 !important;
+          background: #18181D !important;
           color: #FFFFFF !important;
-          border: 1px solid #1E1E2E;
+          border: 1px solid #232329;
           border-radius: 1rem !important;
           padding: 0 !important;
         }
@@ -65,8 +65,8 @@ export default function VenueMap({ venue }: VenueMapProps) {
           margin: 0 !important;
         }
         .leaflet-popup-tip {
-          background: #0F0E17 !important;
-          border: 1px solid #1E1E2E;
+          background: #18181D !important;
+          border: 1px solid #232329;
         }
       `}</style>
     </div>

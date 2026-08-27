@@ -123,7 +123,7 @@ export function NotificationBell({ user }: { user: any }) {
                       </div>
                     </div>
                     {!n.isRead && (
-                      <div className="w-2 h-2 rounded-full bg-primary mt-1 shrink-0 shadow-[0_0_8px_#FF0080]" />
+                      <div className="w-2 h-2 rounded-full bg-primary mt-1 shrink-0 shadow-[0_0_8px_#FF006E]" />
                     )}
                   </Link>
                 );

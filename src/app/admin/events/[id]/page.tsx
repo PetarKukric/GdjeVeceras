@@ -157,7 +157,7 @@ export default function EditEvent() {
           <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
             <ArrowLeft size={16} /> Nazad na listu
           </Link>
-          <div className="bg-card border border-white/5 rounded-[2rem] p-12 text-center space-y-6">
+          <div className="bg-card border border-white/5 rounded-3xl p-12 text-center space-y-6">
             <div className="w-16 h-16 rounded-full bg-gray-500/10 border border-gray-500/20 flex items-center justify-center text-gray-400 mx-auto">
               <Clock size={28} />
             </div>

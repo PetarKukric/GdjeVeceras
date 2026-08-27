@@ -110,7 +110,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
       </div>
 
       {isOpen && (
-        <div className="bg-card/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 sm:p-10 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden relative">
+        <div className="bg-card/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="flex justify-between items-center mb-10 relative z-10">
             <h3 className="font-black uppercase tracking-widest text-sm flex items-center gap-2">

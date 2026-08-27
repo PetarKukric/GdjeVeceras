@@ -8,7 +8,7 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function EventCardSkeleton() {
   return (
-    <div className="bg-card border border-white/5 rounded-[2rem] overflow-hidden shadow-xl">
+    <div className="bg-card border border-white/5 rounded-3xl overflow-hidden shadow-xl">
       <Skeleton className="aspect-[16/10] w-full" />
       <div className="p-6 space-y-4">
         <Skeleton className="h-4 w-1/4 bg-primary/20" />
@@ -25,7 +25,7 @@ export function EventCardSkeleton() {
 
 export function VenueCardSkeleton() {
   return (
-    <div className="bg-card border border-white/5 rounded-[2rem] overflow-hidden shadow-xl">
+    <div className="bg-card border border-white/5 rounded-3xl overflow-hidden shadow-xl">
       <Skeleton className="aspect-[1.8/1] w-full" />
       <div className="p-6 space-y-4">
         <Skeleton className="h-6 w-2/3" />

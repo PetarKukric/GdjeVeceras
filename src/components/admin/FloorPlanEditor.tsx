@@ -449,7 +449,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
             <button 
               onClick={saveLayout}
               disabled={saving}
-              className="md:hidden w-full justify-center py-3.5 bg-primary text-white text-[11px] font-black rounded-xl uppercase tracking-widest shadow-[0_0_18px_rgba(255,0,128,0.45)] hover:bg-primary-hover transition-all flex items-center gap-2 disabled:opacity-50"
+              className="md:hidden w-full justify-center py-3.5 bg-primary text-white text-[11px] font-black rounded-xl uppercase tracking-widest shadow-[0_0_18px_rgba(255,0,110,0.45)] hover:bg-primary-hover transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} SAČUVAJ
             </button>
@@ -493,7 +493,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
               <button 
                 onClick={saveLayout}
                 disabled={saving}
-                className="whitespace-nowrap px-6 py-2.5 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-[0_0_18px_rgba(255,0,128,0.45)] hover:bg-primary-hover transition-all flex items-center gap-2 disabled:opacity-50"
+                className="whitespace-nowrap px-6 py-2.5 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-[0_0_18px_rgba(255,0,110,0.45)] hover:bg-primary-hover transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} SAČUVAJ
               </button>
@@ -543,7 +543,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                     const isSelected = selectedIds.includes(item.id);
                     const isGrouped = !!item.groupId;
                     let bgColor = 'bg-surface/80';
-                    let borderColor = isSelected ? 'border-primary shadow-[0_0_15px_rgba(255,0,128,0.3)]' : 'border-white/10';
+                    let borderColor = isSelected ? 'border-primary shadow-[0_0_15px_rgba(255,0,110,0.3)]' : 'border-white/10';
                     
                     if (item.type === 'STAGE') bgColor = 'bg-purple-900/40';
                     if (item.type === 'BAR') bgColor = 'bg-blue-900/40';
@@ -551,7 +551,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                     if (mode === 'EVENT') {
                         if (item.status === 'RESERVED') borderColor = 'border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]';
                         if (item.status === 'OCCUPIED') borderColor = 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]';
-                        if (item.status === 'AVAILABLE') borderColor = isSelected ? 'border-primary shadow-[0_0_15px_rgba(255,0,128,0.4)]' : 'border-green-500/30';
+                        if (item.status === 'AVAILABLE') borderColor = isSelected ? 'border-primary shadow-[0_0_15px_rgba(255,0,110,0.4)]' : 'border-green-500/30';
                     }
 
                     return (

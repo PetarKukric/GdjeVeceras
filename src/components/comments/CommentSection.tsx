@@ -151,7 +151,7 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
       </div>
 
       {/* Comment Input */}
-      <div className="bg-surface/50 border border-border/50 p-8 rounded-[2.5rem] shadow-xl">
+      <div className="bg-surface/50 border border-border/50 p-8 rounded-3xl shadow-xl">
         {currentUser ? (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex items-start gap-4">
@@ -221,7 +221,7 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
               {comments.map((comment) => (
                 <div 
                   key={comment.id}
-                  className="bg-card/40 backdrop-blur-sm border border-white/5 p-8 rounded-[2.5rem] hover:border-primary/20 transition-all group shadow-xl"
+                  className="bg-card/40 backdrop-blur-sm border border-white/5 p-8 rounded-3xl hover:border-primary/20 transition-all group shadow-xl"
                 >
                   <div className="flex justify-between items-start mb-8">
                     <div className="flex items-center gap-4">

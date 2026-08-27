@@ -78,7 +78,7 @@ export default function Signup() {
   if (success) {
     return (
       <div className="min-h-screen bg-background text-text flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-card border border-border rounded-[2.5rem] p-12 text-center shadow-2xl animate-fade-up">
+        <div className="w-full max-w-md bg-card border border-border rounded-3xl p-12 text-center shadow-2xl animate-fade-up">
           <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-8 text-primary shadow-xl">
             <Mail size={40} />
           </div>

@@ -12,14 +12,16 @@ description: "Dizajn sistem i UI/UX pravila za Gdje Večeras (nightlife PWA). Ko
 
 | Token | Vrijednost | Namjena |
 |---|---|---|
-| `background` | `#020106` | pozadina stranice (skoro crna) |
-| `surface` | tamnija površina | kartice, polja |
-| `card` | tamna površina | paneli, modali |
-| `primary` | `#FF0080` (roza) | CTA, akcenti, aktivna stanja |
-| `primary-hover` | svjetlija roza | hover CTA |
-| `accent` | žarka | "POPULARNO" bedževi |
-| `text` | bijela | glavni tekst |
-| `muted` | siva | sekundarni tekst (kontrast ≥ 4.5:1 na dark površinama!) |
+| `background` | `#050505` | pozadina stranice (skoro crna) |
+| `elevated` | `#0D0D0F` | izdignute površine |
+| `surface` | `#121216` | kartice, polja |
+| `card` | `#18181D` | paneli, modali |
+| `primary` | `#FF006E` (roza) | CTA, akcenti, aktivna stanja |
+| `primary-hover` | `#FF2D86` | hover CTA |
+| `accent` | `#F5C518` | "POPULARNO" bedževi |
+| `text` | `#FFFFFF` | glavni tekst |
+| `muted` | `#A7A7B0` | sekundarni tekst (kontrast ≥ 4.5:1 na dark površinama!) |
+| `border` | `#232329` | obrubi i razdjelnici |
 
 ## Prioritetna lista pravila (redoslijed važnosti)
 
@@ -70,7 +72,7 @@ description: "Dizajn sistem i UI/UX pravila za Gdje Večeras (nightlife PWA). Ko
 ## Anti-patterns (NIKAD)
 - ❌ `text-[8px]` / `text-[9px]` — premalo za čitanje
 - ❌ Icon-only `<button>` bez `aria-label`
-- ❌ Raw hex boje u komponentama (`#FF0080` → koristi `text-primary`)
+- ❌ Raw hex boje u komponentama (`#FF006E` → koristi `text-primary`)
 - ❌ Emoji kao ikone u navigaciji/dugmadima
 - ❌ `outline: none` / skrivanje focus ringova
 - ❌ Dugmad manja od 44px bez proširene hit površine
@@ -91,7 +93,7 @@ description: "Dizajn sistem i UI/UX pravila za Gdje Večeras (nightlife PWA). Ko
 Ako je dostupan 21st MCP server (vidi `docs/MCP-21ST.md`):
 - Koristi `search`/`get_inspiration` za STRUKTURU i animacijske pattern-e
 - Nakon preuzimanja/generisanja komponente, **obavezno je prestilizuj**
-  na naše tokene (primary #FF0080, bg-card, border-white/5, uppercase
+  na naše tokene (primary #FF006E, bg-card, border-white/5, uppercase
   naslovi, min 10px font) — nikad ne ostavljaj default plavo/shadcn stil
 - Nepoznate pakete koje komponenta zahtijeva (framer-motion i sl.)
   prvo provjeri u package.json pa instaliraj

@@ -133,7 +133,7 @@ export default function SettingsPage() {
         </div>
 
         <ClientOnly>
-          <div className="bg-card border border-white/5 rounded-[2rem] p-8 space-y-6">
+          <div className="bg-card border border-white/5 rounded-3xl p-8 space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-sm font-black uppercase">
                 {user.name?.substring(0, 2) || '??'}
@@ -163,7 +163,7 @@ export default function SettingsPage() {
 
         {/* PROMJENA LOZINKE */}
         {user.role !== 'ADMIN' && (
-          <div className="bg-card border border-white/5 rounded-[2rem] p-8 space-y-6">
+          <div className="bg-card border border-white/5 rounded-3xl p-8 space-y-6">
             <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
               <KeyRound size={16} className="text-primary" /> Promijeni lozinku
             </h3>
@@ -233,7 +233,7 @@ export default function SettingsPage() {
         )}
 
         {/* OPASNA ZONA */}
-        <div className="bg-card border border-red-500/20 rounded-[2rem] p-8 space-y-4">
+        <div className="bg-card border border-red-500/20 rounded-3xl p-8 space-y-4">
           <h3 className="text-sm font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
             <AlertTriangle size={16} /> Opasna zona
           </h3>

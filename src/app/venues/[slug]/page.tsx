@@ -182,7 +182,7 @@ export default function VenuePage() {
           <div className="lg:col-span-8 space-y-8">
             
             {/* HERO SECTION */}
-            <section className="relative w-full aspect-[21/9] min-h-[300px] rounded-[3rem] overflow-hidden bg-card border border-white/5 shadow-2xl group">
+            <section className="relative w-full aspect-[21/9] min-h-[300px] rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group">
               {venue.imageUrl ? (
                 <img 
                   src={venue.imageUrl} 
@@ -190,12 +190,12 @@ export default function VenuePage() {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
-                <div className="w-full h-full bg-surface flex items-center justify-center text-border text-8xl opacity-10">
-                  🏢
+                <div className="w-full h-full bg-surface flex items-center justify-center text-border opacity-10" aria-hidden="true">
+                  <MapPin size={72} />
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,128,0.1),transparent_50%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,110,0.1),transparent_50%)]" />
               
               {/* Top Right Actions */}
               <div className="absolute top-6 right-6 flex gap-3">
@@ -222,7 +222,7 @@ export default function VenuePage() {
               
               <div className="absolute bottom-8 left-8 flex items-end gap-6">
                 <div className="w-24 h-24 rounded-3xl bg-card border-4 border-background shadow-2xl flex items-center justify-center text-4xl shrink-0 overflow-hidden">
-                   {venue.imageUrl ? <img src={venue.imageUrl} alt="" className="w-full h-full object-cover" /> : '🏢'}
+                   {venue.imageUrl ? <img src={venue.imageUrl} alt={venue.name} className="w-full h-full object-cover" /> : <MapPin size={36} className="opacity-20" aria-hidden="true" />}
                 </div>
                 <div className="flex-grow pb-2">
                   <div className="flex items-center gap-2 mb-2">
@@ -264,7 +264,7 @@ export default function VenuePage() {
                    className={`text-[10px] font-black uppercase tracking-[0.2em] pb-4 transition-all relative shrink-0 ${activeTab === tab.id ? 'text-primary' : 'text-muted hover:text-white'}`}
                  >
                    {tab.label} {tab.id === 'komentari' && `(${venue._count?.comments || 0})`}
-                   {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-4px_10px_rgba(255,0,128,0.5)]" />}
+                   {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-4px_10px_rgba(255,0,110,0.5)]" />}
                  </button>
                ))}
             </div>
@@ -273,7 +273,7 @@ export default function VenuePage() {
             <div className="space-y-12 py-4">
               
               {/* O LOKALU SECTION */}
-              <section id="pregled" className="space-y-8 text-left bg-card/30 border border-white/5 p-10 rounded-[2.5rem] shadow-xl">
+              <section id="pregled" className="space-y-8 text-left bg-card/30 border border-white/5 p-10 rounded-3xl shadow-xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-primary flex items-center gap-3">
                      <div className="w-8 h-px bg-primary" /> O LOKALU
@@ -312,7 +312,7 @@ export default function VenuePage() {
               </section>
 
               {/* GALERIJA SECTION */}
-              <section id="galerija" className="space-y-8 bg-card/20 border border-white/5 p-10 rounded-[2.5rem] shadow-xl">
+              <section id="galerija" className="space-y-8 bg-card/20 border border-white/5 p-10 rounded-3xl shadow-xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-primary flex items-center gap-3">
                      <div className="w-8 h-px bg-primary" /> GALERIJA
@@ -339,7 +339,7 @@ export default function VenuePage() {
               </section>
 
               {/* DOGAĐAJI SECTION */}
-              <section id="dogadjaji" className="space-y-8 bg-card/20 border border-white/5 p-10 rounded-[2.5rem] shadow-xl">
+              <section id="dogadjaji" className="space-y-8 bg-card/20 border border-white/5 p-10 rounded-3xl shadow-xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-primary flex items-center gap-3">
                      <div className="w-8 h-px bg-primary" /> NADOLAZEĆI DOGAĐAJI
@@ -359,7 +359,7 @@ export default function VenuePage() {
                 </div>
 
                 {upcomingEvents.length === 0 ? (
-                  <div className="bg-surface/30 border border-white/5 rounded-[3rem] p-20 text-center">
+                  <div className="bg-surface/30 border border-white/5 rounded-3xl p-20 text-center">
                     <div className="w-20 h-20 bg-card rounded-3xl flex items-center justify-center mx-auto mb-8 text-4xl opacity-10">🌙</div>
                     <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tight">Trenutno nema događaja</h3>
                     <p className="text-muted text-[10px] font-bold uppercase tracking-widest max-w-sm mx-auto opacity-40">
@@ -376,7 +376,7 @@ export default function VenuePage() {
               </section>
 
               {/* KOMENTARI SECTION */}
-              <section id="komentari" className="space-y-8 bg-card/20 border border-white/5 p-10 rounded-[2.5rem] shadow-xl">
+              <section id="komentari" className="space-y-8 bg-card/20 border border-white/5 p-10 rounded-3xl shadow-xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-primary flex items-center gap-3">
                      <div className="w-8 h-px bg-primary" /> KOMENTARI ({venue._count?.comments || 0})
@@ -395,7 +395,7 @@ export default function VenuePage() {
           <aside className="lg:col-span-4 space-y-8">
             
             {/* STATUS CARD */}
-            <div id="informacije" className="bg-card border border-white/5 rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group">
+            <div id="informacije" className="bg-card border border-white/5 rounded-3xl p-8 shadow-2xl space-y-8 relative overflow-hidden group">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
                
                <div className="space-y-6">
@@ -468,7 +468,7 @@ export default function VenuePage() {
             </div>
 
             {/* RADNO VRIJEME CARD */}
-            <div className="bg-card border border-white/5 rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group">
+            <div className="bg-card border border-white/5 rounded-3xl p-8 shadow-2xl space-y-8 relative overflow-hidden group">
                <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-lg shadow-primary/5">
                      <Clock size={20} />
@@ -499,7 +499,7 @@ export default function VenuePage() {
             </div>
 
             {/* LOKACIJA CARD */}
-            <div className="bg-card border border-white/5 rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group text-left">
+            <div className="bg-card border border-white/5 rounded-3xl p-8 shadow-2xl space-y-8 relative overflow-hidden group text-left">
                <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-lg shadow-primary/5">
                      <MapPin size={20} />
@@ -513,7 +513,7 @@ export default function VenuePage() {
                     <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">{venue.city}, BiH</p>
                   </div>
                   
-                  <div className="aspect-square rounded-[2rem] overflow-hidden border border-white/5 shadow-inner">
+                  <div className="aspect-square rounded-3xl overflow-hidden border border-white/5 shadow-inner">
                      <div className="h-full w-full filter brightness-75 grayscale-[0.3] contrast-125">
                         <VenueLocation venue={venue} hideHeader={true} />
                      </div>
@@ -531,7 +531,7 @@ export default function VenuePage() {
 
             {/* POGODNOSTI CARD (Popuralni Tagovi in image) */}
             {venue.tags && venue.tags.length > 0 && (
-              <div className="bg-card border border-white/5 rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group text-left">
+              <div className="bg-card border border-white/5 rounded-3xl p-8 shadow-2xl space-y-8 relative overflow-hidden group text-left">
                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-lg shadow-primary/5">
                        <Heart size={20} />

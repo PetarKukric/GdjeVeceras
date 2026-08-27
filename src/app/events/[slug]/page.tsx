@@ -32,7 +32,8 @@ import {
   Shirt,
   Beer,
   Tag as TagIcon,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import {} from '@/lib/services';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -215,7 +216,7 @@ export default function EventPage() {
           <div className="lg:col-span-8 space-y-10 md:space-y-8">
             
             {/* HERO CARD */}
-            <div className="relative rounded-[2rem] sm:rounded-[3rem] overflow-hidden bg-card border border-white/5 shadow-2xl group">
+            <div className="relative rounded-3xl sm:rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group">
               <div className="aspect-[16/9] sm:aspect-[21/9] relative">
                 {event.imageUrl ? (
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -225,7 +226,7 @@ export default function EventPage() {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,128,0.1),transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,110,0.1),transparent_50%)]" />
                 
                 {/* Badge Top Left */}
                 <div className="absolute top-6 left-6">
@@ -298,7 +299,7 @@ export default function EventPage() {
                    className={`text-[10px] font-black uppercase tracking-[0.2em] pb-4 transition-all relative shrink-0 ${activeTab === tab.id ? 'text-primary' : 'text-muted hover:text-white'}`}
                  >
                    {tab.label} {tab.id === 'komentari' && `(${event._count?.comments || 0})`}
-                   {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-4px_10px_rgba(255,0,128,0.5)]" />}
+                   {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-4px_10px_rgba(255,0,110,0.5)]" />}
                  </button>
                ))}
             </div>
@@ -309,7 +310,7 @@ export default function EventPage() {
               {/* O DOGAĐAJU */}
               <section id="detalji" className="space-y-8 text-left">
                 <div className="flex items-center gap-3">
-                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,128,0.8)]" />
+                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
                    <h2 className="text-2xl font-black uppercase tracking-tight">O događaju</h2>
                 </div>
                 
@@ -387,7 +388,7 @@ export default function EventPage() {
               </section>
 
               {/* LIVE FEED SECTION */}
-              <section id="live-feed" className="bg-card/20 border border-white/5 p-10 rounded-[2.5rem] shadow-xl">
+              <section id="live-feed" className="bg-card/20 border border-white/5 p-10 rounded-3xl shadow-xl">
                  <LiveFeed 
                     eventSlug={slug} 
                     isOwner={isOwner} 
@@ -398,7 +399,7 @@ export default function EventPage() {
               {/* ORGANIZATOR */}
               <section id="organizator" className="space-y-8 text-left">
                 <div className="flex items-center gap-3">
-                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,128,0.8)]" />
+                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
                    <h2 className="text-2xl font-black uppercase tracking-tight">Organizator</h2>
                 </div>
                 
@@ -451,7 +452,7 @@ export default function EventPage() {
               {/* O LOKALU */}
               <section className="space-y-8 text-left">
                 <div className="flex items-center gap-3">
-                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,128,0.8)]" />
+                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
                    <h2 className="text-2xl font-black uppercase tracking-tight">O lokalu</h2>
                 </div>
                 
@@ -498,7 +499,7 @@ export default function EventPage() {
           <aside className="lg:col-span-4 space-y-10 md:space-y-8">
             
             {/* INFO CARD */}
-            <div className="bg-card border border-white/5 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
+            <div className="bg-card border border-white/5 rounded-3xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6 sm:space-y-8 relative overflow-hidden group">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
                
                <h3 className="text-xl font-black uppercase tracking-tight text-white flex items-center gap-3">
@@ -621,7 +622,7 @@ export default function EventPage() {
                     </Link>
                   )}
                   {event.ticketUrl && (
-                    <a href={event.ticketUrl} target="_blank" className="w-full py-5 bg-primary text-white font-black rounded-[1.25rem] flex items-center justify-center gap-3 hover:bg-primary-hover shadow-xl shadow-primary/20 uppercase tracking-[0.2em] text-[10px] animate-pulse">
+                    <a href={event.ticketUrl} target="_blank" className="w-full py-5 bg-primary text-white font-black rounded-[1.25rem] flex items-center justify-center gap-3 hover:bg-primary-hover transition-colors shadow-xl shadow-primary/20 uppercase tracking-[0.2em] text-[10px]">
                        <Ticket size={18} /> KUPI KARTU
                     </a>
                   )}
@@ -629,7 +630,7 @@ export default function EventPage() {
             </div>
 
             {/* SMALL MAP CARD */}
-            <div id="lokacija" className="bg-card border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl text-left">
+            <div id="lokacija" className="bg-card border border-white/5 rounded-3xl overflow-hidden shadow-2xl text-left">
                <div className="p-8">
                   <h3 className="text-xl font-black uppercase tracking-tight text-white mb-6">
                      Lokacija na mapi
@@ -674,7 +675,7 @@ export default function EventPage() {
                           <h4 className="text-xs font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{e.title}</h4>
                           <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5 line-clamp-1">{e.venue.name}</p>
                           {e.recommendationReason && (
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.1em] mt-1 animate-pulse">✨ {e.recommendationReason}</p>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.1em] mt-1"><Sparkles size={10} className="inline mr-1 -mt-0.5" /> {e.recommendationReason}</p>
                           )}
                           <div className="flex items-center justify-between mt-2">
                              <div className="flex items-center gap-1.5 text-[10px] font-black text-white uppercase">
@@ -704,7 +705,7 @@ export default function EventPage() {
         {/* REPORT MODAL (PRESERVED) */}
         {isReporting && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[1000] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-card border border-white/10 rounded-[2.5rem] p-10 max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
+            <div className="bg-card border border-white/10 rounded-3xl p-10 max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
               <div className="flex items-center gap-4 mb-8">
                  <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
                     <AlertTriangle size={24} />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Music, ArrowRight, Calendar, Navigation, Trophy } from 'lucide-react';
+import { Search, MapPin, Music, ArrowRight, Calendar, Navigation, Trophy, Flame, Sparkles } from 'lucide-react';
 import { BottomNav } from '@/components/layout/BottomNav';
 
 const Instagram = (props: any) => (
@@ -30,7 +30,7 @@ import dynamic from 'next/dynamic';
 
 const EventMap = dynamic(() => import('@/components/map/EventMap'), { 
   ssr: false,
-  loading: () => <div className="w-full h-[350px] sm:h-[450px] lg:h-[600px] bg-card/20 border border-border/50 rounded-[3rem] animate-pulse flex items-center justify-center text-muted uppercase text-[10px] font-black tracking-widest">Učitavanje mape...</div>
+  loading: () => <div className="w-full h-[350px] sm:h-[450px] lg:h-[600px] bg-card/20 border border-border/50 rounded-3xl animate-pulse flex items-center justify-center text-muted uppercase text-[10px] font-black tracking-widest">Učitavanje mape...</div>
 });
 
 export default function Home() {
@@ -198,22 +198,22 @@ export default function Home() {
         {/* HERO SECTION */}
         <section className="relative pt-12 pb-32 px-4 sm:pt-20 overflow-hidden min-h-[700px] flex items-center">
           <div className="absolute inset-0 z-0">
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,0,128,0.1)_0%,transparent_70%)] z-1" />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,0,110,0.1)_0%,transparent_70%)] z-1" />
             <img 
               src="/hero-new-bg.jpg" 
               alt="" 
-              className="w-full h-full object-cover opacity-[0.25] blur-[2px] animate-pulse duration-[5000ms]"
+              className="w-full h-full object-cover opacity-[0.25] blur-[2px]"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
           </div>
 
           <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20 relative z-10 w-full">
             <div className="lg:w-3/5 text-center lg:text-left animate-fade-up">
-              <h1 className="text-4xl sm:text-6xl lg:text-9xl font-black text-white mb-4 sm:mb-6 tracking-tighter leading-none uppercase">
-                PRONAĐI. IZABERI. <span className="text-primary italic animate-pulse">IZAĐI.</span>
+              <h1 className="text-hero font-black text-white mb-4 sm:mb-6 uppercase">
+                PRONAĐI. IZABERI. <span className="text-primary">IZAĐI.</span>
               </h1>
-              <p className="text-muted text-sm sm:text-2xl font-medium mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed opacity-80 uppercase tracking-widest">
-                NAJBOLJA MJESTA ZA PROVOD U <span className="text-white">{getCityBySlug(selectedCity) ? getCityBySlug(selectedCity)!.locative.toUpperCase() + '.' : 'GRADU.'}</span>
+              <p className="text-muted text-base sm:text-lg font-medium mb-8 sm:mb-12 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                Najbolje žurke i događaji u <span className="text-white font-bold">{getCityBySlug(selectedCity) ? getCityBySlug(selectedCity)!.locative : 'tvom gradu'}.</span>
               </p>
               
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
@@ -221,51 +221,57 @@ export default function Home() {
                   onClick={() => router.push('/events')}
                   className="w-full sm:w-auto px-10 py-5 bg-primary text-white font-black rounded-[1.25rem] hover:bg-primary-hover hover:scale-105 transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px]"
                 >
-                  PRONAĐI IZLAZAK <ArrowRight size={18} />
+                  ISTRAŽI DOGAĐAJE <ArrowRight size={18} />
                 </button>
                 <button 
-                   onClick={() => router.push('/how-it-works')}
-                   className="w-full sm:w-auto px-10 py-5 bg-white/5 backdrop-blur-xl border border-white/10 text-white font-black rounded-[1.25rem] hover:bg-white/10 hover:scale-105 transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px]"
+                   onClick={() => document.getElementById('mapa')?.scrollIntoView({ behavior: 'smooth' })}
+                   className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 text-white font-black rounded-[1.25rem] hover:bg-white/10 transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px]"
                 >
-                  KAKO FUNKCIONIŠE? <div className="w-8 h-8 rounded-full bg-white text-background flex items-center justify-center ml-1 shadow-xl"><div className="w-0 h-0 border-t-[5px] border-t-transparent border-l-[8px] border-l-current border-b-[5px] border-b-transparent translate-x-0.5" /></div>
+                  POGLEDAJ MAPU <Navigation size={18} />
                 </button>
               </div>
             </div>
 
             <div className="lg:w-2/5 relative w-full max-w-lg animate-fade-up [animation-delay:200ms]">
-               <div className="bg-card/60 backdrop-blur-3xl border border-white/10 p-5 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-2xl relative z-20 hover:border-primary/30 transition-all duration-500 group/form overflow-hidden">
+               <div className="bg-card/60 backdrop-blur-3xl border border-white/10 p-5 sm:p-10 rounded-3xl sm:rounded-3xl shadow-2xl relative z-20 hover:border-primary/30 transition-all duration-500 group/form overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[50px] rounded-full translate-x-1/2 -translate-y-1/2" />
                   <h3 className="text-xs font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3 text-white">
                     <Search size={18} className="text-primary group-hover/form:scale-110 transition-transform" /> PRETRAGA DOGAĐAJA
                   </h3>
                   <form onSubmit={handleSearch} className="space-y-6">
                     <div className="relative group">
-                      <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" />
+                      <label htmlFor="hero-search" className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-2 ml-1">Pretraga</label>
+                      <Search size={18} className="absolute left-4 bottom-5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
                       <input 
+                        id="hero-search"
+                        aria-label="Pretraži događaje"
                         type="text" 
                         placeholder="Pretraži događaje..." 
-                        className="w-full h-16 pl-14 bg-background/50 border border-white/5 rounded-2xl text-sm font-medium focus:outline-none focus:border-primary transition-all text-white placeholder:text-muted/50"
+                        className="w-full h-14 pl-14 bg-background/60 border border-border rounded-2xl text-sm font-medium focus:outline-none focus:border-primary transition-colors text-white placeholder:text-muted/60"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
                     <div className="relative group">
-                      <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
+                      <label htmlFor="hero-city" className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-2 ml-1">Grad</label>
+                      <MapPin size={18} className="absolute left-4 bottom-5 text-muted group-focus-within:text-primary transition-colors pointer-events-none" />
                       <select
+                        id="hero-city"
+                        aria-label="Izaberi grad"
                         value={selectedCity}
                         onChange={(e) => setSelectedCity(e.target.value)}
-                        className="w-full h-16 pl-14 pr-4 bg-background/50 border border-white/5 rounded-2xl text-sm font-medium focus:outline-none focus:border-primary transition-all text-white appearance-none cursor-pointer"
+                        className="w-full h-14 pl-14 pr-4 bg-background/60 border border-border rounded-2xl text-sm font-medium focus:outline-none focus:border-primary transition-colors text-white appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-background text-white">Svi gradovi</option>
                         {SUPPORTED_CITIES.map(city => (
                           <option key={city.slug} value={city.slug} className="bg-background text-white">{city.name}</option>
                         ))}
                       </select>
-                      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                      <div className="absolute right-5 bottom-6 pointer-events-none text-muted">
                         <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
                       </div>
                     </div>
-                    <button type="submit" className="w-full h-16 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 uppercase tracking-[0.3em] text-[10px] mt-4">
+                    <button type="submit" className="w-full h-14 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20 uppercase tracking-[0.3em] text-[10px] mt-2">
                       PRETRAŽI
                     </button>
                   </form>
@@ -280,7 +286,7 @@ export default function Home() {
             <div className="flex justify-between items-end mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-primary italic">✨</span> ZA TEBE
+                   <Sparkles size={32} className="text-primary" /> ZA TEBE
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-3 sm:mt-4">Na osnovu tvojih interesovanja i sačuvanih događaja.</p>
               </div>
@@ -295,7 +301,7 @@ export default function Home() {
         )}
 
         {/* TONIGHT SECTION */}
-        <section className="relative max-w-7xl mx-auto px-4 py-14 sm:py-16 animate-fade-up overflow-hidden rounded-[3rem] my-8">
+        <section className="relative max-w-7xl mx-auto px-4 py-14 sm:py-16 animate-fade-up overflow-hidden rounded-3xl my-8">
           <div className="absolute inset-0 -z-10">
             <img src="/bg-tonight.jpg" alt="" className="w-full h-full object-cover opacity-[0.35] blur-[3px]" />
             <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
@@ -305,7 +311,7 @@ export default function Home() {
             <div className="flex justify-between items-end gap-4 mb-8 md:mb-12">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-primary animate-pulse">🔥</span> {getCityBySlug(selectedCity) ? `VEČERAS U ${getCityBySlug(selectedCity)!.locative.toUpperCase()}` : 'VEČERAS U GRADU'}
+                   <Flame size={32} className="text-primary" /> {getCityBySlug(selectedCity) ? `VEČERAS U ${getCityBySlug(selectedCity)!.locative.toUpperCase()}` : 'VEČERAS U GRADU'}
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-80 mt-4">Najbolja mjesta za izlazak večeras.</p>
               </div>
@@ -319,7 +325,7 @@ export default function Home() {
                (tonightData?.events.length ? tonightData.events.slice(0, 4).map((event) => (
                 <EventCard key={event.id} event={event} isFavoritedInitial={favoriteIds.events.includes(event.id)} />
               )) : (
-                <div className="md:col-span-2 lg:col-span-4 bg-card/60 border border-white/10 rounded-[2rem] p-10 sm:p-14 text-center space-y-4">
+                <div className="md:col-span-2 lg:col-span-4 bg-card/60 border border-white/10 rounded-3xl p-10 sm:p-14 text-center space-y-4">
                   <p className="text-white font-black uppercase tracking-tight text-base sm:text-lg">Trenutno nema događaja u ovom gradu.</p>
                   {selectedCity && (
                     <button onClick={() => setSelectedCity('')} className="px-6 py-3 bg-white/5 border border-white/10 text-muted hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
@@ -338,7 +344,7 @@ export default function Home() {
             <div className="flex justify-between items-end gap-4 mb-8 md:mb-12 px-4">
               <div>
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none flex items-center gap-4">
-                   <span className="text-accent italic">✨</span> POPULARNI DOGAĐAJI
+                   <Trophy size={32} className="text-accent" /> POPULARNI DOGAĐAJI
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60 mt-4">Događaji koje ljudi najviše čuvaju.</p>
               </div>
@@ -383,11 +389,11 @@ export default function Home() {
         )}
 
         {/* MAP SECTION */}
-        <section className="max-w-7xl mx-auto px-4 py-14 md:py-16 lg:py-24 animate-fade-up">
+        <section id="mapa" className="max-w-7xl mx-auto px-4 py-14 md:py-16 lg:py-24 animate-fade-up scroll-mt-6">
            <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 mb-6 md:mb-12 px-0 md:px-4">
               <div className="text-center md:text-left">
                 <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tighter uppercase leading-none mb-3 sm:mb-4">
-                   MAPA <span className="text-primary">DOGAĐAJA</span> 🗺️
+                   MAPA <span className="text-primary">DOGAĐAJA</span>
                 </h2>
                 <p className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60">Istraži svoj grad i pronađi provod u blizini.</p>
               </div>
@@ -411,7 +417,7 @@ export default function Home() {
            </div>
 
            <div className="h-[350px] sm:h-[450px] lg:h-[600px] w-full px-0 md:px-4">
-              <ClientOnly fallback={<div className="w-full h-full bg-card/20 border border-border/50 rounded-[3rem] animate-pulse" />}>
+              <ClientOnly fallback={<div className="w-full h-full bg-card/20 border border-border/50 rounded-3xl animate-pulse" />}>
                  <EventMap 
                    events={mapEventsData?.events || []} 
                    userLocation={userLocation}
@@ -426,7 +432,7 @@ export default function Home() {
         {/* UPRAVO SE DEŠAVA SECTION */}
         <section className="max-w-7xl mx-auto px-4 py-14 sm:py-16 lg:py-20 animate-fade-up">
            <div className="flex items-center gap-4 mb-8 px-4 text-left">
-              <div className="w-3 h-3 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(255,0,128,0.8)]" />
+              <div className="w-3 h-3 rounded-full bg-primary animate-pulse shadow-[0_0_12px_rgba(255,0,110,0.8)]" />
               <h2 className="text-3xl font-black text-white tracking-tighter uppercase">UPRAVO SE DEŠAVA</h2>
            </div>
            
@@ -456,7 +462,7 @@ export default function Home() {
         </section>
 
         {/* LOKALI SECTION */}
-        <section className="relative max-w-7xl mx-auto px-4 py-16 animate-fade-up overflow-hidden rounded-[3rem] my-4">
+        <section className="relative max-w-7xl mx-auto px-4 py-16 animate-fade-up overflow-hidden rounded-3xl my-4">
           <div className="absolute inset-0 -z-10">
             <img src="/bg-venues.jpg" alt="" className="w-full h-full object-cover opacity-[0.35] blur-[2px]" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background" />
@@ -546,7 +552,7 @@ export default function Home() {
                 { n: '2', icon: Calendar, title: 'IZABERI', desc: 'Pogledaj detalje i izaberi gdje ideš.' },
                 { n: '3', icon: Music, title: 'IZAĐI', desc: 'Sačuvaj događaj i uživaj.' },
               ].map((step, i) => (
-                <div key={i} className="bg-surface/50 border border-border/50 p-10 rounded-[2.5rem] flex items-center gap-8 group hover:border-primary/30 hover:scale-[1.02] transition-all shadow-2xl">
+                <div key={i} className="bg-surface/50 border border-border/50 p-10 rounded-3xl flex items-center gap-8 group hover:border-primary/30 hover:scale-[1.02] transition-all shadow-2xl">
                    <div className="relative">
                       <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-[10px] font-black z-10">{step.n}</div>
                       <div className="w-16 h-16 rounded-2xl bg-card border border-border/50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">

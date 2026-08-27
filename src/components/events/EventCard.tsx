@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Heart } from 'lucide-react';
+import { MapPin, Heart, Flame, Sparkles } from 'lucide-react';
 import { Event } from '@/types';
 import Link from 'next/link';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
@@ -75,7 +75,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
   };
 
   return (
-    <Link href={`/events/${event.slug}`} className="bg-surface border border-white/5 rounded-[2rem] overflow-hidden hover:border-primary/40 hover:-translate-y-2 transition-all duration-500 group cursor-pointer shadow-2xl hover:shadow-primary/5 flex flex-col h-full text-left relative">
+    <Link href={`/events/${event.slug}`} className="bg-surface border border-white/5 rounded-3xl overflow-hidden hover:border-primary/40 hover:-translate-y-2 transition-all duration-500 group cursor-pointer shadow-2xl hover:shadow-primary/5 flex flex-col h-full text-left relative">
       
       {/* IMAGE SECTION */}
       <div className="aspect-[16/10] relative overflow-hidden">
@@ -103,12 +103,12 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
           </span>
           {isPopular && showPopularBadge && (
             <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 w-fit animate-pulse">
-              🔥 POPULARNO
+              <Flame size={10} /> POPULARNO
             </span>
           )}
           {event.recommendationReason && (
              <span className="bg-purple-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-purple-500/20 w-fit animate-pulse">
-               ✨ {event.recommendationReason}
+               <Sparkles size={10} /> {event.recommendationReason}
              </span>
           )}
           {event.dressCodeType && event.dressCodeType !== 'NONE' && (

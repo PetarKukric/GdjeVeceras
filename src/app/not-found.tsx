@@ -12,7 +12,7 @@ export default function NotFound() {
             404
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-             <div className="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center text-primary shadow-2xl shadow-primary/20">
+             <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center text-primary shadow-2xl shadow-primary/20">
                 <AlertCircle size={48} />
              </div>
              <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white">

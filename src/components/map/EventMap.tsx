@@ -10,7 +10,7 @@ import Link from 'next/link';
 
 const pinkIcon = L.divIcon({
   className: 'custom-div-icon',
-  html: `<div style="background-color: #FF0080; width: 14px; height: 14px; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px #FF0080;"></div>`,
+  html: `<div style="background-color: #FF006E; width: 14px; height: 14px; border: 3px solid white; border-radius: 50%; box-shadow: 0 0 15px #FF006E;"></div>`,
   iconSize: [14, 14],
   iconAnchor: [7, 7],
 });
@@ -68,7 +68,7 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
   };
 
   return (
-    <div className="w-full h-full min-h-[300px] rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl relative z-0">
+    <div className="w-full h-full min-h-[300px] rounded-3xl overflow-hidden border border-border/50 shadow-2xl relative z-0">
       {events.length === 0 && (
         <div className="absolute inset-0 z-[400] bg-background/60 backdrop-blur-sm flex items-center justify-center p-8 text-center pointer-events-none">
           <p className="text-muted font-bold uppercase tracking-widest text-xs">Trenutno nema događaja sa dostupnom lokacijom u ovom gradu.</p>
@@ -80,7 +80,7 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
         key={centerKey}
         center={mapCenter} 
         zoom={zoom} 
-        style={{ height: '100%', width: '100%', background: '#020106' }}
+        style={{ height: '100%', width: '100%', background: '#050505' }}
         scrollWheelZoom={true}
         dragging={true}
         touchZoom={true}
@@ -97,7 +97,7 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
             <Popup>
-              <div className="p-2 text-[10px] font-black uppercase tracking-widest text-blue-500">📍 Ti si ovdje</div>
+              <div className="p-2 text-[10px] font-black uppercase tracking-widest text-blue-500">Ti si ovdje</div>
             </Popup>
           </Marker>
         )}
@@ -147,9 +147,9 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
           font-family: inherit;
         }
         .leaflet-popup-content-wrapper {
-          background: #0F0E17 !important;
+          background: #18181D !important;
           color: #FFFFFF !important;
-          border: 1px solid #1E1E2E;
+          border: 1px solid #232329;
           border-radius: 1.5rem !important;
           padding: 0 !important;
           box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
@@ -159,14 +159,14 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
           width: auto !important;
         }
         .leaflet-popup-tip {
-          background: #0F0E17 !important;
-          border: 1px solid #1E1E2E;
+          background: #18181D !important;
+          border: 1px solid #232329;
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #1E1E2E;
+          background: #232329;
           border-radius: 10px;
         }
       `}</style>

@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #020106;
-  --color-surface: #0A0910;
-  --color-card: #0F0E17;
-  --color-primary: #FF0080;
-  --color-primary-hover: #E60073;
-  --color-accent: #7C3AED;
+  /* Neutralna premium paleta — 80-90% UI je neutralno, pink je strateski */
+  --color-background: #050505;
+  --color-elevated: #0D0D0F;
+  --color-surface: #121216;
+  --color-card: #18181D;
+  --color-primary: #FF006E;
+  --color-primary-hover: #FF2D86;
+  --color-accent: #F5C518; /* zlatna — samo POPULARNO indikator */
   --color-text: #FFFFFF;
-  --color-muted: #94A3B8;
-  --color-border: #1E1E2E;
+  --color-muted: #A7A7B0;
+  --color-muted-2: #73737D;
+  --color-border: #232329;
 
   --color-success: #22C55E;
   --color-warning: #F59E0B;
@@ -46,16 +49,12 @@
 }
 
 :root {
-  --background: #020106;
+  --background: #050505;
   --foreground: #FFFFFF;
 }
 
 body {
   background-color: var(--background);
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(255, 0, 128, 0.05), transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(124, 58, 237, 0.03), transparent 50%);
-  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
@@ -75,7 +74,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 *:focus-visible {
-  outline: 2px solid #FF0080;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -84,14 +83,14 @@ h1, h2, h3, h4, h5, h6 {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #020106;
+  background: #050505;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1E1E2E;
+  background: #232329;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #FF0080;
+  background: #3A3A44;
 }
 
 /* For the active link underline effect in header */
@@ -105,7 +104,7 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: #FF0080;
+  background-color: var(--color-primary);
   border-radius: 2px;
 }
 
@@ -135,10 +134,64 @@ body {
 /* Bolji touch targeti za male icon buttone na telefonu */
 @media (max-width: 767px) {
   .touch-target {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 48px;
+    min-height: 48px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
 }
+
+
+/* ===== DESIGN SYSTEM (redesign brief) ===== */
+
+/* Type scale — fluid, clamp() */
+.text-hero {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.text-h1 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.text-h2 {
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  line-height: 1.15;
+}
+
+/* Sekcije: jasan vertikalni ritam */
+.section-pad { padding-top: 4rem; padding-bottom: 4rem; }
+@media (min-width: 768px) { .section-pad { padding-top: 6rem; padding-bottom: 6rem; } }
+
+/* Skeleton loading (bez layout shift-a) */
+.skeleton {
+  background: linear-gradient(90deg, #121216 25%, #1d1d23 50%, #121216 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 12px;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Pristupačnost: poštuj reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Jedinstveni content container */
+.container-xl {
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 768px) { .container-xl { padding-inline: 2rem; } }

@@ -5,19 +5,22 @@
 
 ## Brend u jednoj rečenici
 
-**Tamna noć + neon roza** — aplikacija za noćni izlazak: skoro crna pozadina (`#020106`), jarko roza akcent (`#FF0080`), bijeli tekst, crni uppercase naslovi sa širim razmakom.
+**Tamna noć + neon roza** — aplikacija za noćni izlazak: skoro crna pozadina (`#050505`), jarko roza akcent (`#FF006E`), bijeli tekst, crni uppercase naslovi sa širim razmakom.
 
 ## Tokeni
 
 | Token | Vrijednost | Upotreba |
 |---|---|---|
-| Pozadina | `#020106` (bg-background) | stranica |
-| Površina | bg-surface | kartice, inputi |
-| Kartica | bg-card | paneli, modali |
-| **Primarna** | **`#FF0080`** (bg-primary, text-primary) | CTA dugmad, akcenti, aktivna stanja |
-| Tekst | bijela (text-text) | naslovi i tijelo |
-| Muted | siva (text-muted) | sekundarni tekst, labeli |
-| Akcent | žarka (bg-accent) | POPULARNO bedževi |
+| Pozadina | `#050505` (`bg-background`) | stranica |
+| Elevated | `#0D0D0F` (`bg-elevated`) | izdignute površine |
+| Površina | `#121216` (`bg-surface`) | kartice, inputi |
+| Kartica | `#18181D` (`bg-card`) | paneli, modali |
+| **Primarna** | **`#FF006E`** (`bg-primary`, `text-primary`) | CTA dugmad, akcenti, aktivna stanja |
+| Primary hover | `#FF2D86` (`bg-primary-hover`) | hover CTA |
+| Tekst | `#FFFFFF` (`text-text`) | naslovi i tijelo |
+| Muted | `#A7A7B0` (`text-muted`) | sekundarni tekst, labeli |
+| Border | `#232329` (`border-border`) | obrubi i razdjelnici |
+| Akcent | `#F5C518` (`bg-accent`) | POPULARNO bedževi |
 
 ## Tipografija
 

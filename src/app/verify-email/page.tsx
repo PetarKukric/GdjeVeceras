@@ -39,7 +39,7 @@ function VerifyContent() {
   }, [token]);
 
   return (
-    <div className="w-full max-w-md bg-card border border-border rounded-[2.5rem] p-12 text-center shadow-2xl animate-fade-up">
+    <div className="w-full max-w-md bg-card border border-border rounded-3xl p-12 text-center shadow-2xl animate-fade-up">
       {status === 'loading' && (
         <div className="space-y-6">
           <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto" />

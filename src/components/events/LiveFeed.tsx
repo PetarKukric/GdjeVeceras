@@ -166,7 +166,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
       </div>
 
       {media.length === 0 ? (
-        <div className="bg-surface/30 border border-dashed border-border/50 rounded-[2.5rem] p-16 text-center">
+        <div className="bg-surface/30 border border-dashed border-border/50 rounded-3xl p-16 text-center">
           <Camera size={48} className="mx-auto mb-6 text-muted opacity-20" />
           <p className="text-muted text-sm font-medium uppercase tracking-widest">
             {isLive ? 'Još nema objava uživo. Vlasnik će uskoro podijeliti atmosferu!' : 'Nema zabilježenih trenutaka sa ovog događaja.'}
@@ -175,7 +175,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {media.map((item) => (
-            <div key={item.id} className="bg-card border border-white/5 rounded-[2rem] overflow-hidden shadow-xl group flex flex-col">
+            <div key={item.id} className="bg-card border border-white/5 rounded-3xl overflow-hidden shadow-xl group flex flex-col">
               <div className="aspect-square relative overflow-hidden bg-black">
                 {item.type === 'IMAGE' ? (
                   <img src={item.mediaUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
@@ -229,7 +229,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-card border border-white/10 rounded-[2.5rem] p-8 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="bg-card border border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-black uppercase tracking-tight">Objavi uživo</h3>
               <button onClick={() => setShowUploadModal(false)} className="text-muted hover:text-white transition-colors">

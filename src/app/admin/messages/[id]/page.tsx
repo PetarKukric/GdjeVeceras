@@ -60,7 +60,7 @@ export default function MessageDetail() {
           <span className="text-xs font-black uppercase tracking-widest">Povratak u inbox</span>
         </button>
 
-        <div className="bg-card border border-border rounded-[3rem] overflow-hidden shadow-2xl">
+        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-2xl">
           {/* Header Info */}
           <div className="p-10 border-b border-border bg-surface/30">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -116,7 +116,7 @@ export default function MessageDetail() {
                 <MessageSquare size={16} className="text-primary" />
                 <h4 className="text-xs font-black text-white uppercase tracking-widest">Sadržaj poruke</h4>
              </div>
-             <div className="bg-background/50 border border-border/50 p-8 rounded-[2rem] min-h-[200px]">
+             <div className="bg-background/50 border border-border/50 p-8 rounded-3xl min-h-[200px]">
                 <p className="text-muted leading-relaxed whitespace-pre-wrap font-medium">
                   {message.message}
                 </p>

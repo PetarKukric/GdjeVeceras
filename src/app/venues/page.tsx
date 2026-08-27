@@ -43,7 +43,7 @@ function VenuesContent() {
           <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0">
              Discover Places
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase mb-4 leading-none">Svi lokali{city ? <> u <span className="text-primary">{city.locative}</span></> : null} 🏢</h1>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter uppercase mb-4 leading-none">Svi lokali{city ? <> u <span className="text-primary">{city.locative}</span></> : null}</h1>
           <p className="text-muted text-sm font-medium max-w-xl mx-auto md:mx-0">Istražite najbolja mjesta za izlazak, koncerte i žurke.</p>
         </header>
 
