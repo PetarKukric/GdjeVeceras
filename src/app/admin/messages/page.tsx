@@ -73,11 +73,11 @@ export default function AdminMessages() {
                   </div>
                   <h4 className="text-base font-black text-white uppercase tracking-tight truncate">{m.subject}</h4>
                   <div className="flex flex-wrap gap-4 pt-1">
-                    <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
                       <MapPin size={10} className="text-primary" />
                       <span>{m.venue ? m.venue.name : 'OPŠTI UPIT'}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
                       <Mail size={10} className="text-primary" />
                       <span>{m.senderEmail}</span>
                     </div>
@@ -86,7 +86,7 @@ export default function AdminMessages() {
 
                 <div className="flex items-center gap-4 self-center">
                   {!m.isRead && (
-                    <span className="px-3 py-1 bg-primary text-white text-[8px] font-black rounded-lg uppercase tracking-widest">Nova</span>
+                    <span className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-lg uppercase tracking-widest">Nova</span>
                   )}
                   <div className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center group-hover:bg-primary transition-all">
                     <ArrowRight size={16} className="text-muted group-hover:text-white" />

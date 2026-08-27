@@ -167,7 +167,7 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
                     maxLength={1000}
                   ></textarea>
                   <div className="flex justify-between items-center mt-2">
-                     <p className="text-[9px] font-bold text-muted uppercase tracking-widest">{newComment.length}/1000</p>
+                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest">{newComment.length}/1000</p>
                      {error && <p className="text-red-500 text-[10px] font-bold uppercase">{error}</p>}
                   </div>
                </div>
@@ -236,10 +236,10 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
                         <div className="flex items-center gap-2">
                            <h4 className="text-sm font-black text-white uppercase tracking-tight">{comment.user.name}</h4>
                            {comment.user.id === currentUser?.id && (
-                             <span className="bg-primary/10 text-primary text-[8px] font-black px-2 py-0.5 rounded-full uppercase">VI</span>
+                             <span className="bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded-full uppercase">VI</span>
                            )}
                         </div>
-                        <p className="text-[9px] text-muted font-bold uppercase tracking-widest mt-1">
+                        <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">
                           <ClientOnly fallback={<span>...</span>}>
                             {new Date(comment.createdAt).toLocaleDateString('bs', { day: 'numeric', month: 'short', year: 'numeric' })} u {new Date(comment.createdAt).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
                           </ClientOnly>

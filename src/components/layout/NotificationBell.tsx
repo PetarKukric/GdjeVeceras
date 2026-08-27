@@ -61,6 +61,8 @@ export function NotificationBell({ user }: { user: any }) {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Obavještenja"
+        aria-expanded={isOpen}
         className="touch-target p-2 text-muted hover:text-primary transition-all relative group"
       >
         <Bell size={20} className={unreadCount > 0 ? 'animate-swing' : ''} />
@@ -76,7 +78,7 @@ export function NotificationBell({ user }: { user: any }) {
           <div className="p-5 border-b border-border flex justify-between items-center">
             <h4 className="text-xs font-black uppercase tracking-widest text-white">Obavijesti</h4>
             {unreadCount > 0 && (
-              <span className="text-[9px] font-black text-primary uppercase">{unreadCount} nove</span>
+              <span className="text-[10px] font-black text-primary uppercase">{unreadCount} nove</span>
             )}
           </div>
 
@@ -115,7 +117,7 @@ export function NotificationBell({ user }: { user: any }) {
                       <p className={`text-xs uppercase tracking-tight truncate ${!n.isRead ? 'text-white font-black' : 'text-muted font-bold'}`}>
                         {n.content}
                       </p>
-                      <div className="flex items-center gap-2 mt-1 text-muted text-[9px] font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-2 mt-1 text-muted text-[10px] font-bold uppercase tracking-widest">
                         <Clock size={10} />
                         {new Date(n.createdAt).toLocaleDateString('bs')}
                       </div>

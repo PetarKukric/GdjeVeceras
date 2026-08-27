@@ -200,7 +200,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
                       <Trash2 size={14} />
                     </button>
                   )}
-                  <div className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black text-white uppercase tracking-widest border border-white/10">
+                  <div className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black text-white uppercase tracking-widest border border-white/10">
                     {item.type === 'VIDEO' ? 'VIDEO' : 'FOTO'}
                   </div>
                 </div>
@@ -211,12 +211,12 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
                 )}
                 <div className="flex items-center justify-between pt-2 border-t border-white/5">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[8px] font-black text-primary">
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-black text-primary">
                        {item.uploadedBy.name.charAt(0)}
                     </div>
-                    <span className="text-[9px] font-bold text-muted uppercase tracking-widest">{item.uploadedBy.name}</span>
+                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{item.uploadedBy.name}</span>
                   </div>
-                  <span className="text-[9px] font-bold text-muted uppercase tracking-widest flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1">
                     <Clock size={10} /> {formatTimeAgo(item.createdAt)}
                   </span>
                 </div>

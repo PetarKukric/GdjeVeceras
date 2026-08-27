@@ -48,3 +48,6 @@ next-env.d.ts
 
 # uploads (lokalni dev)
 /public/uploads/
+
+# lokalna MCP konfiguracija može sadržati API ključeve
+.mcp.json

@@ -456,30 +456,30 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
 
             {/* Grid dugmadi na mobitelu (3 kolone), red na desktopu */}
             <div className="grid grid-cols-3 gap-2 md:flex md:flex-1 md:items-center md:gap-2">
-              <button onClick={() => addItem('TABLE')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
+              <button onClick={() => addItem('TABLE')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[10px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
                 <Square size={14} className="md:w-[16px]" /> STO
               </button>
-              <button onClick={() => addItem('BAR')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-blue-500/20 hover:text-blue-500 rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
+              <button onClick={() => addItem('BAR')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-blue-500/20 hover:text-blue-500 rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[10px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
                 <CircleIcon size={14} className="md:w-[16px]" /> ŠANK
               </button>
               {mode !== 'EVENT' && (
                 <>
-                  <button onClick={() => addItem('BOOTH')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
+                  <button onClick={() => addItem('BOOTH')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[10px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
                     <Maximize2 size={14} className="md:w-[16px]" /> SEPARE
                   </button>
-                  <button onClick={() => addItem('STAGE')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
+                  <button onClick={() => addItem('STAGE')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[10px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
                     <Type size={14} className="md:w-[16px]" /> BINA
                   </button>
-                  <button onClick={() => addItem('LABEL')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
+                  <button onClick={() => addItem('LABEL')} className="p-2.5 md:p-2.5 bg-white/5 hover:bg-primary/20 hover:text-primary rounded-xl transition-all flex items-center justify-center gap-1.5 md:gap-2 text-[10px] md:text-[10px] font-black uppercase tracking-widest border border-white/5">
                     <Type size={14} className="md:w-[16px]" /> OZNAKA
                   </button>
-                  <button onClick={deleteSelected} disabled={selectedIds.length === 0} className="md:hidden p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest disabled:opacity-30">
+                  <button onClick={deleteSelected} disabled={selectedIds.length === 0} className="md:hidden p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest disabled:opacity-30">
                     <Trash2 size={14} /> OBRIŠI
                   </button>
                 </>
               )}
               {mode === 'EVENT' && (
-                <button onClick={deleteSelected} disabled={selectedIds.length === 0} className="md:hidden p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest disabled:opacity-30">
+                <button onClick={deleteSelected} disabled={selectedIds.length === 0} className="md:hidden p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest disabled:opacity-30">
                   <Trash2 size={14} /> OBRIŠI
                 </button>
               )}
@@ -504,7 +504,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl shrink-0">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               <User size={12} className="text-primary" />
-              <span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-widest">{reservation?.name ? 'Dodjela: ' + reservation.name : 'Dodjela'}</span>
+              <span className="text-[10px] md:text-[10px] font-black text-primary uppercase tracking-widest">{reservation?.name ? 'Dodjela: ' + reservation.name : 'Dodjela'}</span>
             </div>
           </div>
         )}
@@ -599,12 +599,12 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
 
                             <span className="text-[10px] font-black text-white uppercase tracking-tighter text-center leading-none mb-1 max-w-full truncate px-1">{item.name}</span>
                             {item.capacity > 0 && (
-                                <span className="text-[8px] font-bold text-muted uppercase tracking-widest">{item.capacity} MJ</span>
+                                <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{item.capacity} MJ</span>
                             )}
                             
                             {/* Ime gosta na dodijeljenom stolu (EVENT mod) — visoki kontrast */}
                             {mode === 'EVENT' && item.reservation && (
-                                <span className="w-full max-w-full mt-1 flex items-center justify-center gap-1 rounded-md bg-black/80 border border-yellow-400/70 text-yellow-300 px-1.5 py-1 text-[9px] md:text-[10px] font-black uppercase tracking-wide leading-none shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
+                                <span className="w-full max-w-full mt-1 flex items-center justify-center gap-1 rounded-md bg-black/80 border border-yellow-400/70 text-yellow-300 px-1.5 py-1 text-[10px] md:text-[10px] font-black uppercase tracking-wide leading-none shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
                                    <User size={10} className="shrink-0" />
                                    <span className="truncate">{item.reservation.name}</span>
                                 </span>
@@ -628,7 +628,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
         {!isAssignMode && (
           <div className="absolute bottom-4 right-4 z-30 flex flex-col items-center gap-1 p-1 rounded-xl bg-surface/90 backdrop-blur border border-white/10 shadow-xl">
             <button onClick={() => handleZoom(0.1)} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 rounded-lg text-xs font-black transition-all" title="Uvećaj">+</button>
-            <button onClick={() => fitToScreen()} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 rounded-lg text-[8px] font-black uppercase tracking-widest text-muted hover:text-white transition-all" title="Uklopi sve">FIT</button>
+            <button onClick={() => fitToScreen()} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-muted hover:text-white transition-all" title="Uklopi sve">FIT</button>
             <button onClick={() => handleZoom(-0.1)} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 rounded-lg text-xs font-black transition-all" title="Umanji">−</button>
             {mode === 'EVENT' && (
               <button onClick={resetToDefault} className="w-8 h-8 flex items-center justify-center hover:bg-primary/20 hover:text-primary rounded-lg text-muted transition-all border-t border-white/5" title="Resetuj na default raspored">
@@ -640,7 +640,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
 
         {/* HINT — dodjela, ništa izabrano */}
         {isAssignMode && selectedIds.length === 0 && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-surface/90 backdrop-blur border border-white/10 text-[9px] font-black text-muted uppercase tracking-widest whitespace-nowrap shadow-xl">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-surface/90 backdrop-blur border border-white/10 text-[10px] font-black text-muted uppercase tracking-widest whitespace-nowrap shadow-xl">
             Tapni slobodan sto ili separe · {guestCount} mjesta
           </div>
         )}
@@ -649,7 +649,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
         {isAssignMode && selectedIds.length > 0 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-md rounded-2xl bg-surface/95 backdrop-blur-xl border border-white/10 shadow-2xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[9px] font-black text-muted uppercase tracking-widest truncate">{reservation?.name || 'Rezervacija'} · {guestCount} mjesta</span>
+              <span className="text-[10px] font-black text-muted uppercase tracking-widest truncate">{reservation?.name || 'Rezervacija'} · {guestCount} mjesta</span>
               <span className={`text-[10px] font-black uppercase whitespace-nowrap ${isCapacitySufficient ? 'text-green-500' : 'text-primary'}`}>{selectedCapacity} / {guestCount} MJ</span>
             </div>
             <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -657,11 +657,11 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
             </div>
             <div className="flex flex-wrap gap-2">
               {selectedItems.map(i => (
-                <div key={i.id} className="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[8px] font-black text-white uppercase">{i.name}</div>
+                <div key={i.id} className="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] font-black text-white uppercase">{i.name}</div>
               ))}
             </div>
             {!isCapacitySufficient && (
-              <p className="text-[9px] font-bold text-yellow-500 leading-relaxed uppercase flex items-center gap-2">
+              <p className="text-[10px] font-bold text-yellow-500 leading-relaxed uppercase flex items-center gap-2">
                 <AlertTriangle size={12} className="shrink-0" /> Kapacitet nije dovoljan — izaberi još
               </p>
             )}
@@ -702,31 +702,31 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
 
               <div className="p-3 space-y-2.5 max-h-[min(50dvh,420px)] overflow-y-auto">
                 <div className="space-y-1.5">
-                  <label className="text-[8px] font-black text-muted uppercase tracking-widest">Naziv / Broj</label>
+                  <label className="text-[10px] font-black text-muted uppercase tracking-widest">Naziv / Broj</label>
                   <input type="text" value={selectedItem.name} onChange={e => updateItemProperty(selectedItem.id, 'name', e.target.value)} className="w-full bg-background/50 border border-white/5 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-primary transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-muted uppercase tracking-widest">Kapacitet</label>
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Kapacitet</label>
                     <input type="number" value={selectedItem.capacity || ''} onChange={e => updateItemProperty(selectedItem.id, 'capacity', parseInt(e.target.value) || 0)} className="w-full bg-background/50 border border-white/5 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-primary transition-all" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-muted uppercase tracking-widest">Rotacija</label>
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Rotacija</label>
                     <input type="number" value={selectedItem.rotation || ''} onChange={e => updateItemProperty(selectedItem.id, 'rotation', parseInt(e.target.value) || 0)} className="w-full bg-background/50 border border-white/5 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-primary transition-all" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-muted uppercase tracking-widest">Širina</label>
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Širina</label>
                     <input type="number" value={selectedItem.width || ''} onChange={e => updateItemProperty(selectedItem.id, 'width', parseInt(e.target.value) || 0)} className="w-full bg-background/50 border border-white/5 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-primary transition-all" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-muted uppercase tracking-widest">Visina</label>
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Visina</label>
                     <input type="number" value={selectedItem.height || ''} onChange={e => updateItemProperty(selectedItem.id, 'height', parseInt(e.target.value) || 0)} className="w-full bg-background/50 border border-white/5 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-primary transition-all" />
                   </div>
                 </div>
 
                 {mode === 'EVENT' && (
                   <div className="pt-2 border-t border-white/5 space-y-2">
-                    <label className="text-[8px] font-black text-muted uppercase tracking-widest">Status</label>
+                    <label className="text-[10px] font-black text-muted uppercase tracking-widest">Status</label>
                     <div className="grid grid-cols-2 gap-1.5">
                       {[
                         { id: 'AVAILABLE', label: 'Slobodan', color: 'bg-green-500' },
@@ -734,30 +734,30 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                         { id: 'OCCUPIED', label: 'Zauzet', color: 'bg-red-500' },
                         { id: 'UNAVAILABLE', label: 'Nedostupan', color: 'bg-gray-500' }
                       ].map(st => (
-                        <button key={st.id} onClick={() => updateItemProperty(selectedItem.id, 'status', st.id)} className={`px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all text-[8px] font-black uppercase tracking-widest ${selectedItem.status === st.id ? 'border-primary bg-primary/10 text-primary' : 'border-white/5 bg-white/5 text-muted hover:bg-white/10'}`}>
+                        <button key={st.id} onClick={() => updateItemProperty(selectedItem.id, 'status', st.id)} className={`px-2 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all text-[10px] font-black uppercase tracking-widest ${selectedItem.status === st.id ? 'border-primary bg-primary/10 text-primary' : 'border-white/5 bg-white/5 text-muted hover:bg-white/10'}`}>
                           <div className={`w-1.5 h-1.5 rounded-full ${st.color}`} />
                           {st.label}
                         </button>
                       ))}
                     </div>
                     {selectedItem.status === 'RESERVED' && (
-                      <button onClick={() => updateItemProperty(selectedItem.id, 'status', 'OCCUPIED')} className="w-full py-2 bg-green-500 text-white rounded-lg text-[8px] font-black uppercase tracking-widest">Gost stigao</button>
+                      <button onClick={() => updateItemProperty(selectedItem.id, 'status', 'OCCUPIED')} className="w-full py-2 bg-green-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Gost stigao</button>
                     )}
                     {selectedItem.status === 'OCCUPIED' && (
-                      <button onClick={() => updateItemProperty(selectedItem.id, 'status', 'AVAILABLE')} className="w-full py-2 bg-white/10 text-white rounded-lg text-[8px] font-black uppercase tracking-widest border border-white/5">Oslobodi sto</button>
+                      <button onClick={() => updateItemProperty(selectedItem.id, 'status', 'AVAILABLE')} className="w-full py-2 bg-white/10 text-white rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/5">Oslobodi sto</button>
                     )}
                     {selectedItem.reservation && (
                       <div className="p-2.5 bg-yellow-500/10 border border-yellow-500/20 rounded-lg space-y-1">
-                        <p className="text-[8px] font-black text-yellow-500 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} /> Rezervacija</p>
+                        <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest flex items-center gap-1.5"><Clock size={10} /> Rezervacija</p>
                         <p className="text-[10px] font-bold text-white uppercase">{selectedItem.reservation.name}</p>
-                        <p className="text-[8px] font-bold text-muted uppercase tracking-widest">{selectedItem.reservation.numberOfPeople} osoba • {new Date(selectedItem.reservation.startTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-[10px] font-bold text-muted uppercase tracking-widest">{selectedItem.reservation.numberOfPeople} osoba • {new Date(selectedItem.reservation.startTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                     )}
                   </div>
                 )}
 
                 {selectedItem.groupId && (
-                  <button onClick={splitSelected} className="w-full py-2 bg-pink-500/10 border border-pink-500/20 text-pink-500 hover:bg-pink-500 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all">
+                  <button onClick={splitSelected} className="w-full py-2 bg-pink-500/10 border border-pink-500/20 text-pink-500 hover:bg-pink-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all">
                     <Unlink size={11} /> Razdvoji iz grupe
                   </button>
                 )}
@@ -776,11 +776,11 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
               </div>
               <div className="p-3 space-y-2">
                 {mode === 'EVENT' && (
-                  <button onClick={mergeSelected} disabled={selectedIds.length < 2} className="w-full py-2.5 bg-accent text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-accent/20 hover:scale-[1.02] transition-all disabled:opacity-30 flex items-center justify-center gap-1.5">
+                  <button onClick={mergeSelected} disabled={selectedIds.length < 2} className="w-full py-2.5 bg-accent text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-accent/20 hover:scale-[1.02] transition-all disabled:opacity-30 flex items-center justify-center gap-1.5">
                     <LinkIcon size={12} /> Spoji u grupu
                   </button>
                 )}
-                <button onClick={deleteSelected} className="w-full py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all">
+                <button onClick={deleteSelected} className="w-full py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all">
                   <Trash2 size={12} /> Obriši
                 </button>
               </div>

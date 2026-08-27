@@ -94,25 +94,25 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
         {/* Badge Top Left */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {isLiveNow && (
-             <span className="bg-red-500 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-[0_0_15px_rgba(239,68,68,0.6)] w-fit animate-pulse">
+             <span className="bg-red-500 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-[0_0_15px_rgba(239,68,68,0.6)] w-fit animate-pulse">
                <div className="w-1.5 h-1.5 rounded-full bg-white animate-ping" /> UŽIVO
              </span>
           )}
-          <span className="bg-primary/90 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 w-fit">
+          <span className="bg-primary/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 w-fit">
             {event.category === 'PARTY' ? 'ŽURKA' : 'MUZIKA UŽIVO'}
           </span>
           {isPopular && showPopularBadge && (
-            <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 w-fit animate-pulse">
+            <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 w-fit animate-pulse">
               🔥 POPULARNO
             </span>
           )}
           {event.recommendationReason && (
-             <span className="bg-purple-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-purple-500/20 w-fit animate-pulse">
+             <span className="bg-purple-600/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-purple-500/20 w-fit animate-pulse">
                ✨ {event.recommendationReason}
              </span>
           )}
           {event.dressCodeType && event.dressCodeType !== 'NONE' && (
-             <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 w-fit">
+             <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 w-fit">
                {event.dressCodeType === 'SPECIAL' ? event.dressCodeName : 
                 event.dressCodeType === 'ELEGANT' ? 'ELEGANTNO' : event.dressCodeType}
              </span>
@@ -131,13 +131,13 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
             {event.title}
           </h3>
           <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5 text-muted text-[9px] font-bold uppercase tracking-widest truncate">
+            <div className="flex items-center gap-1.5 text-muted text-[10px] font-bold uppercase tracking-widest truncate">
                <MapPin size={10} className="text-primary shrink-0" /> {event.venue?.name || 'Nepoznata lokacija'}
                {(event.additionalVenues && event.additionalVenues.length > 0) && (
                  <span className="text-primary/90 truncate">+ {event.additionalVenues.map(av => av.venue.name).join(', ')}</span>
                )}
             </div>
-            <div className="flex items-center gap-1.5 text-muted text-[9px] font-bold uppercase tracking-widest">
+            <div className="flex items-center gap-1.5 text-muted text-[10px] font-bold uppercase tracking-widest">
                <MapPin size={10} className="text-primary" /> {event.venue?.city || ''}
             </div>
           </div>
@@ -149,13 +149,15 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
                {event.price === 0 ? 'BESPLATNO' : `${event.price} KM`}
              </div>
              {favoriteCount > 0 && (
-               <div className="text-[8px] font-black text-muted flex items-center gap-1 uppercase tracking-widest opacity-60">
+               <div className="text-[10px] font-black text-muted flex items-center gap-1 uppercase tracking-widest opacity-60">
                   <Heart size={8} fill="currentColor" className="text-primary" /> {favoriteCount}
                </div>
              )}
            </div>
            <button 
             disabled={loadingFavorite}
+            aria-label={isFavorited ? 'Uklani događaj iz sačuvanih' : 'Sačuvaj događaj'}
+            aria-pressed={isFavorited}
             className={`touch-target p-2 rounded-xl transition-all hover:bg-white/5 ${isFavorited ? 'text-primary scale-110' : 'text-muted hover:text-primary'}`}
             onClick={toggleFavorite}
           >

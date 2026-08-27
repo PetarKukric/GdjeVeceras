@@ -256,7 +256,7 @@ export default function ContactPage() {
                  <p className="text-muted text-[11px] leading-relaxed mb-6 uppercase tracking-wide">Ako želite da vaš lokal i događaji budu na našem sajtu, slobodno nas kontaktirajte putem forme ili direktno na email.</p>
                  <button 
                   onClick={() => router.push('/signup')}
-                  className="text-accent text-[9px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors"
+                  className="text-accent text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors"
                 >
                   PRIDRUŽITE SE MREŽI →
                 </button>

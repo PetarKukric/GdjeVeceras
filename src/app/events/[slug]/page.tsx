@@ -269,13 +269,13 @@ export default function EventPage() {
                         <span className="text-primary/90">@ {event.venue.name}</span>
                       </h1>
                       <div className="flex flex-wrap gap-3">
-                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <Disc size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Tech House' : 'Pop / Rock'}
                          </div>
-                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <Music size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Party' : 'Svirka'}
                          </div>
-                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <Users size={12} className="text-primary" /> Noćni život
                          </div>
                       </div>
@@ -324,7 +324,7 @@ export default function EventPage() {
                            <Calendar size={18} />
                         </div>
                         <div>
-                           <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
+                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
                            <p className="text-xs font-bold text-white uppercase">{startDate.toLocaleDateString('bs', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                         </div>
                      </div>
@@ -333,7 +333,7 @@ export default function EventPage() {
                            <Clock size={18} />
                         </div>
                         <div>
-                           <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Vrijeme</p>
+                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Vrijeme</p>
                            <p className="text-xs font-bold text-white uppercase">
                               {startDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
                               {endDate && ` - ${endDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}`}
@@ -345,7 +345,7 @@ export default function EventPage() {
                            <Tag size={18} />
                         </div>
                         <div>
-                           <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Kategorija</p>
+                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Kategorija</p>
                            <p className="text-xs font-bold text-white uppercase">{event.category}, Party</p>
                         </div>
                      </div>
@@ -354,7 +354,7 @@ export default function EventPage() {
                            <Users size={18} />
                         </div>
                         <div>
-                           <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
+                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
                            <p className="text-xs font-bold text-white uppercase">{event.minimumAge ? `${event.minimumAge}+` : 'Svi'}</p>
                         </div>
                      </div>
@@ -363,7 +363,7 @@ export default function EventPage() {
                            <Disc size={18} />
                         </div>
                         <div>
-                           <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Dress code</p>
+                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Dress code</p>
                            <p className="text-xs font-bold text-white uppercase">
                               {event.dressCodeType === 'SPECIAL' ? event.dressCodeName : 
                                event.dressCodeType === 'ELEGANT' ? 'Elegantno' : 
@@ -411,9 +411,9 @@ export default function EventPage() {
                    <div className="flex-grow">
                       <div className="flex items-center gap-2 mb-2">
                          <h4 className="text-lg font-black text-white uppercase tracking-tight">{event.venue.name}</h4>
-                         <div className="w-4 h-4 rounded-full bg-accent text-[8px] flex items-center justify-center text-white">✓</div>
+                         <div className="w-4 h-4 rounded-full bg-accent text-[10px] flex items-center justify-center text-white">✓</div>
                       </div>
-                      <Link href={`/venues/${event.venue.slug}`} className="px-5 py-2 bg-accent/20 text-accent text-[9px] font-black rounded-lg hover:bg-accent hover:text-white transition-all uppercase tracking-widest border border-accent/30 shadow-lg inline-block">
+                      <Link href={`/venues/${event.venue.slug}`} className="px-5 py-2 bg-accent/20 text-accent text-[10px] font-black rounded-lg hover:bg-accent hover:text-white transition-all uppercase tracking-widest border border-accent/30 shadow-lg inline-block">
                          Pogledaj profil
                       </Link>
                    </div>
@@ -436,9 +436,9 @@ export default function EventPage() {
                              </div>
                              <div className="flex-grow min-w-0">
                                 <p className="text-sm font-black text-white uppercase tracking-tight truncate">{av.venue.name}</p>
-                                <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-0.5">{av.venue.city || ''}{av.venue.address ? ' · ' + av.venue.address : ''}</p>
+                                <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5">{av.venue.city || ''}{av.venue.address ? ' · ' + av.venue.address : ''}</p>
                              </div>
-                             <Link href={`/venues/${av.venue.slug}`} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black text-muted hover:text-white uppercase tracking-widest rounded-lg transition-all shrink-0">
+                             <Link href={`/venues/${av.venue.slug}`} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[10px] font-black text-muted hover:text-white uppercase tracking-widest rounded-lg transition-all shrink-0">
                                 Profil
                              </Link>
                           </div>
@@ -465,7 +465,7 @@ export default function EventPage() {
                         {event.venue.tags.map((tag: any) => {
                           const Icon = TAG_ICONS[tag.name] || TagIcon;
                           return (
-                            <div key={tag.id} className="px-4 py-2 bg-card/50 border border-white/5 rounded-2xl flex items-center gap-2.5 text-[9px] font-black text-muted uppercase tracking-widest shadow-lg">
+                            <div key={tag.id} className="px-4 py-2 bg-card/50 border border-white/5 rounded-2xl flex items-center gap-2.5 text-[10px] font-black text-muted uppercase tracking-widest shadow-lg">
                                <Icon size={14} className="text-primary" /> {tag.name}
                             </div>
                           );
@@ -511,7 +511,7 @@ export default function EventPage() {
                         <MapPin size={20} />
                      </div>
                      <div>
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Lokacija</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Lokacija</p>
                         <p className="text-sm font-bold text-white uppercase">{event.venue.name}</p>
                      </div>
                   </div>
@@ -520,7 +520,7 @@ export default function EventPage() {
                         <Info size={20} />
                      </div>
                      <div>
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Adresa</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Adresa</p>
                         <p className="text-sm font-bold text-white uppercase">{event.venue.address}, {event.venue.city}</p>
                      </div>
                   </div>
@@ -529,7 +529,7 @@ export default function EventPage() {
                         <Calendar size={20} />
                      </div>
                      <div>
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
                         <p className="text-sm font-bold text-white uppercase">{startDate.toLocaleDateString('bs', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
                      </div>
                   </div>
@@ -538,7 +538,7 @@ export default function EventPage() {
                         <Clock size={20} />
                      </div>
                      <div>
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Vrijeme</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Vrijeme</p>
                         <p className="text-sm font-bold text-white uppercase">
                            {startDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
                            {endDate && ` – ${endDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}`}
@@ -550,7 +550,7 @@ export default function EventPage() {
                         <Users size={20} />
                      </div>
                      <div>
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
                         <p className="text-sm font-bold text-white uppercase">{event.minimumAge ? `${event.minimumAge}+` : 'Svi'}</p>
                      </div>
                   </div>
@@ -559,7 +559,7 @@ export default function EventPage() {
                         <Ticket size={20} />
                      </div>
                      <div>
-                        <p className="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Cijena</p>
+                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Cijena</p>
                         <p className="text-sm font-bold text-white uppercase">{event.price === 0 ? 'Ulaz besplatan' : `${event.price} KM`}</p>
                      </div>
                   </div>
@@ -579,7 +579,7 @@ export default function EventPage() {
                            style={{ width: `${(availableUnits / totalUnits) * 100}%` }}
                         />
                      </div>
-                     <p className="text-[9px] font-bold text-muted uppercase tracking-widest text-center">
+                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest text-center">
                         {availableUnits} od {totalUnits} jedinica slobodno
                      </p>
                   </div>
@@ -602,7 +602,7 @@ export default function EventPage() {
                      {isFavorited ? 'Sačuvano u tvojoj kolekciji' : 'SAČUVAJ DOGAĐAJ'}
                   </button>
                   {event._count?.favorites > 0 && (
-                    <p className="text-center text-[9px] font-black text-muted uppercase tracking-[0.2em]">
+                    <p className="text-center text-[10px] font-black text-muted uppercase tracking-[0.2em]">
                       Sačuvalo {event._count.favorites} korisnika
                     </p>
                   )}
@@ -672,16 +672,16 @@ export default function EventPage() {
                        </div>
                        <div className="flex-grow min-w-0">
                           <h4 className="text-xs font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{e.title}</h4>
-                          <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-0.5 line-clamp-1">{e.venue.name}</p>
+                          <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5 line-clamp-1">{e.venue.name}</p>
                           {e.recommendationReason && (
-                            <p className="text-[8px] font-black text-primary uppercase tracking-[0.1em] mt-1 animate-pulse">✨ {e.recommendationReason}</p>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.1em] mt-1 animate-pulse">✨ {e.recommendationReason}</p>
                           )}
                           <div className="flex items-center justify-between mt-2">
-                             <div className="flex items-center gap-1.5 text-[8px] font-black text-white uppercase">
+                             <div className="flex items-center gap-1.5 text-[10px] font-black text-white uppercase">
                                 <span className="w-1.5 h-1.5 rounded-full bg-primary" /> 
                                 {new Date(e.startDateTime).getDate()} {new Date(e.startDateTime).toLocaleDateString('bs', { month: 'short' })}
                              </div>
-                             <span className="text-[9px] font-bold text-muted">{new Date(e.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</span>
+                             <span className="text-[10px] font-bold text-muted">{new Date(e.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                        </div>
                     </Link>

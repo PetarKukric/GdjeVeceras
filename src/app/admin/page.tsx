@@ -97,7 +97,7 @@ export default function AdminDashboard() {
                     <p className="text-[10px] text-muted uppercase tracking-wider">{event.venue?.name} • {new Date(event.startDateTime).toLocaleDateString('bs')}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className={`px-2 py-1 rounded text-[9px] font-bold uppercase ${event.status === 'PUBLISHED' ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${event.status === 'PUBLISHED' ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
                       {event.status}
                     </span>
                   </div>

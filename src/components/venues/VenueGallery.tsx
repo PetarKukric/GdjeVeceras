@@ -217,7 +217,7 @@ export function VenueGallery({ venueId, ownerId, images, currentUser, onRefresh,
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">
                   {image.type === 'VIDEO' ? <Play className="text-white fill-current" size={32} /> : <ImageIcon className="text-white" size={24} />}
                   {image.event && (
-                    <p className="text-[8px] font-black text-white uppercase tracking-widest mt-2 line-clamp-2">
+                    <p className="text-[10px] font-black text-white uppercase tracking-widest mt-2 line-clamp-2">
                        {image.event.title}
                     </p>
                   )}

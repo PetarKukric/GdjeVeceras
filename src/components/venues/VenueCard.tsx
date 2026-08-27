@@ -45,7 +45,7 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
         
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {isPopular && (
-            <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 animate-pulse w-fit">
+            <span className="bg-accent/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] text-white border border-white/10 flex items-center gap-1 shadow-lg shadow-accent/20 animate-pulse w-fit">
               🔥 POPULARNO
             </span>
           )}
@@ -56,7 +56,7 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
         <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors leading-snug mb-2 truncate uppercase tracking-tight">
           {venue.name}
         </h3>
-        <p className="text-muted text-[9px] font-bold flex items-center gap-1.5 mb-4 uppercase tracking-widest">
+        <p className="text-muted text-[10px] font-bold flex items-center gap-1.5 mb-4 uppercase tracking-widest">
           {venue.city}
         </p>
         
@@ -64,7 +64,7 @@ export function VenueCard({ venue, isFavoritedInitial = false }: VenueCardProps)
           <div className="flex flex-col gap-1 mb-4">
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${venueStatus.status === 'OPEN' ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`} />
-              <span className={`text-[8px] font-black uppercase tracking-widest ${venueStatus.status === 'OPEN' ? 'text-green-500' : 'text-red-500'}`}>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${venueStatus.status === 'OPEN' ? 'text-green-500' : 'text-red-500'}`}>
                 {venueStatus.label}
               </span>
             </div>

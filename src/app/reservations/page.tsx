@@ -110,17 +110,17 @@ export default function UserReservations() {
                            </div>
 
                            <div className="w-full md:w-auto flex flex-col items-center md:items-end gap-4 shrink-0">
-                              <div className={`px-5 py-2 rounded-full border ${status.color} border-current flex items-center gap-2 text-[9px] font-black uppercase tracking-widest`}>
+                              <div className={`px-5 py-2 rounded-full border ${status.color} border-current flex items-center gap-2 text-[10px] font-black uppercase tracking-widest`}>
                                  <StatusIcon size={12} className={res.status === 'PENDING' ? 'animate-pulse' : ''} />
                                  {status.label}
                               </div>
-                              <Link href={`/events/${res.event.slug}`} className="text-[9px] font-black text-white hover:text-primary uppercase tracking-widest flex items-center gap-2 group/link">
+                              <Link href={`/events/${res.event.slug}`} className="text-[10px] font-black text-white hover:text-primary uppercase tracking-widest flex items-center gap-2 group/link">
                                  Detalji događaja <ArrowRight size={12} className="group-hover/link:translate-x-1 transition-transform" />
                               </Link>
                               {(res.status === 'PENDING' || res.status === 'CONFIRMED') && new Date(res.event.startDateTime) > new Date() && (
                                  <button
                                     onClick={() => cancelReservation(res)}
-                                    className="px-5 py-2 rounded-full border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2"
+                                    className="px-5 py-2 rounded-full border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
                                  >
                                     <XCircle size={12} /> Otkaži rezervaciju
                                  </button>

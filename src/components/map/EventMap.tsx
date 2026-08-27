@@ -107,9 +107,9 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
             <Popup className="event-popup">
               <div className="p-4 min-w-[240px] space-y-4 bg-card">
                 <div className="flex flex-col gap-1">
-                  <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1">{group.events[0].venue.name}</p>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1">{group.events[0].venue.name}</p>
                   {userLocation && (
-                    <p className="text-[8px] font-bold text-muted uppercase tracking-widest">
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest">
                       {calculateDistance(userLocation.lat, userLocation.lng, group.lat, group.lng)} km od tebe
                     </p>
                   )}
@@ -124,12 +124,12 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
                         </div>
                       )}
                       <h4 className="font-black text-sm text-white uppercase tracking-tight mb-2 leading-tight">{event.title}</h4>
-                      <p className="text-[9px] text-muted font-bold uppercase tracking-widest mb-3">
+                      <p className="text-[10px] text-muted font-bold uppercase tracking-widest mb-3">
                         {new Date(event.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })} • {event.price === 0 ? 'Besplatno' : `${event.price} KM`}
                       </p>
                       <Link 
                         href={`/events/${event.slug}`}
-                        className="inline-flex w-full py-2.5 bg-primary text-white text-[9px] font-black justify-center rounded-xl uppercase tracking-[0.2em] hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
+                        className="inline-flex w-full py-2.5 bg-primary text-white text-[10px] font-black justify-center rounded-xl uppercase tracking-[0.2em] hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
                       >
                         DETALJI
                       </Link>

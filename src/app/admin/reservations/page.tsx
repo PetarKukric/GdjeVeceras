@@ -183,7 +183,7 @@ export default function AdminReservations() {
                                    </div>
                                    <div>
                                       <p className="text-xs font-black text-white uppercase tracking-tight">{r.name}</p>
-                                      <p className="text-[9px] font-bold text-muted uppercase tracking-widest flex items-center gap-1 mt-1">
+                                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1 mt-1">
                                          <Phone size={10} /> {r.phone}
                                       </p>
                                    </div>
@@ -191,7 +191,7 @@ export default function AdminReservations() {
                              </td>
                              <td className="px-8 py-6">
                                 <p className="text-xs font-bold text-white uppercase truncate max-w-[200px]">{r.event.title}</p>
-                                <p className="text-[9px] font-bold text-muted uppercase tracking-widest flex items-center gap-1 mt-1">
+                                <p className="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1 mt-1">
                                    <Clock size={10} /> {new Date(r.startTime).toLocaleTimeString('bs', {hour:'2-digit', minute:'2-digit'})}
                                 </p>
                              </td>
@@ -199,7 +199,7 @@ export default function AdminReservations() {
                                 <span className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[10px] font-black text-white">{r.numberOfPeople} MJ</span>
                              </td>
                              <td className="px-8 py-6">
-                                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[8px] font-black uppercase tracking-widest ${getStatusColor(r.status)}`}>
+                                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest ${getStatusColor(r.status)}`}>
                                    <div className={`w-1.5 h-1.5 rounded-full ${r.status === 'PENDING' ? 'bg-yellow-500 animate-pulse' : r.status === 'CONFIRMED' ? 'bg-green-500' : 'bg-current'}`} />
                                    {r.status === 'PENDING' ? 'NA ČEKANJU' : r.status === 'CONFIRMED' ? 'POTVRĐENO' : r.status === 'NO_SHOW' ? 'NEDOLAZAK' : r.status === 'CANCELLED' ? 'OTKAZANO' : r.status === 'COMPLETED' ? 'ZAVRŠENO' : r.status}
                                 </div>
@@ -207,12 +207,12 @@ export default function AdminReservations() {
                              <td className="px-8 py-6 text-right">
                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                    {r.status === 'PENDING' && (
-                                      <button onClick={() => setAssigningRes(r)} className="px-4 py-2 bg-white/10 text-white hover:bg-primary hover:text-white rounded-xl transition-all text-[9px] font-black uppercase tracking-widest border border-white/5 shadow-lg">
+                                      <button onClick={() => setAssigningRes(r)} className="px-4 py-2 bg-white/10 text-white hover:bg-primary hover:text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-lg">
                                          Dodijeli sto
                                       </button>
                                    )}
                                    {(r.status === 'CONFIRMED' || r.status === 'PENDING') && r.assignedItems && r.assignedItems.length > 0 && (
-                                      <button onClick={() => setAssigningRes(r)} className="px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xl transition-all text-[9px] font-black uppercase tracking-widest border border-blue-500/20">
+                                      <button onClick={() => setAssigningRes(r)} className="px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
                                          Promijeni sto
                                       </button>
                                    )}

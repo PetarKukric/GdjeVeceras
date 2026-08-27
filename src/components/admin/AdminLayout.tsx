@@ -110,7 +110,7 @@ export function AdminSidebar() {
                 </div>
                 <div className="flex-grow overflow-hidden">
                   <p className="text-xs font-black text-white truncate uppercase tracking-tight">{user.name}</p>
-                  <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">{user.role}</p>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{user.role}</p>
                 </div>
               </div>
               <button 
@@ -157,7 +157,7 @@ export function AdminHeader({ title }: { title: string }) {
         <Link href="/admin/reports" className="p-2 text-muted hover:text-primary relative transition-colors">
           <Flag size={20} className="md:w-[22px]" />
           {reportCount > 0 && (
-            <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-background animate-pulse">
+            <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-background animate-pulse">
               {reportCount}
             </span>
           )}
@@ -165,7 +165,7 @@ export function AdminHeader({ title }: { title: string }) {
         <div className="h-10 w-px bg-white/5 mx-1 md:mx-2"></div>
         <Link 
           href="/" 
-          className="px-4 md:px-6 py-2 md:py-2.5 bg-white/5 border border-white/10 rounded-xl text-[8px] md:text-[9px] font-black text-white hover:bg-primary hover:text-white hover:border-primary transition-all uppercase tracking-[0.2em] shadow-lg"
+          className="px-4 md:px-6 py-2 md:py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] md:text-[10px] font-black text-white hover:bg-primary hover:text-white hover:border-primary transition-all uppercase tracking-[0.2em] shadow-lg"
         >
           <span className="hidden sm:inline">NA SAJT</span>
           <span className="sm:hidden">SAJT</span>

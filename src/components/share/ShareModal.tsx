@@ -250,7 +250,7 @@ export function ShareModal({ isOpen, onClose, type, data }: ShareModalProps) {
 
                   {copyError && (
                     <div className="mt-4 p-4 bg-surface/80 border border-white/5 rounded-2xl">
-                       <p className="text-[9px] font-bold text-muted uppercase tracking-widest mb-2">Ručno kopiraj link:</p>
+                       <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Ručno kopiraj link:</p>
                        <input 
                          readOnly 
                          value={shareUrl}

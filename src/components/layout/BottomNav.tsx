@@ -38,7 +38,7 @@ export function BottomNav() {
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full shadow-[0_0_10px_#FF0080]" />
             )}
             <Icon size={21} className={`${active ? 'scale-110' : 'group-hover:scale-110'}`} />
-            <span className="text-[8px] font-black uppercase tracking-widest">{item.label}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
           </Link>
         );
       })}

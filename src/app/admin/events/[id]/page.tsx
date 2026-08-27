@@ -272,7 +272,7 @@ export default function EditEvent() {
                                 );
                               })}
                             </div>
-                            <p className="text-[9px] text-muted font-medium mt-1.5">Ako se događaj održava u više lokala istovremeno — označi sve. Tretiraće se kao jedan zajednički događaj.</p>
+                            <p className="text-[10px] text-muted font-medium mt-1.5">Ako se događaj održava u više lokala istovremeno — označi sve. Tretiraće se kao jedan zajednički događaj.</p>
                          </div>
                        )}
                     </div>

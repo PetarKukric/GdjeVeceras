@@ -117,7 +117,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
                 <Link href="/chat" className="touch-target text-muted hover:text-primary transition-all relative">
                   <MessageSquare size={20} />
                   {chatUnread > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-background">
+                    <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-background">
                       {chatUnread > 9 ? '9+' : chatUnread}
                     </span>
                   )}

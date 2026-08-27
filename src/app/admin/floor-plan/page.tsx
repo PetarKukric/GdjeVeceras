@@ -78,7 +78,7 @@ export default function AdminFloorPlan() {
                          className={`w-full p-4 rounded-2xl border text-left transition-all ${selectedVenue?.id === v.id ? 'border-primary bg-primary/10 shadow-lg shadow-primary/5' : 'border-white/5 bg-card/50 hover:border-white/20'}`}
                        >
                          <p className={`text-xs font-black uppercase tracking-tight ${selectedVenue?.id === v.id ? 'text-primary' : 'text-white'}`}>{v.name}</p>
-                         <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-1">{v.city}</p>
+                         <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">{v.city}</p>
                        </button>
                     ))}
                   </div>
@@ -94,7 +94,7 @@ export default function AdminFloorPlan() {
                          >
                             <div>
                                <p className={`text-xs font-black uppercase tracking-tight ${tab === 'DEFAULT' ? 'text-accent' : 'text-white'}`}>Osnovni plan</p>
-                               <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-1">Default template</p>
+                               <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Default template</p>
                             </div>
                             <ChevronRight size={16} className={`transition-transform ${tab === 'DEFAULT' ? 'text-accent translate-x-1' : 'text-muted'}`} />
                          </button>
@@ -104,7 +104,7 @@ export default function AdminFloorPlan() {
                          >
                             <div>
                                <p className={`text-xs font-black uppercase tracking-tight ${tab === 'EVENT' ? 'text-pink-500' : 'text-white'}`}>Plan za događaj</p>
-                               <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-1">Samo za veče</p>
+                               <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Samo za veče</p>
                             </div>
                             <ChevronRight size={16} className={`transition-transform ${tab === 'EVENT' ? 'text-pink-500 translate-x-1' : 'text-muted'}`} />
                          </button>
@@ -121,13 +121,13 @@ export default function AdminFloorPlan() {
                                     className={`w-full p-3 rounded-xl border text-left transition-all ${selectedEvent?.id === e.id ? 'border-pink-500 bg-pink-500/10' : 'border-white/5 bg-background hover:border-white/10'}`}
                                  >
                                     <p className="text-[10px] font-black text-white uppercase truncate">{e.title}</p>
-                                    <p className="text-[8px] font-bold text-muted uppercase tracking-widest mt-1">
+                                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">
                                        {new Date(e.startDateTime).toLocaleDateString('bs', {day:'2-digit', month:'short'})}
                                     </p>
                                  </button>
                               ))}
                               {(!selectedVenue.events || selectedVenue.events.length === 0) && (
-                                <p className="text-[9px] font-bold text-muted uppercase tracking-widest italic text-center py-4">Nema aktivnih događaja</p>
+                                <p className="text-[10px] font-bold text-muted uppercase tracking-widest italic text-center py-4">Nema aktivnih događaja</p>
                               )}
                            </div>
                         </div>
@@ -163,7 +163,7 @@ export default function AdminFloorPlan() {
                                      <div className="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_8px_#FF0080]" />
                                      <h3 className="text-lg font-black uppercase tracking-tight">{selectedEvent.title} @ {selectedVenue.name}</h3>
                                   </div>
-                                  <div className="px-4 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full text-[8px] font-black text-pink-500 uppercase tracking-[0.2em]">
+                                  <div className="px-4 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full text-[10px] font-black text-pink-500 uppercase tracking-[0.2em]">
                                      Event-Specific Layout
                                   </div>
                                </div>

@@ -81,7 +81,7 @@ export function ImageUploader({ value, onChange, label = 'Slika', aspect = 'vide
           <div className="flex flex-col items-center gap-3 text-muted group-hover:text-primary transition-colors">
             <Upload size={32} />
             <span className="text-[10px] font-black uppercase tracking-widest">Klikni za upload slike</span>
-            <span className="text-[9px] font-bold opacity-60 uppercase tracking-wider">JPG · PNG · GIF · WebP (maks 10MB)</span>
+            <span className="text-[10px] font-bold opacity-60 uppercase tracking-wider">JPG · PNG · GIF · WebP (maks 10MB)</span>
           </div>
         )}
 

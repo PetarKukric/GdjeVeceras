@@ -79,7 +79,7 @@ export default function MessageDetail() {
                     <User size={18} />
                   </div>
                   <div>
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Od</p>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Od</p>
                     <p className="text-sm font-bold text-white">{message.senderName}</p>
                   </div>
                </div>
@@ -88,7 +88,7 @@ export default function MessageDetail() {
                     <Mail size={18} />
                   </div>
                   <div>
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Email</p>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Email</p>
                     <p className="text-sm font-bold text-white">{message.senderEmail}</p>
                   </div>
                </div>
@@ -97,7 +97,7 @@ export default function MessageDetail() {
                     <MapPin size={18} />
                   </div>
                   <div>
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Lokal</p>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Lokal</p>
                     {message.venue ? (
                       <Link href={`/venues/${message.venue.slug}`} className="text-sm font-bold text-white hover:text-primary transition-colors flex items-center gap-1">
                         {message.venue.name} <ChevronRight size={14} />

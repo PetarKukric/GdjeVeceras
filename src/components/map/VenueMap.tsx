@@ -47,7 +47,7 @@ export default function VenueMap({ venue }: VenueMapProps) {
           <Popup>
             <div className="p-3 bg-card min-w-[150px]">
               <p className="font-black text-xs text-white uppercase tracking-tight mb-1">{venue.name}</p>
-              <p className="text-[9px] text-muted font-bold uppercase tracking-widest leading-tight">{venue.address}</p>
+              <p className="text-[10px] text-muted font-bold uppercase tracking-widest leading-tight">{venue.address}</p>
             </div>
           </Popup>
         </Marker>

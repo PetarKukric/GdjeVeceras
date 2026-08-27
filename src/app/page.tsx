@@ -404,7 +404,7 @@ export default function Home() {
                    )}
                 </button>
               ) : (
-                <div className="px-6 py-3 bg-green-500/10 border border-green-500/20 text-green-500 font-black rounded-2xl flex items-center gap-2 uppercase tracking-widest text-[9px]">
+                <div className="px-6 py-3 bg-green-500/10 border border-green-500/20 text-green-500 font-black rounded-2xl flex items-center gap-2 uppercase tracking-widest text-[10px]">
                    <MapPin size={14} /> LOKACIJA OMOGUĆENA
                 </div>
               )}
@@ -442,9 +442,9 @@ export default function Home() {
                    </div>
                    <div className="flex-grow text-left">
                       <h4 className="text-sm font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h4>
-                      <p className="text-[9px] font-bold text-muted uppercase tracking-widest mt-1 mb-3">{event.venue.name}</p>
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1 mb-3">{event.venue.name}</p>
                       <div className="flex items-center justify-between">
-                         <span className="flex items-center gap-1.5 text-[8px] font-black text-primary uppercase tracking-widest">
+                         <span className="flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-widest">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary" /> LIVE
                          </span>
                          <span className="text-[10px] font-bold text-muted">{new Date(event.startDateTime).toLocaleTimeString('bs', {hour: '2-digit', minute: '2-digit'})}</span>
