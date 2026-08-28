@@ -14,7 +14,8 @@ import {
   Globe,
   MessageSquare,
   AlertTriangle,
-  XCircle
+  XCircle,
+  Upload
 } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 
@@ -46,6 +47,7 @@ export function AdminSidebar() {
     { name: 'Poruke', href: '/admin/messages', icon: MessageSquare, roles: ['ADMIN'] },
     { name: 'Na čekanju', href: '/admin/events/pending', icon: AlertTriangle, roles: ['ADMIN'] },
     { name: 'Lokali', href: '/admin/venues', icon: Globe, roles: ['ADMIN'] },
+    { name: 'Masovni uvoz', href: '/admin/import', icon: Upload, roles: ['ADMIN'] },
     { name: 'Prijave', href: '/admin/reports', icon: Flag, roles: ['ADMIN'] },
     { name: 'Korisnici', href: '/admin/users', icon: Users, roles: ['ADMIN'] },
   ];
