@@ -75,7 +75,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
   };
 
   return (
-    <Link href={`/events/${event.slug}`} className="bg-surface border border-white/5 rounded-3xl overflow-hidden hover:border-primary/40 hover:-translate-y-2 transition-all duration-500 group cursor-pointer shadow-2xl hover:shadow-primary/5 flex flex-col h-full text-left relative">
+    <Link href={"/events/" + event.slug + ((event as any).occurrenceDate ? "?date=" + (event as any).occurrenceDate : "")} className="bg-surface border border-white/5 rounded-3xl overflow-hidden hover:border-primary/40 hover:-translate-y-2 transition-all duration-500 group cursor-pointer shadow-2xl hover:shadow-primary/5 flex flex-col h-full text-left relative">
       
       {/* IMAGE SECTION */}
       <div className="aspect-[16/10] relative overflow-hidden">
@@ -86,11 +86,22 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-surface to-background flex items-center justify-center">
-            <span className="opacity-20">{event.category === 'PARTY' ? <Disc3 size={36} /> : <Guitar size={36} />}</span>
+          <div className="w-full h-full bg-gradient-to-br from-primary/15 via-surface to-background flex items-center justify-center relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-36 h-36 bg-primary/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-accent/10 rounded-full blur-2xl" />
+            <div className="relative w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+              {event.category === 'PARTY' ? <Disc3 size={28} /> : <Guitar size={28} />}
+            </div>
           </div>
         )}
         
+        {/* Datum — gornji desni ugao */}
+        <div className="absolute top-4 right-4 z-10">
+          <span className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black tracking-[0.15em] text-white border border-white/10 tabular-nums">
+            {new Date(event.startDateTime).toLocaleDateString('bs', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+          </span>
+        </div>
+
         {/* Badge Top Left */}
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           {isLiveNow && (

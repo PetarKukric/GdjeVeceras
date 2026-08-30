@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Search, LogOut, Heart, MessageSquare, Clock, Settings } from 'lucide-react';
+import { Search, LogOut, Heart, MessageSquare, Clock, Settings, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ClientOnly } from '@/components/ui/ClientOnly';
@@ -65,7 +65,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
             <img 
               src="/logo-final.png" 
               alt="Gdje Večeras" 
-              className="h-14 sm:h-18 w-auto object-contain" 
+              className="h-9 sm:h-12 md:h-14 w-auto object-contain"
             />
           </Link>
 
@@ -110,7 +110,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-6 min-w-0 shrink-0">
-            <Link href="/events" className="touch-target text-muted hover:text-text transition-colors">
+            <Link href="/events" className="hidden md:flex touch-target text-muted hover:text-text transition-colors" aria-label="Pretraga">
               <Search size={20} />
             </Link>
 
@@ -136,14 +136,17 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
                 {user ? (
                   <div className="flex items-center gap-3 sm:gap-4">
                     <span className="text-xs font-bold text-white hidden lg:block truncate max-w-[120px]">{user.name}</span>
-                    <Link href="/settings" className="touch-target text-muted hover:text-primary transition-colors" title="Podešavanja">
+                    <Link href="/settings" className="touch-target text-muted hover:text-primary transition-colors" title="Podešavanja" aria-label="Podešavanja">
                       <Settings size={20} />
                     </Link>
-                    <button onClick={handleLogout} className="touch-target text-muted hover:text-primary transition-colors" title="Odjava">
+                    <button onClick={handleLogout} className="hidden sm:flex touch-target text-muted hover:text-primary transition-colors" title="Odjava" aria-label="Odjava">
                       <LogOut size={20} />
                     </button>
                     {(user.role === 'ADMIN' || user.role === 'OWNER') && (
-                      <Link href="/admin" className="whitespace-nowrap shrink-0 px-3 sm:px-5 py-1.5 sm:py-2 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all">Admin</Link>
+                      <Link href="/admin" aria-label="Admin panel" title="Admin panel" className="shrink-0 flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:px-5 sm:py-2 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all">
+                        <LayoutDashboard size={18} className="sm:hidden" />
+                        <span className="hidden sm:inline">Admin</span>
+                      </Link>
                     )}
                   </div>
                 ) : (

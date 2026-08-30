@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { expandRecurringEvents, toExceptionMap } from '@/lib/recurrence';
 import { checkAndArchiveFinishedEvents } from '@/lib/live-service';
+import type { Prisma } from '@prisma/client';
 
 export async function GET(
   _request: NextRequest,
@@ -32,20 +34,47 @@ export async function GET(
     }
 
     // Događaji lokala: primarni lokal ILI zajednički (additionalVenues)
-    const events = await prisma.event.findMany({
-      where: {
-        status: 'PUBLISHED',
-        OR: [
-          { venueId: venue.id },
-          { additionalVenues: { some: { venueId: venue.id } } },
-        ],
-      },
-      orderBy: { startDateTime: 'asc' },
-      include: {
-        venue: true,
-        additionalVenues: { include: { venue: { select: { id: true, name: true, slug: true, city: true } } } },
-      },
-    });
+    // Normalni + ponavljajući (termini se računaju za ograničen opseg 60 dana)
+    const baseEventWhere: Prisma.EventWhereInput = {
+      status: 'PUBLISHED',
+      OR: [
+        { venueId: venue.id },
+        { additionalVenues: { some: { venueId: venue.id } } },
+      ],
+    };
+    const [normalEvents, recurringParents] = await Promise.all([
+      prisma.event.findMany({
+        where: { ...baseEventWhere, isRecurring: false },
+        orderBy: { startDateTime: 'asc' },
+        include: {
+          venue: true,
+          additionalVenues: { include: { venue: { select: { id: true, name: true, slug: true, city: true } } } },
+        },
+      }),
+      prisma.event.findMany({
+        where: { ...baseEventWhere, isRecurring: true },
+        include: {
+          venue: true,
+          additionalVenues: { include: { venue: { select: { id: true, name: true, slug: true, city: true } } } },
+          occurrenceExceptions: true,
+        },
+        take: 100,
+      }),
+    ]);
+
+    const exceptionsByParent: Record<string, any> = {};
+    for (const ev of recurringParents) {
+      exceptionsByParent[ev.id] = toExceptionMap(ev.occurrenceExceptions as any);
+      delete (ev as any).occurrenceExceptions;
+    }
+    const rangeStart = new Date();
+    const rangeEnd = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+    const occurrences = expandRecurringEvents(recurringParents as any, rangeStart, rangeEnd, exceptionsByParent);
+    occurrences.sort((a: any, b: any) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime());
+
+    const events = [...normalEvents, ...occurrences].sort(
+      (a: any, b: any) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime()
+    );
 
     return NextResponse.json({ ...venue, events });
   } catch (_unused) {

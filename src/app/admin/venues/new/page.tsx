@@ -153,7 +153,7 @@ export default function NewVenue() {
   return (
     <>
       <AdminHeader title="Novi lokal" />
-      <main className="p-8 max-w-5xl mx-auto">
+      <main className="p-4 md:p-8 max-w-5xl mx-auto">
         <Link href="/admin/venues" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
           <ArrowLeft size={16} /> Nazad na listu
         </Link>

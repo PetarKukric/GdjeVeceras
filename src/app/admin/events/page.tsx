@@ -97,7 +97,7 @@ export default function AdminEvents() {
   return (
     <>
       <AdminHeader title="Upravljanje događajima" />
-      <main className="p-8 space-y-6 animate-fade-up relative z-[1]">
+      <main className="p-4 md:p-8 space-y-6 animate-fade-up relative z-[1]">
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex flex-grow max-w-md relative group w-full">
@@ -162,7 +162,7 @@ export default function AdminEvents() {
                             {event.imageUrl ? <img src={event.imageUrl} className="w-full h-full object-cover rounded-lg" alt="Naslovna slika događaja" /> : <ImageIcon size={20} className="opacity-30" />}
                           </div>
                           <div>
-                            <p className="font-bold text-sm text-text line-clamp-1">{event.title}</p>
+                            <p className="font-bold text-sm text-text line-clamp-1">{event.title}{(event as any).isRecurring && <span className="ml-2 align-middle text-[9px] font-black uppercase tracking-widest text-primary border border-primary/30 bg-primary/10 rounded-full px-2 py-0.5">Ponavljajući</span>}</p>
                           </div>
                         </div>
                       </td>

@@ -20,6 +20,8 @@ import {
   Users,
   Music,
   Disc,
+  Disc3,
+  Guitar,
   ChevronRight,
   Car,
   Wifi,
@@ -102,13 +104,14 @@ export default function EventPage() {
     async function fetchEvent() {
       if (!slug) return;
       try {
-        const res = await fetch(`/api/events/${slug}`);
+        const dateParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('date') : null;
+        const res = await fetch('/api/events/' + slug + (dateParam ? '?date=' + dateParam : ''));
         if (res.ok) {
           const result = await res.json();
           setData(result);
           
           // Fetch availability
-          const floorRes = await fetch(`/api/events/${slug}/floor-plan`);
+          const floorRes = await fetch('/api/events/' + slug + '/floor-plan' + (dateParam ? '?date=' + dateParam : ''));
           if (floorRes.ok) {
             const floorData = await floorRes.json();
             setFloorItems(floorData);
@@ -223,8 +226,17 @@ export default function EventPage() {
                 {event.imageUrl ? (
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 ) : (
-                  <div className="w-full h-full bg-surface flex items-center justify-center text-8xl opacity-10 uppercase font-black tracking-tighter italic">
-                     {event.category}
+                  <div className="w-full h-full bg-gradient-to-br from-surface via-background to-surface relative flex items-center justify-center overflow-hidden">
+                     <div className="absolute top-0 right-0 w-72 h-72 bg-primary/15 rounded-full blur-[100px]" />
+                     <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent/10 rounded-full blur-[100px]" />
+                     <div className="relative flex flex-col items-center gap-4">
+                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-2xl">
+                           {event.category === 'PARTY' ? <Disc3 size={44} /> : <Guitar size={44} />}
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted">
+                           {event.category === 'PARTY' ? 'Žurka' : 'Muzika uživo'}
+                        </span>
+                     </div>
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
@@ -238,7 +250,7 @@ export default function EventPage() {
                 </div>
 
                 {/* Floating Actions Top Right */}
-                <div className="absolute top-6 right-6 flex gap-3">
+                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-3">
                    <button 
                      onClick={() => setIsShareModalOpen(true)}
                      className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all shadow-lg group/btn"
@@ -254,7 +266,7 @@ export default function EventPage() {
                 </div>
 
                 {/* Title Overlay */}
-                <div className="absolute bottom-8 left-8 right-8 flex flex-col sm:flex-row items-end sm:items-center gap-6">
+                <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
                    <div className="w-20 h-24 sm:w-24 sm:h-28 bg-white text-background rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-2xl">
                       <span className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">
                          {startDate.toLocaleDateString('bs', { weekday: 'short' }).toUpperCase()}
@@ -769,7 +781,8 @@ export default function EventPage() {
             id: event.id,
             title: event.title,
             slug: event.slug,
-            imageUrl: event.imageUrl
+            imageUrl: event.imageUrl,
+            date: (event as any).occurrenceDate || undefined
           }}
         />
 

@@ -23,6 +23,7 @@ interface ShareModalProps {
     title: string;
     slug: string;
     imageUrl?: string;
+    date?: string;
   };
 }
 
@@ -38,7 +39,7 @@ export function ShareModal({ isOpen, onClose, type, data }: ShareModalProps) {
   const { showToast } = useToast();
 
   const shareUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/${type === 'event' ? 'events' : 'venues'}/${data.slug}`
+    ? `${window.location.origin}/${type === 'event' ? 'events' : 'venues'}/${data.slug}${data.date ? `?date=${data.date}` : ''}`
     : '';
 
   useEffect(() => {

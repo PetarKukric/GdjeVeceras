@@ -48,6 +48,16 @@ export interface Event {
   id: string;
   title: string;
   slug: string;
+  // Ponavljajući događaji (pravilo + izračunati termin)
+  isRecurring?: boolean;
+  recurrenceType?: string | null;
+  recurrenceDays?: string | null;
+  recurrenceStart?: string | null;
+  recurrenceEnd?: string | null;
+  occurrenceDate?: string;
+  occurrenceId?: string;
+  isOccurrence?: boolean;
+  parentEventId?: string;
   description?: string;
   venueId: string;
   venue: Venue;

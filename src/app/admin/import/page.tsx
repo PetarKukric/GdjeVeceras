@@ -468,11 +468,11 @@ export default function ImportPage() {
   };
 
   if (role === null) {
-    return <div className="p-8 text-center animate-pulse text-muted uppercase text-xs font-black tracking-widest">Učitavanje…</div>;
+    return <div className="p-4 md:p-8 text-center animate-pulse text-muted uppercase text-xs font-black tracking-widest">Učitavanje…</div>;
   }
   if (role !== 'ADMIN') {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <AdminHeader title="Masovni uvoz" />
         <div className="mt-8 bg-card border border-red-500/20 rounded-2xl p-8 text-center">
           <AlertTriangle size={32} className="text-red-500 mx-auto mb-4" />

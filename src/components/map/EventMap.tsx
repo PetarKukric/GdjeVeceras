@@ -6,6 +6,7 @@ import { MAP_TILES_URL, MAP_TILES_LABELS_URL, MAP_TILES_ATTRIBUTION } from './ti
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Event } from '@/types';
+import { Disc3 } from 'lucide-react';
 import Link from 'next/link';
 
 const pinkIcon = L.divIcon({
@@ -118,9 +119,16 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
                 <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {group.events.map(event => (
                     <div key={event.id} className="border-t border-border/50 pt-4 first:border-0 first:pt-0 pb-2">
-                      {event.imageUrl && (
+                      {event.imageUrl ? (
                         <div className="aspect-video w-full rounded-xl overflow-hidden mb-3">
-                           <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
+                           <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-16 w-full rounded-xl mb-3 bg-gradient-to-r from-primary/15 via-surface to-background border border-white/5 flex items-center justify-center gap-2">
+                           <Disc3 size={18} className="text-primary" />
+                           <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted">
+                              {event.category === 'PARTY' ? 'Žurka' : 'Muzika uživo'}
+                           </span>
                         </div>
                       )}
                       <h4 className="font-black text-sm text-white uppercase tracking-tight mb-2 leading-tight">{event.title}</h4>

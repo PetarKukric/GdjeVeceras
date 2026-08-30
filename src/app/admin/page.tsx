@@ -45,7 +45,7 @@ export default function AdminDashboard() {
     fetchSessionAndStats();
   }, []);
 
-  if (loading) return <div className="p-8 text-center animate-pulse">Učitavanje Dashboarda...</div>;
+  if (loading) return <div className="p-4 md:p-8 text-center animate-pulse">Učitavanje Dashboarda...</div>;
 
   const statCards = [
     { label: 'Ukupno', value: stats?.totalEvents || 0, icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -59,7 +59,7 @@ export default function AdminDashboard() {
   return (
     <>
       <AdminHeader title="Dashboard" />
-      <main className="p-8 space-y-10 animate-fade-up relative z-[1]">
+      <main className="p-4 md:p-8 space-y-10 animate-fade-up relative z-[1]">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
           {statCards.map((stat) => (
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
               <div className="p-6 border-b border-border flex justify-between items-center">
                 <h2 className="font-bold text-lg uppercase tracking-tight">Događaji na čekanju</h2>
               </div>
-              <div className="p-8 text-center">
+              <div className="p-4 md:p-8 text-center">
                  <div className="w-16 h-16 bg-yellow-400/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Clock size={32} />
                  </div>

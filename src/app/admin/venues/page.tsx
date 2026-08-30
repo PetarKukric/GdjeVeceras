@@ -57,7 +57,7 @@ export default function AdminVenues() {
   return (
     <>
       <AdminHeader title="Upravljanje lokalima" />
-      <main className="p-8 space-y-8 animate-fade-up relative z-[1]">
+      <main className="p-4 md:p-8 space-y-8 animate-fade-up relative z-[1]">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />

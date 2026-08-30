@@ -43,7 +43,7 @@ export default function AdminUsers() {
   return (
     <>
       <AdminHeader title="Korisnici" />
-      <main className="p-8 animate-fade-up relative z-[1]">
+      <main className="p-4 md:p-8 animate-fade-up relative z-[1]">
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
           <table className="w-full text-left">

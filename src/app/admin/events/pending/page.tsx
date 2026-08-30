@@ -48,7 +48,7 @@ export default function PendingEvents() {
   return (
     <>
       <AdminHeader title="Događaji na čekanju" />
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl font-black text-text">Moderacija sadržaja</h2>

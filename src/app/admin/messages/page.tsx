@@ -31,7 +31,7 @@ export default function AdminMessages() {
   return (
     <>
       <AdminHeader title="Poruke korisnika" />
-      <main className="p-8 animate-fade-up relative z-[1]">
+      <main className="p-4 md:p-8 animate-fade-up relative z-[1]">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-2xl font-black text-white uppercase tracking-tight">Inbox</h2>

@@ -3,6 +3,11 @@ import prisma from '@/lib/prisma';
 import { Category, Status } from '@prisma/client';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 import { getSarajevoNow, sarajevoStartOfDay } from '@/lib/bosnia-time';
+import { expandRecurringEvents, toExceptionMap, validateRecurrenceInput } from '@/lib/recurrence';
+import { getSession } from '@/lib/auth';
+
+// Ograničenje ekspanzije ponavljajućih događaja za otvorenije opsege (upcoming/all)
+const EXPANSION_WINDOW_MS = 60 * 24 * 60 * 60 * 1000; // 60 dana
 
 export async function GET(_request: NextRequest) {
   try {
@@ -17,7 +22,7 @@ export async function GET(_request: NextRequest) {
     const category = searchParams.get('category') as Category | null;
     const venueSlug = searchParams.get('venue');
     const cityParam = searchParams.get('city'); // slug (npr. "banja-luka") ili naziv ("Banja Luka")
-    const dateFilter = searchParams.get('date'); // today, tomorrow, weekend, YYYY-MM-DD
+    const dateFilter = searchParams.get('date'); // today, tomorrow, weekend, upcoming, YYYY-MM-DD, all
     const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
     const search = searchParams.get('search');
@@ -27,12 +32,13 @@ export async function GET(_request: NextRequest) {
     const city = getCityBySlug(cityParam) || getCityByName(cityParam);
 
     // Sorting
-    const sort = searchParams.get('sort') || 'startTime'; // startTime, newest, price, relevance, distance
+    const sort = searchParams.get('sort') || 'startTime';
     const userLat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : null;
     const userLng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : null;
 
     const where: any = {
       status: status,
+      isRecurring: false, // ponavljajući se dodaju kao izračunati termini (ispod)
     };
 
     if (category) {
@@ -67,58 +73,50 @@ export async function GET(_request: NextRequest) {
     const todayStart = sarajevoStartOfDay(bosniaNow);
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
+    // Raspon za ekspanziju ponavljajućih događaja (uvijek ograničen!)
+    let rangeStart: Date | null = null;
+    let rangeEnd: Date | null = null;
+
     if (dateFilter === 'today') {
-      where.startDateTime = {
-        gte: todayStart,
-        lte: todayEnd,
-      };
+      where.startDateTime = { gte: todayStart, lte: todayEnd };
+      rangeStart = todayStart; rangeEnd = todayEnd;
     } else if (dateFilter === 'tomorrow') {
       const tomorrowStart = new Date(todayStart);
       tomorrowStart.setDate(tomorrowStart.getDate() + 1);
       const tomorrowEnd = new Date(todayEnd);
       tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-      where.startDateTime = {
-        gte: tomorrowStart,
-        lte: tomorrowEnd,
-      };
+      where.startDateTime = { gte: tomorrowStart, lte: tomorrowEnd };
+      rangeStart = tomorrowStart; rangeEnd = tomorrowEnd;
     } else if (dateFilter === 'weekend') {
       // Vikend: petak (sarajevsko vrijeme) do nedjelje 23:59:59
       const dayOfWeek = bosniaNow.getUTCDay(); // 0=ned..6=sub u Sarajevu
       const daysToFriday = (5 - dayOfWeek + 7) % 7;
       const friday = new Date(todayStart.getTime() + daysToFriday * 24 * 60 * 60 * 1000);
       const sunday = new Date(friday.getTime() + 3 * 24 * 60 * 60 * 1000 - 1);
-      where.startDateTime = {
-        gte: friday,
-        lte: sunday,
-      };
+      where.startDateTime = { gte: friday, lte: sunday };
+      rangeStart = friday; rangeEnd = sunday;
     } else if (dateFilter === 'upcoming') {
       // Samo događaji koji još nisu završili (prošli se ne prikazuju)
-      where.endDateTime = {
-        gte: new Date(),
-      };
+      where.endDateTime = { gte: new Date() };
+      rangeStart = new Date(); rangeEnd = new Date(Date.now() + EXPANSION_WINDOW_MS);
     } else if (dateFilter && dateFilter.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const customDate = new Date(dateFilter);
       const customDateEnd = new Date(customDate);
       customDateEnd.setHours(23, 59, 59, 999);
-      where.startDateTime = {
-        gte: customDate,
-        lte: customDateEnd,
-      };
+      where.startDateTime = { gte: customDate, lte: customDateEnd };
+      rangeStart = customDate; rangeEnd = customDateEnd;
     } else if (dateFilter === 'all') {
         // Show all future events starting from today
-        where.startDateTime = {
-            gte: todayStart
-        };
+        where.startDateTime = { gte: todayStart };
+        rangeStart = todayStart; rangeEnd = new Date(todayStart.getTime() + EXPANSION_WINDOW_MS);
     } else {
         // Default behavior: all future events
-        where.startDateTime = {
-            gte: todayStart
-        };
+        where.startDateTime = { gte: todayStart };
+        rangeStart = todayStart; rangeEnd = new Date(todayStart.getTime() + EXPANSION_WINDOW_MS);
     }
 
     // Sorting logic
-    const orderBy: any = [];
-
+    const orderBy: any[] = [];
     if (sort === 'startTime') {
       orderBy.push({ startDateTime: 'asc' });
     } else if (sort === 'newest') {
@@ -134,6 +132,40 @@ export async function GET(_request: NextRequest) {
 
     // Distance sorting requires fetching all events and sorting in memory
     const isDistanceSort = sort === 'distance' && userLat !== null && userLng !== null;
+
+    // ===== PONAVLJAJUĆI DOGAĐAJI — ekspanzija termina unutar [rangeStart, rangeEnd] =====
+    // Ne generišu se DB redovi: termini se računaju iz pravila + izuzetaka.
+    let occurrences: any[] = [];
+    let recurringCount = 0;
+    if (rangeStart && rangeEnd) {
+      const recWhere: any = { ...where, isRecurring: true };
+      delete recWhere.startDateTime;
+      delete recWhere.endDateTime;
+      recurringCount = await prisma.event.count({ where: recWhere });
+      if (recurringCount > 0) {
+        const recurringEvents = await prisma.event.findMany({
+          where: recWhere,
+          include: {
+            venue: { include: { openingHours: true } },
+            additionalVenues: {
+              include: { venue: { select: { id: true, name: true, city: true, slug: true, address: true } } },
+            },
+            occurrenceExceptions: true,
+            _count: { select: { favorites: true, liveMedia: true } },
+          },
+          take: 200, // gornja granica serija po upitu
+        });
+        const exceptionsByParent: Record<string, any> = {};
+        for (const ev of recurringEvents) {
+          exceptionsByParent[ev.id] = toExceptionMap(ev.occurrenceExceptions);
+          delete (ev as any).occurrenceExceptions;
+        }
+        occurrences = expandRecurringEvents(recurringEvents, rangeStart, rangeEnd, exceptionsByParent);
+      }
+    }
+
+    // Ako nema ponavljajućih — ponašanje identično starom (SQL paginacija)
+    const mergeInMemory = isDistanceSort || occurrences.length > 0;
 
     const [events, total] = await Promise.all([
       prisma.event.findMany({
@@ -155,58 +187,67 @@ export async function GET(_request: NextRequest) {
             select: { favorites: true, liveMedia: true }
           }
         },
-        ...(isDistanceSort ? {} : { orderBy, skip, take: limit }),
+        ...(mergeInMemory ? {} : { orderBy, skip, take: limit }),
       }),
       prisma.event.count({ where }),
     ]);
 
-    let finalEvents = events;
+    let finalEvents: any[] = mergeInMemory ? [...events, ...occurrences] : events;
 
-    if (isDistanceSort) {
-      const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-      };
-
-      finalEvents = events.map(event => {
-        let distance = null;
-        if (event.venue.latitude && event.venue.longitude) {
-          distance = getDistance(userLat!, userLng!, event.venue.latitude, event.venue.longitude);
-        }
-        return { ...event, distance };
-      }).sort((a, b) => {
-        if (a.distance === null) return 1;
-        if (b.distance === null) return -1;
-        return a.distance - b.distance;
-      });
-
-      // Manual pagination for memory-sorted results
+    if (mergeInMemory) {
+      if (isDistanceSort) {
+        const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+          const R = 6371;
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return R * c;
+        };
+        finalEvents = finalEvents.map(event => {
+          let distance = null;
+          if (event.venue?.latitude && event.venue?.longitude) {
+            distance = getDistance(userLat!, userLng!, event.venue.latitude, event.venue.longitude);
+          }
+          return { ...event, distance };
+        }).sort((a, b) => {
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      } else {
+        // isti redoslijed kao DB orderBy varijante
+        finalEvents.sort((a: any, b: any) => {
+          if (sort === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          if (sort === 'price') return (a.price ?? 0) - (b.price ?? 0);
+          if (sort === 'popularity') {
+            const favDiff = (b._count?.favorites || 0) - (a._count?.favorites || 0);
+            if (favDiff !== 0) return favDiff;
+          }
+          return new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime();
+        });
+      }
       finalEvents = finalEvents.slice(skip, skip + limit);
     }
+
+    const finalTotal = mergeInMemory ? total + occurrences.length : total;
 
     return NextResponse.json({
       events: finalEvents,
       pagination: {
-        total,
+        total: finalTotal,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(finalTotal / limit),
       },
     });
   } catch (_unused) {
-    console.error("API Error", _unused);
+    console.error("Events API Error", _unused);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-
-import {  getSession } from '@/lib/auth';
-
 export async function POST(_request: NextRequest) {
   try {
     const session = await getSession();
@@ -233,6 +274,12 @@ export async function POST(_request: NextRequest) {
 
     if (body.dressCodeType === 'SPECIAL' && !body.dressCodeName) {
       return NextResponse.json({ error: 'Naziv dress code-a je obavezan za specijalni tip.' }, { status: 400 });
+    }
+
+    // Ponavljajući događaji — validacija pravila na serveru
+    const recurrence = validateRecurrenceInput(body);
+    if (recurrence.error) {
+      return NextResponse.json({ error: recurrence.error }, { status: 400 });
     }
 
     const slug = body.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Date.now();
@@ -270,6 +317,7 @@ export async function POST(_request: NextRequest) {
         additionalVenues: additionalVenueIds.length > 0
           ? { create: additionalVenueIds.map((vid) => ({ venueId: vid })) }
           : undefined,
+        ...recurrence.data,
       },
     });
 

@@ -17,7 +17,6 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
-import { ImageUploader } from '@/components/admin/ImageUploader';
 import { toISOFromLocalInput, toLocalDatetimeValue } from '@/lib/bosnia-time';
 
 export default function EditEvent() {
@@ -30,6 +29,60 @@ export default function EditEvent() {
   const [fetching, setFetching] = useState(true);
   const [eventFinished, setEventFinished] = useState(false);
   const [additionalVenueIds, setAdditionalVenueIds] = useState<string[]>([]);
+  // ===== Ponavljajući događaj / pojedinačni termin =====
+  const [occDate, setOccDate] = useState<string | null>(null);
+  const [occCancelled, setOccCancelled] = useState(false);
+  const [occBusy, setOccBusy] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState<'WEEKLY' | 'DAILY'>('WEEKLY');
+  const [recurrenceDays, setRecurrenceDays] = useState<number[]>([]);
+  const [recurrenceStart, setRecurrenceStart] = useState('');
+  const [recurrenceEnd, setRecurrenceEnd] = useState('');
+  const [noRecurrenceEnd, setNoRecurrenceEnd] = useState(true);
+  const [recError, setRecError] = useState('');
+
+  const toggleRecDay = (day: number) => {
+    setRecurrenceDays(recurrenceDays.includes(day) ? recurrenceDays.filter((d) => d !== day) : [...recurrenceDays, day].sort((a, b) => a - b));
+  };
+
+  const validateRecurrence = (): boolean => {
+    if (!isRecurring) { setRecError(''); return true; }
+    if (recurrenceType === 'WEEKLY' && recurrenceDays.length === 0) {
+      setRecError('Odaberite barem jedan dan ponavljanja.'); return false;
+    }
+    const start = recurrenceStart || formData.startDateTime.slice(0, 10);
+    if (!start) { setRecError('Postavite datum početka.'); return false; }
+    if (!noRecurrenceEnd && recurrenceEnd && recurrenceEnd < start) {
+      setRecError('Datum završetka ne može biti prije početka.'); return false;
+    }
+    setRecError('');
+    return true;
+  };
+
+  const handleOccurrenceAction = async (action: 'cancel' | 'restore') => {
+    if (!occDate) return;
+    if (action === 'cancel' && !confirm('Otkazati SAMO termin ' + occDate + '? Serija ostaje aktivna za ostale datume.')) return;
+    setOccBusy(true);
+    try {
+      const res = await fetch('/api/admin/events/' + id + '/occurrence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ occurrenceDate: occDate, action }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'Gotovo');
+        setOccCancelled(action === 'cancel');
+      } else {
+        alert('Greška: ' + data.error);
+      }
+    } catch {
+      alert('Mrežna greška.');
+    } finally {
+      setOccBusy(false);
+    }
+  };
+
   const [eventSlug, setEventSlug] = useState('');
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
@@ -69,6 +122,33 @@ export default function EditEvent() {
         
         if (event) {
           setEventSlug(event.slug || '');
+          // datum termina iz URL-a (?date=YYYY-MM-DD)
+          const dParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('date') : null;
+          setOccDate(dParam && /^\d{4}-\d{2}-\d{2}$/.test(dParam) ? dParam : null);
+          // recurrence prefill
+          setIsRecurring(!!event.isRecurring);
+          setRecurrenceType(event.recurrenceType === 'DAILY' ? 'DAILY' : 'WEEKLY');
+          try { setRecurrenceDays(event.recurrenceDays ? JSON.parse(event.recurrenceDays) : []); } catch { setRecurrenceDays([]); }
+          setRecurrenceStart(event.recurrenceStart ? toLocalDatetimeValue(new Date(event.recurrenceStart)).slice(0, 10) : '');
+          setRecurrenceEnd(event.recurrenceEnd ? toLocalDatetimeValue(new Date(event.recurrenceEnd)).slice(0, 10) : '');
+          setNoRecurrenceEnd(!event.recurrenceEnd);
+          // ako uređujemo JEDAN termin — dohvati ga (primjenjuje izuzetke)
+          if (dParam && /^\d{4}-\d{2}-\d{2}$/.test(dParam)) {
+            const occRes = await fetch('/api/events/' + event.slug + '?date=' + dParam);
+            if (occRes.ok) {
+              const occData = await occRes.json();
+              const occ = occData.event;
+              setFormData((f) => ({
+                ...f,
+                title: occ.title || f.title,
+                startDateTime: occ.startDateTime ? toLocalDatetimeValue(new Date(occ.startDateTime)) : f.startDateTime,
+                endDateTime: occ.endDateTime ? toLocalDatetimeValue(new Date(occ.endDateTime)) : f.endDateTime,
+              }));
+              setOccCancelled(false);
+            } else {
+              setOccCancelled(true);
+            }
+          }
           setEventFinished(!!event.endDateTime && new Date(event.endDateTime) < new Date());
           setAdditionalVenueIds((event.additionalVenues || []).map((av: any) => av.venueId));
           setFormData({
@@ -103,6 +183,41 @@ export default function EditEvent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ===== SAMO JEDAN TERMIN =====
+    if (occDate) {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/admin/events/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            editOccurrenceOnly: true,
+            occurrenceDate: occDate,
+            title: formData.title,
+            performers: formData.performers,
+            startDateTime: toISOFromLocalInput(formData.startDateTime),
+            endDateTime: formData.endDateTime ? toISOFromLocalInput(formData.endDateTime) : undefined,
+          }),
+        });
+        if (res.ok) {
+          showToast('Termin izmijenjen');
+          router.push('/admin/events');
+        } else {
+          const error = await res.json();
+          alert('Greška: ' + error.error);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!validateRecurrence()) {
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/events/${id}`, {
@@ -114,6 +229,16 @@ export default function EditEvent() {
           endDateTime: formData.endDateTime ? toISOFromLocalInput(formData.endDateTime) : undefined,
           additionalVenueIds,
           price: parseFloat(formData.price.toString()),
+          // Ponavljajući događaj — pravilo
+          isRecurring,
+          ...(isRecurring ? {
+            recurrenceType,
+            ...(recurrenceType === 'WEEKLY' ? { recurrenceDays } : {}),
+            recurrenceStart: (recurrenceStart || formData.startDateTime.slice(0, 10)) + 'T00:00',
+            ...(noRecurrenceEnd || !recurrenceEnd
+              ? { noRecurrenceEnd: true }
+              : { recurrenceEnd: recurrenceEnd + 'T23:59' }),
+          } : {}),
         }),
       });
 
@@ -132,7 +257,11 @@ export default function EditEvent() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Da li ste sigurni da želite obrisati ovaj događaj?')) return;
+    if (isRecurring) {
+      if (!confirm('PAŽNJA: Ovo briše CIJELU SERIJU ponavljajućeg događaja (sve termine i rezervacije). Nastaviti?')) return;
+    } else {
+      if (!confirm('Da li ste sigurni da želite obrisati ovaj događaj?')) return;
+    }
     try {
       const res = await fetch(`/api/events/${eventSlug}`, { method: 'DELETE' });
       if (res.ok) {
@@ -153,7 +282,7 @@ export default function EditEvent() {
     return (
       <>
         <AdminHeader title="Događaj je završen" />
-        <main className="p-8 max-w-3xl mx-auto text-left">
+        <main className="p-4 md:p-8 max-w-3xl mx-auto text-left">
           <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
             <ArrowLeft size={16} /> Nazad na listu
           </Link>
@@ -182,7 +311,7 @@ export default function EditEvent() {
   return (
     <>
       <AdminHeader title="Uredi događaj" />
-      <main className="p-8 max-w-5xl mx-auto text-left">
+      <main className="p-4 md:p-8 max-w-5xl mx-auto text-left">
         <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
           <ArrowLeft size={16} /> Nazad na listu
         </Link>
@@ -361,16 +490,117 @@ export default function EditEvent() {
               </div>
             </div>
 
+            {/* ===== BANNER: uređivanje samo jednog termina ===== */}
+            {occDate && (
+              <div className="bg-primary/10 border border-primary/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between lg:col-span-3">
+                <div>
+                  <p className="text-sm font-black text-white uppercase tracking-widest">Uređuješ samo termin: {occDate}</p>
+                  <p className="text-xs text-muted mt-1">Izmjene se odnose samo na ovaj datum — pravilo ponavljanja se ne mijenja.</p>
+                  {occCancelled && <p className="text-xs text-red-400 font-bold mt-1">Ovaj termin je OTKAZAN — posjetioci ga ne vide dok ga ne vratiš.</p>}
+                </div>
+                <div className="flex flex-wrap gap-2 shrink-0">
+                  <Link href={"/admin/events/" + id} className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all text-white">Uredi cijelu seriju</Link>
+                  <button
+                    type="button"
+                    disabled={occBusy}
+                    onClick={() => handleOccurrenceAction(occCancelled ? 'restore' : 'cancel')}
+                    className={"px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 " + (occCancelled ? 'bg-primary text-white' : 'bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white')}
+                  >
+                    {occCancelled ? 'Vrati termin' : 'Otkaži ovaj termin'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ===== PONAVLJAJUĆI DOGAĐAJ (samo za seriju) ===== */}
+            {!occDate && (
+              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm space-y-5">
+                <label className="flex items-center gap-3 cursor-pointer select-none" htmlFor="isRecurringCheck">
+                  <input
+                    id="isRecurringCheck"
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="w-5 h-5 accent-primary cursor-pointer"
+                  />
+                  <span className="text-sm font-black uppercase tracking-widest text-white">Ponavljajući događaj</span>
+                </label>
+                {isRecurring && (
+                  <div className="space-y-5 pt-2 animate-fade-up">
+                    <div>
+                      <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Ponavljanje</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[['WEEKLY', 'Svake sedmice'], ['DAILY', 'Svaki dan']].map(([val, label]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setRecurrenceType(val as 'WEEKLY' | 'DAILY')}
+                            className={"px-5 h-11 rounded-xl text-xs font-black uppercase tracking-widest border transition-all " + (recurrenceType === val ? 'bg-primary text-white border-primary' : 'bg-surface text-muted border-border hover:text-white')}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {recurrenceType === 'WEEKLY' && (
+                      <div>
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Dani</p>
+                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                          {[['PON', 1], ['UT', 2], ['SRI', 3], ['ČET', 4], ['PET', 5], ['SUB', 6], ['NED', 0]].map(([label, val]) => (
+                            <button
+                              key={String(val)}
+                              type="button"
+                              onClick={() => toggleRecDay(val as number)}
+                              aria-pressed={recurrenceDays.includes(val as number)}
+                              className={"h-11 rounded-xl text-[11px] font-black border transition-all " + (recurrenceDays.includes(val as number) ? 'bg-primary text-white border-primary' : 'bg-surface text-muted border-border hover:text-white')}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Početak</label>
+                        <input
+                          type="date"
+                          value={recurrenceStart}
+                          onChange={(e) => setRecurrenceStart(e.target.value)}
+                          className="w-full h-11 px-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Završetak</label>
+                        <input
+                          type="date"
+                          value={recurrenceEnd}
+                          disabled={noRecurrenceEnd}
+                          onChange={(e) => setRecurrenceEnd(e.target.value)}
+                          className="w-full h-11 px-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm disabled:opacity-40"
+                        />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={noRecurrenceEnd}
+                        onChange={(e) => setNoRecurrenceEnd(e.target.checked)}
+                        className="w-4 h-4 accent-primary cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-muted uppercase tracking-widest">Bez datuma završetka</span>
+                    </label>
+                    {recError && <p className="text-xs font-bold text-red-400" role="alert">{recError}</p>}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Slika i linkovi
+                    <ImageIcon size={18} /> Status i linkovi
                  </h3>
-                 <ImageUploader
-                    label="Naslovna slika događaja"
-                    value={formData.imageUrl}
-                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-                 />
                  <div className="space-y-4 pt-4">
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Status</label>

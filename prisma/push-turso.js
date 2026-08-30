@@ -84,6 +84,12 @@ async function main() {
   // Ove aditivne izmjene su bezbjedne za postojeću Turso bazu i ponovljene deploye.
   const additiveMigrations = [
     'ALTER TABLE "Venue" ADD COLUMN "reservationsEnabled" BOOLEAN NOT NULL DEFAULT false',
+    'ALTER TABLE "Event" ADD COLUMN "isRecurring" BOOLEAN NOT NULL DEFAULT false',
+    'ALTER TABLE "Event" ADD COLUMN "recurrenceType" TEXT',
+    'ALTER TABLE "Event" ADD COLUMN "recurrenceDays" TEXT',
+    'ALTER TABLE "Event" ADD COLUMN "recurrenceStart" DATETIME',
+    'ALTER TABLE "Event" ADD COLUMN "recurrenceEnd" DATETIME',
+    'ALTER TABLE "Reservation" ADD COLUMN "occurrenceDate" TEXT',
   ];
   for (const migration of additiveMigrations) {
     try {

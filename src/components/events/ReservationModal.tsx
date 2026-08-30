@@ -61,6 +61,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
         body: JSON.stringify({
           ...formData,
           startTime: toISOFromLocalInput(formData.startTime),
+          occurrenceDate: (event as any).occurrenceDate || undefined,
           eventId: event.id
         })
       });

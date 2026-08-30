@@ -69,7 +69,7 @@ export default function AdminReports() {
   return (
     <>
       <AdminHeader title="Prijavljeni problemi" />
-      <main className="p-8 animate-fade-up relative z-[1]">
+      <main className="p-4 md:p-8 animate-fade-up relative z-[1]">
         <div className="flex justify-between items-center mb-8 text-left">
            <div>
             <h2 className="text-2xl font-black text-text uppercase tracking-tight">Prijave korisnika</h2>

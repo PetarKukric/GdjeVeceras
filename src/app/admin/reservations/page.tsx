@@ -96,7 +96,7 @@ export default function AdminReservations() {
   return (
     <>
       <AdminHeader title="Rezervacije" />
-      <main className="p-8 max-w-7xl mx-auto space-y-8">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
         
         {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

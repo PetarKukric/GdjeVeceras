@@ -15,7 +15,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
-import { ImageUploader } from '@/components/admin/ImageUploader';
 import { toISOFromLocalInput } from '@/lib/bosnia-time';
 
 export default function NewEvent() {
@@ -42,6 +41,33 @@ export default function NewEvent() {
     facebookUrl: '',
   });
   const [additionalVenueIds, setAdditionalVenueIds] = useState<string[]>([]);
+  // ===== Ponavljajući događaj =====
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState<'WEEKLY' | 'DAILY'>('WEEKLY');
+  const [recurrenceDays, setRecurrenceDays] = useState<number[]>([]);
+  const [recurrenceStart, setRecurrenceStart] = useState('');
+  const [recurrenceEnd, setRecurrenceEnd] = useState('');
+  const [noRecurrenceEnd, setNoRecurrenceEnd] = useState(true);
+  const [recError, setRecError] = useState('');
+
+  const toggleRecDay = (day: number) => {
+    setRecurrenceDays(recurrenceDays.includes(day) ? recurrenceDays.filter((d) => d !== day) : [...recurrenceDays, day].sort((a, b) => a - b));
+  };
+
+  const validateRecurrence = (): boolean => {
+    if (!isRecurring) { setRecError(''); return true; }
+    if (recurrenceType === 'WEEKLY' && recurrenceDays.length === 0) {
+      setRecError('Odaberite barem jedan dan ponavljanja.'); return false;
+    }
+    const start = recurrenceStart || formData.startDateTime.slice(0, 10);
+    if (!start) { setRecError('Postavite datum početka.'); return false; }
+    if (!noRecurrenceEnd && recurrenceEnd && recurrenceEnd < start) {
+      setRecError('Datum završetka ne može biti prije početka.'); return false;
+    }
+    setRecError('');
+    return true;
+  };
+
 
   useEffect(() => {
     async function fetchVenues() {
@@ -73,6 +99,11 @@ export default function NewEvent() {
         return;
       }
 
+      if (!validateRecurrence()) {
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -84,7 +115,17 @@ export default function NewEvent() {
           additionalVenueIds,
           price: parseFloat(formData.price.toString()),
           createdById: 'admin-id', // In real app, get from session
-          status: 'PUBLISHED' // Admin created events can be published immediately
+          status: 'PUBLISHED', // Admin created events can be published immediately
+          // Ponavljajući događaj — pravilo
+          isRecurring,
+          ...(isRecurring ? {
+            recurrenceType,
+            ...(recurrenceType === 'WEEKLY' ? { recurrenceDays } : {}),
+            recurrenceStart: (recurrenceStart || formData.startDateTime.slice(0, 10)) + 'T00:00',
+            ...(noRecurrenceEnd || !recurrenceEnd
+              ? { noRecurrenceEnd: true }
+              : { recurrenceEnd: recurrenceEnd + 'T23:59' }),
+          } : {}),
         }),
       });
 
@@ -105,7 +146,7 @@ export default function NewEvent() {
   return (
     <>
       <AdminHeader title="Novi događaj" />
-      <main className="p-8 max-w-5xl mx-auto">
+      <main className="p-4 md:p-8 max-w-5xl mx-auto">
         <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
           <ArrowLeft size={16} /> Nazad na listu
         </Link>
@@ -316,17 +357,94 @@ export default function NewEvent() {
               </div>
             </div>
 
+              {/* ===== PONAVLJAJUĆI DOGAĐAJ (progressive disclosure) ===== */}
+              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm space-y-5">
+                <label className="flex items-center gap-3 cursor-pointer select-none" htmlFor="isRecurringCheck">
+                  <input
+                    id="isRecurringCheck"
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="w-5 h-5 accent-primary cursor-pointer"
+                  />
+                  <span className="text-sm font-black uppercase tracking-widest text-white">Ponavljajući događaj</span>
+                </label>
+                {isRecurring && (
+                  <div className="space-y-5 pt-2 animate-fade-up">
+                    <div>
+                      <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Ponavljanje</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[['WEEKLY', 'Svake sedmice'], ['DAILY', 'Svaki dan']].map(([val, label]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setRecurrenceType(val as 'WEEKLY' | 'DAILY')}
+                            className={"px-5 h-11 rounded-xl text-xs font-black uppercase tracking-widest border transition-all " + (recurrenceType === val ? 'bg-primary text-white border-primary' : 'bg-surface text-muted border-border hover:text-white')}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {recurrenceType === 'WEEKLY' && (
+                      <div>
+                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Dani</p>
+                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                          {[['PON', 1], ['UT', 2], ['SRI', 3], ['ČET', 4], ['PET', 5], ['SUB', 6], ['NED', 0]].map(([label, val]) => (
+                            <button
+                              key={String(val)}
+                              type="button"
+                              onClick={() => toggleRecDay(val as number)}
+                              aria-pressed={recurrenceDays.includes(val as number)}
+                              className={"h-11 rounded-xl text-[11px] font-black border transition-all " + (recurrenceDays.includes(val as number) ? 'bg-primary text-white border-primary' : 'bg-surface text-muted border-border hover:text-white')}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Početak</label>
+                        <input
+                          type="date"
+                          value={recurrenceStart}
+                          onChange={(e) => setRecurrenceStart(e.target.value)}
+                          className="w-full h-11 px-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Završetak</label>
+                        <input
+                          type="date"
+                          value={recurrenceEnd}
+                          disabled={noRecurrenceEnd}
+                          onChange={(e) => setRecurrenceEnd(e.target.value)}
+                          className="w-full h-11 px-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm disabled:opacity-40"
+                        />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={noRecurrenceEnd}
+                        onChange={(e) => setNoRecurrenceEnd(e.target.checked)}
+                        className="w-4 h-4 accent-primary cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-muted uppercase tracking-widest">Bez datuma završetka</span>
+                    </label>
+                    {recError && <p className="text-xs font-bold text-red-400" role="alert">{recError}</p>}
+                  </div>
+                )}
+              </div>
+
             {/* Sidebar Form */}
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Slika i linkovi
+                    <ImageIcon size={18} /> Link za karte
                  </h3>
-                 <ImageUploader
-                    label="Naslovna slika događaja"
-                    value={formData.imageUrl}
-                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-                 />
                  <div className="space-y-4 pt-4">
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Link za karte</label>

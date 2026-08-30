@@ -51,7 +51,7 @@ export default function MessageDetail() {
   return (
     <>
       <AdminHeader title="Detalji poruke" />
-      <main className="p-8 max-w-4xl animate-fade-up">
+      <main className="p-4 md:p-8 max-w-4xl animate-fade-up">
         <button 
           onClick={() => router.back()}
           className="flex items-center gap-2 text-muted hover:text-white transition-colors mb-10 group"

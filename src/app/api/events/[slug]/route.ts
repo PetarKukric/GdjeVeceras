@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { resolveOccurrence, toExceptionMap } from '@/lib/recurrence';
 
 export async function GET(
   _request: NextRequest,
@@ -36,6 +37,21 @@ export async function GET(
 
     if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
+    // ===== PONAVLJAJUĆI DOGAĐAJ: riješi konkretan termin iz ?date=YYYY-MM-DD =====
+    // Vraća termine-specifične startDateTime/endDateTime/title + occurrenceDate/isOccurrence.
+    let responseEvent: any = event;
+    const dateParam = _request.nextUrl?.searchParams?.get('date') || new URL(_request.url).searchParams.get('date');
+    if (dateParam && (event as any).isRecurring) {
+      const exceptions = await prisma.eventOccurrenceException.findMany({
+        where: { parentEventId: event.id },
+      });
+      const occurrence = resolveOccurrence(event as any, dateParam, toExceptionMap(exceptions as any));
+      if (!occurrence) {
+        return NextResponse.json({ error: 'Termin ne postoji ili je otkazan.' }, { status: 404 });
+      }
+      responseEvent = occurrence;
     }
 
     // Fetch related events
@@ -100,7 +116,7 @@ export async function GET(
     }
 
     return NextResponse.json({
-      event,
+      event: responseEvent,
       related: {
         venueEvents,
         similarEvents: finalSimilar,

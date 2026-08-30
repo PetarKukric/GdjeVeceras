@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { resolveOccurrence, toExceptionMap, validateRecurrenceInput } from '@/lib/recurrence';
 
 export async function GET(
   _request: NextRequest,
@@ -46,7 +47,7 @@ export async function PUT(
     if (!existingEvent) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
-    if (existingEvent.endDateTime && new Date(existingEvent.endDateTime) < new Date()) {
+    if (!(existingEvent as any).isRecurring && existingEvent.endDateTime && new Date(existingEvent.endDateTime) < new Date()) {
       return NextResponse.json({ error: 'Događaj je završen — uređivanje nije moguće.' }, { status: 400 });
     }
     
@@ -61,6 +62,38 @@ export async function PUT(
         if (!venue) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // ===== UREDI SAMO JEDAN TERMIN ponavljajućeg događaja =====
+    // Ne dira pravilo ponavljanja — upisuje izuzetak za taj datum.
+    if (body.editOccurrenceOnly && (existingEvent as any).isRecurring) {
+      const occurrenceDate = String(body.occurrenceDate || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate)) {
+        return NextResponse.json({ error: 'Neispravan datum termina.' }, { status: 400 });
+      }
+      const exceptions = await prisma.eventOccurrenceException.findMany({ where: { parentEventId: id } });
+      const occurrence = resolveOccurrence(existingEvent as any, occurrenceDate, toExceptionMap(exceptions as any));
+      if (!occurrence) {
+        return NextResponse.json({ error: 'Termin ne postoji ili je otkazan.' }, { status: 400 });
+      }
+      const updatedException = await prisma.eventOccurrenceException.upsert({
+        where: { parentEventId_occurrenceDate: { parentEventId: id, occurrenceDate } },
+        create: {
+          parentEventId: id,
+          occurrenceDate,
+          title: body.title || null,
+          performers: body.performers || null,
+          startDateTime: body.startDateTime ? new Date(body.startDateTime) : null,
+          endDateTime: body.endDateTime ? new Date(body.endDateTime) : null,
+        },
+        update: {
+          title: body.title || null,
+          performers: body.performers || null,
+          startDateTime: body.startDateTime ? new Date(body.startDateTime) : null,
+          endDateTime: body.endDateTime ? new Date(body.endDateTime) : null,
+        },
+      });
+      return NextResponse.json({ message: 'Termin izmijenjen.', exception: updatedException });
+    }
+
     // Dodatni lokali (zajednički događaj)
     let additionalVenueIds: string[] = [];
     if (Array.isArray(body.additionalVenueIds)) {
@@ -71,9 +104,20 @@ export async function PUT(
       }
     }
 
+    // Pravilo ponavljanja (serija) — validacija na serveru
+    const recurrence = validateRecurrenceInput(body);
+    if (recurrence.error) {
+      return NextResponse.json({ error: recurrence.error }, { status: 400 });
+    }
+    if (body.isRecurring === false) {
+      // serija isključena → obriši izuzetke (nema više termina)
+      await prisma.eventOccurrenceException.deleteMany({ where: { parentEventId: id } });
+    }
+
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
+        ...recurrence.data,
         title: body.title,
         description: body.description,
         category: body.category,

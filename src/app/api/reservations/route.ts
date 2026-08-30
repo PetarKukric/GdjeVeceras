@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { resolveOccurrence, toExceptionMap } from '@/lib/recurrence';
 import { isValidBosnianPhone } from '@/lib/validation';
 
 /**
@@ -101,6 +102,23 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Ovaj lokal ne prima rezervacije.' }, { status: 403 });
     }
 
+    // ===== PONAVLJAJUĆI DOGAĐAJ: rezervacija pripada JEDNOM terminu =====
+    // (eventId + occurrenceDate; rezervacija za 11.09 ne vrijedi za 12.09)
+    let occurrenceDate: string | null = null;
+    if ((event as any).isRecurring) {
+        occurrenceDate = typeof body.occurrenceDate === 'string' ? body.occurrenceDate : null;
+        if (!occurrenceDate || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate)) {
+            return NextResponse.json({ error: 'Nedostaje datum termina za ponavljajući događaj.' }, { status: 400 });
+        }
+        const exceptions = await prisma.eventOccurrenceException.findMany({ where: { parentEventId: event.id } });
+        const occurrence = resolveOccurrence(event as any, occurrenceDate, toExceptionMap(exceptions as any));
+        if (!occurrence) {
+            return NextResponse.json({ error: 'Termin ne postoji ili je otkazan.' }, { status: 400 });
+        }
+        // vrijeme početka = početak tog termina (uključujući override)
+        body.startTime = occurrence.startDateTime;
+    }
+
     // Validacija telefona (BiH broj)
     if (!body.phone || !isValidBosnianPhone(String(body.phone))) {
         return NextResponse.json({ error: 'Unesite ispravan broj telefona (npr. +387 66 123 456 ili 066 123 456).' }, { status: 400 });
@@ -117,6 +135,7 @@ export async function POST(request: NextRequest) {
         numberOfPeople: parseInt(body.numberOfPeople),
         startTime: new Date(body.startTime),
         notes: body.notes,
+        occurrenceDate,
         status: 'PENDING'
       }
     });

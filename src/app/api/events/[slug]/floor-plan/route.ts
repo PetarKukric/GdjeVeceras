@@ -22,6 +22,21 @@ export async function GET(
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
+    // ===== PONAVLJAJUĆI DOGAĐAJ: dostupnost stolova PO TERMINU =====
+    // Rezervacija vezana za drugi datum termina NE blokira stolove ovog termina.
+    // (virtualizacija samo u odgovoru — DB se ne mijenja)
+    const occurrenceParam = new URL(_request.url).searchParams.get('date');
+    const virtualizeByOccurrence = (items: any[]) => {
+      if (!occurrenceParam || !(event as any).isRecurring) return items;
+      return items.map((item) => {
+        const resOcc = item.reservation?.occurrenceDate;
+        if (item.reservationId && resOcc && resOcc !== occurrenceParam) {
+          return { ...item, status: 'AVAILABLE', reservationId: null, reservation: null };
+        }
+        return item;
+      });
+    };
+
     // If event has no floor items, initialize them from venue default
     if (event.floorItems.length === 0 && event.venue.floorItems.length > 0) {
         await prisma.eventFloorItem.createMany({
@@ -44,10 +59,10 @@ export async function GET(
             where: { eventId: event.id },
             include: { group: true, reservation: true }
         });
-        return NextResponse.json(initializedItems);
+        return NextResponse.json(virtualizeByOccurrence(initializedItems));
     }
 
-    return NextResponse.json(event.floorItems);
+    return NextResponse.json(virtualizeByOccurrence(event.floorItems as any[]));
   } catch (error) {
     console.error('Event Floor Plan GET Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

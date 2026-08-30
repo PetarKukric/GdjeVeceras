@@ -195,6 +195,12 @@ model Event {
   floorItems    EventFloorItem[]
   tableGroups   EventTableGroup[]
   reservations  Reservation[]
+  isRecurring   Boolean         @default(false)
+  recurrenceType String?
+  recurrenceDays String?
+  recurrenceStart DateTime?
+  recurrenceEnd DateTime?
+  occurrenceExceptions EventOccurrenceException[] @relation("EventOccurrences")
 }
 
 model EventVenue {
@@ -395,6 +401,8 @@ model Reservation {
   status         ReservationStatus @default(PENDING)
   startTime      DateTime
   notes          String?
+  // Za ponavljajuće događaje: lokalni datum termina ("YYYY-MM-DD") kome rezervacija pripada
+  occurrenceDate String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   event          Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -432,4 +440,21 @@ enum DressCodeType {
   ELEGANT
   SPECIAL
   NONE
+}
+
+// Izuzetak za JEDAN termin ponavljajućeg događaja (otkazanje ili izmjena samo tog termina)
+model EventOccurrenceException {
+  id             String    @id @default(cuid())
+  parentEventId  String
+  occurrenceDate String    // "YYYY-MM-DD" (sarajevski lokalni datum termina)
+  isCancelled    Boolean   @default(false)
+  startDateTime  DateTime? // override: početak samo tog termina
+  endDateTime    DateTime? // override: kraj samo tog termina
+  title          String?   // override: naslov samo tog termina
+  performers     String?   // override: DJ / izvođači samo tog termina
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  parentEvent    Event     @relation("EventOccurrences", fields: [parentEventId], references: [id], onDelete: Cascade)
+
+  @@unique([parentEventId, occurrenceDate])
 }
