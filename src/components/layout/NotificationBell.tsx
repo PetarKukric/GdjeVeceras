@@ -91,7 +91,11 @@ export function NotificationBell({ user }: { user: any }) {
               notifications.map((n) => {
                 const isPromotion = n.type === 'PROMOTED_EVENT';
                 const isLiveUpdate = n.type === 'EVENT_LIVE_UPDATE';
-                const href = (isPromotion || isLiveUpdate) ? `/events/${n.event?.slug}${isLiveUpdate ? '#live-feed' : ''}` : `/admin/messages/${n.messageId}`;
+                const href = (isPromotion || isLiveUpdate)
+                  ? `/events/${n.event?.slug}${isLiveUpdate ? '#live-feed' : ''}`
+                  : (n.type === 'NEW_CHAT_MESSAGE' || !n.messageId)
+                    ? '/chat'
+                    : `/admin/messages/${n.messageId}`;
                 const Icon = isLiveUpdate ? Camera : (isPromotion ? Zap : MessageSquare);
                 
                 return (

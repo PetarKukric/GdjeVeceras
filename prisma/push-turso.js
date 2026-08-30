@@ -90,6 +90,7 @@ async function main() {
     'ALTER TABLE "Event" ADD COLUMN "recurrenceStart" DATETIME',
     'ALTER TABLE "Event" ADD COLUMN "recurrenceEnd" DATETIME',
     'ALTER TABLE "Reservation" ADD COLUMN "occurrenceDate" TEXT',
+    'ALTER TABLE "User" ADD COLUMN "restricted" BOOLEAN NOT NULL DEFAULT false',
   ];
   for (const migration of additiveMigrations) {
     try {

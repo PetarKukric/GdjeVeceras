@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Search, LogOut, Heart, MessageSquare, Clock, Settings, LayoutDashboard } from 'lucide-react';
+import { Search, Heart, MessageSquare, Clock, Settings, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ClientOnly } from '@/components/ui/ClientOnly';
@@ -39,11 +39,6 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
       return () => clearInterval(interval);
     }
   }, [user]);
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
-  };
 
   const navLinks = [
     { name: 'Početna', href: '/' },
@@ -139,9 +134,6 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
                     <Link href="/settings" className="touch-target text-muted hover:text-primary transition-colors" title="Podešavanja" aria-label="Podešavanja">
                       <Settings size={20} />
                     </Link>
-                    <button onClick={handleLogout} className="hidden sm:flex touch-target text-muted hover:text-primary transition-colors" title="Odjava" aria-label="Odjava">
-                      <LogOut size={20} />
-                    </button>
                     {(user.role === 'ADMIN' || user.role === 'OWNER') && (
                       <Link href="/admin" aria-label="Admin panel" title="Admin panel" className="shrink-0 flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:px-5 sm:py-2 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all">
                         <LayoutDashboard size={18} className="sm:hidden" />

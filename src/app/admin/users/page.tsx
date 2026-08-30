@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { AdminHeader } from '@/components/admin/AdminLayout';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Ban, ShieldCheck } from 'lucide-react';
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState<{ id: string, name: string, email: string, role: string }[]>([]);
+  const [users, setUsers] = useState<{ id: string, name: string, email: string, role: string, restricted?: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchUsers = async () => {
@@ -23,6 +23,25 @@ export default function AdminUsers() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+
+  const handleToggleRestrict = async (id: string, restricted: boolean | undefined) => {
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restricted: !restricted }),
+      });
+      if (res.ok) {
+        fetchUsers();
+      } else {
+        const e = await res.json();
+        alert('Greška: ' + e.error);
+      }
+    } catch {
+      alert('Mrežna greška.');
+    }
+  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Da li ste sigurni da želite obrisati korisnika "${name}"?`)) return;
@@ -76,8 +95,24 @@ export default function AdminUsers() {
                       <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${user.role === 'ADMIN' ? 'bg-purple-400/10 text-purple-400 border border-purple-400/20' : user.role === 'OWNER' ? 'bg-blue-400/10 text-blue-400 border border-blue-400/20' : 'bg-surface text-muted border border-border'}`}>
                         {user.role}
                       </span>
+                      {user.restricted && (
+                        <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+                          Ograničen
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                      {user.role !== 'ADMIN' && (
+                        <button
+                          onClick={() => handleToggleRestrict(user.id, user.restricted)}
+                          className={`p-2 rounded-xl transition-all ${user.restricted ? 'text-green-400 hover:bg-green-400/10' : 'text-muted hover:text-red-400 hover:bg-red-400/10'}`}
+                          title={user.restricted ? 'Skini ograničenje' : 'Ograniči korisnika (ne može se prijaviti)'}
+                          aria-label={user.restricted ? 'Skini ograničenje korisniku' : 'Ograniči korisnika'}
+                        >
+                          {user.restricted ? <ShieldCheck size={18} /> : <Ban size={18} />}
+                        </button>
+                      )}
                       <button 
                         onClick={() => handleDelete(user.id, user.name || user.email)}
                         className="p-2 text-muted hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
@@ -85,6 +120,7 @@ export default function AdminUsers() {
                       >
                         <Trash2 size={18} />
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))

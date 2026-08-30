@@ -15,6 +15,7 @@ model User {
   passwordHash      String
   avatarUrl         String?
   role              Role             @default(USER)
+  restricted        Boolean          @default(false) // admin ograničava pristup (ban)
   emailVerified     DateTime?
   verificationToken String?          @unique
   tokenExpires      DateTime?

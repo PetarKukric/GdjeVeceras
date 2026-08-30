@@ -6,7 +6,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { VenueCard } from '@/components/venues/VenueCard';
 import { useVenues } from '@/hooks/useVenues';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { MapPin } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { VenueCardSkeleton } from '@/components/ui/Skeleton';
 import { getCityBySlug } from '@/lib/cities';
 
@@ -16,6 +16,13 @@ function VenuesContent() {
   const city = getCityBySlug(citySlug);
   const { data: venues, loading } = useVenues({ city: citySlug });
   const [favoriteVenueIds, setFavoriteVenueIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredVenues = (venues || []).filter((v: any) => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return true;
+    return [v.name, v.city, v.address].filter(Boolean).join(' ').toLowerCase().includes(q);
+  });
 
   useEffect(() => {
     async function fetchFavorites() {
@@ -47,15 +54,32 @@ function VenuesContent() {
           <p className="text-muted text-sm font-medium max-w-xl mx-auto md:mx-0">Istražite najbolja mjesta za izlazak, koncerte i žurke.</p>
         </header>
 
+        {/* PRETRAGA LOKALA */}
+        <div className="mb-10 max-w-xl mx-auto md:mx-0 relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Pretraži lokale (naziv, grad, adresa)..."
+            aria-label="Pretraga lokala"
+            className="w-full h-14 bg-surface border border-border rounded-2xl pl-12 pr-4 text-sm font-medium text-white placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
+          />
+        </div>
+
         {loading ? (
           <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <VenueCardSkeleton key={i} />
             ))}
           </div>
+        ) : filteredVenues.length === 0 ? (
+          <div className="text-center py-20 text-muted text-sm font-black uppercase tracking-widest">
+            Nema lokala za pretragu &quot;{searchQuery}&quot;
+          </div>
         ) : (
           <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {venues.map((venue) => (
+            {filteredVenues.map((venue) => (
               <VenueCard 
                 key={venue.id} 
                 venue={venue} 

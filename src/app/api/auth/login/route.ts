@@ -53,6 +53,11 @@ export async function POST(request: NextRequest) {
       where: { email: normalizedEmail },
     });
 
+    // Restrikcija (admin ban) - prijava onemogućena
+    if (user?.restricted) {
+      return NextResponse.json({ error: 'Vaš račun je ograničen. Pišite nam preko kontakt forme.' }, { status: 403 });
+    }
+
     if (!user) {
       return NextResponse.json({ error: 'Pogrešan email ili lozinka.' }, { status: 401 });
     }
