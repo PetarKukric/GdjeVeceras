@@ -72,6 +72,7 @@ export default function ContactPage() {
       if (res.ok) {
         setSuccess(true);
         showToast('Poruka uspješno poslana');
+        router.push('/thank-you');
         setFormData({ name: '', email: '', subject: '', message: '', venueId: '' });
       } else {
         setError(data.error || 'Došlo je do greške. Pokušajte ponovo.');
@@ -95,7 +96,7 @@ export default function ContactPage() {
             Kontaktirajte <span className="text-primary italic">Nas</span>
           </h1>
           <p className="text-muted text-lg font-medium max-w-2xl mx-auto md:mx-0 leading-relaxed">
-            Imate pitanje, sugestiju ili želite da sarađujete sa nama? Pišite nam i odgovorićemo vam u najkraćem mogućem roku.
+            Imate pitanje, sugestiju ili želite da sarađujete sa nama? Pišite nam — odgovaramo u roku od 24 sata (radnim danima).
           </p>
         </header>
 

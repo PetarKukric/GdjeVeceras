@@ -33,7 +33,7 @@ async function cleanupPastReservations() {
     },
   });
   if (deleted.count > 0) {
-    console.log(`🧹 Automatski obrisano ${deleted.count} rezervacija za prošle događaje.`);
+    console.log(`Automatski obrisano ${deleted.count} rezervacija za prošle događaje.`);
   }
 }
 
@@ -90,6 +90,15 @@ export async function POST(request: NextRequest) {
 
     if (!event) {
         return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
+
+    // Rezervacije moraju biti omogućene za lokal (admin/owner ih uključuje po lokalu)
+    const venueForRes = await prisma.venue.findUnique({
+        where: { id: event.venueId },
+        select: { reservationsEnabled: true },
+    });
+    if (!venueForRes?.reservationsEnabled) {
+        return NextResponse.json({ error: 'Ovaj lokal ne prima rezervacije.' }, { status: 403 });
     }
 
     // Validacija telefona (BiH broj)

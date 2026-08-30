@@ -108,6 +108,11 @@ export default function AdminVenues() {
                     <MapPin size={14} className="text-primary" />
                     <span className="truncate">{venue.address}, {venue.city}</span>
                   </div>
+                  <div className="mb-4">
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${venue.reservationsEnabled ? 'text-primary border-primary/30 bg-primary/10' : 'text-muted border-border bg-surface'}`}>
+                      {venue.reservationsEnabled ? 'Rezervacije: uključene' : 'Rezervacije: isključene'}
+                    </span>
+                  </div>
                   
                   <div className="flex gap-4 mb-6">
                     {venue.instagramUrl && (

@@ -48,7 +48,7 @@ export default function AdminMessages() {
           </div>
         ) : messages.length === 0 ? (
           <div className="bg-card border border-border rounded-3xl p-16 text-center shadow-xl">
-             <div className="text-4xl mb-6">📩</div>
+             <Mail size={36} className="mb-6 text-primary" />
              <h3 className="text-xl font-bold uppercase tracking-tight">Nema poruka</h3>
              <p className="text-muted mt-2 font-medium">Trenutno nemate novih upita od korisnika.</p>
           </div>

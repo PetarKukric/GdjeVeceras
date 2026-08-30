@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
+    // Zaštita kontakt forme od spama (5 poruka na 10 minuta po IP)
+    const rl = rateLimit(`messages:${getClientIp(request)}`, 5, 10 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json({ error: `Poslali ste previše poruka. Pokušajte za ${Math.ceil(rl.retryAfter / 60)} minuta.` }, { status: 429 });
+    }
+
     const body = await request.json();
     const { name, email, subject, message, venueId } = body;
     const session = await getSession();

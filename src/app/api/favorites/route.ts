@@ -1,67 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
 
+/**
+ * Favoriti — SIGURNOSNA POPRAVKA:
+ * userId se sada uzima iz SESIJE (potpisan kolačić), a ne iz tijela zahtjeva.
+ * Ranije je svako mogao slati tuđi userId i mijenjati tuđe sačuvane stavke.
+ */
 export async function POST(_request: NextRequest) {
   try {
-    const body = await _request.json();
-    const { userId, eventId, venueId } = body;
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Korisnik nije identifikovan. Molimo prijavite se ponovo.' }, { status: 400 });
+    const session = await getSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Morate biti prijavljeni.' }, { status: 401 });
     }
+    const userId = session.user.id;
 
-    // Provera da li korisnik postoji u bazi (sprečava grešku kod zastarelih sesija)
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      return NextResponse.json({ error: 'Sesija je istekla. Molimo prijavite se ponovo.' }, { status: 401 });
-    }
+    const body = await _request.json().catch(() => ({}));
+    const { eventId, venueId } = body;
 
     if (eventId) {
-      // Provera da li događaj postoji
       const event = await prisma.event.findUnique({ where: { id: eventId } });
       if (!event) {
         return NextResponse.json({ error: 'Događaj nije pronađen.' }, { status: 404 });
       }
 
       const existingFavorite = await prisma.eventFavorite.findUnique({
-        where: {
-          userId_eventId: { userId, eventId },
-        },
+        where: { userId_eventId: { userId, eventId } },
       });
 
       if (existingFavorite) {
-        await prisma.eventFavorite.delete({
-          where: { id: existingFavorite.id },
-        });
+        await prisma.eventFavorite.delete({ where: { id: existingFavorite.id } });
         return NextResponse.json({ favorited: false, type: 'EVENT' });
       } else {
-        await prisma.eventFavorite.create({
-          data: { userId, eventId },
-        });
+        await prisma.eventFavorite.create({ data: { userId, eventId } });
         return NextResponse.json({ favorited: true, type: 'EVENT' });
       }
     } else if (venueId) {
-      // Provera da li lokal postoji
       const venue = await prisma.venue.findUnique({ where: { id: venueId } });
       if (!venue) {
         return NextResponse.json({ error: 'Lokal nije pronađen.' }, { status: 404 });
       }
 
       const existingFavorite = await prisma.venueFavorite.findUnique({
-        where: {
-          userId_venueId: { userId, venueId },
-        },
+        where: { userId_venueId: { userId, venueId } },
       });
 
       if (existingFavorite) {
-        await prisma.venueFavorite.delete({
-          where: { id: existingFavorite.id },
-        });
+        await prisma.venueFavorite.delete({ where: { id: existingFavorite.id } });
         return NextResponse.json({ favorited: false, type: 'VENUE' });
       } else {
-        await prisma.venueFavorite.create({
-          data: { userId, venueId },
-        });
+        await prisma.venueFavorite.create({ data: { userId, venueId } });
         return NextResponse.json({ favorited: true, type: 'VENUE' });
       }
     }
@@ -75,12 +63,12 @@ export async function POST(_request: NextRequest) {
 
 export async function GET(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(_request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+    // Uvijek vraćamo favorite ULOGOVANOG korisnika (ignorišemo userId param)
+    const session = await getSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ events: [], venues: [], eventIds: [], venueIds: [] });
     }
+    const userId = session.user.id;
 
     const [eventFavorites, venueFavorites] = await Promise.all([
       prisma.eventFavorite.findMany({

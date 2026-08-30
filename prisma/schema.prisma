@@ -58,6 +58,7 @@ model Venue {
   instagramUrl String?
   facebookUrl  String?
   tiktokUrl    String?
+  reservationsEnabled Boolean @default(false)
   imageUrl     String?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt

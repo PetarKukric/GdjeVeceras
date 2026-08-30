@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { getSession } from "@/lib/auth";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -18,8 +19,11 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: "Gdje Večeras | Gdje večeras?",
-  description: "Otkrijte najbolje žurke i koncerte u svom gradu.",
+  title: {
+    default: "Gdje Večeras — Pronađi. Izaberi. Izađi.",
+    template: "%s | Gdje Večeras",
+  },
+  description: "Žurke, koncerti i najbolji lokali u Banjoj Luci, Gradišci, Prnjavoru i Srpcu — sve na jednom mjestu. Pronađi. Izaberi. Izađi.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -57,9 +61,38 @@ export default async function RootLayout({
   const session = await getSession();
   const user = session ? session.user : null;
 
+  // JSON-LD: Organization + WebSite (Google razumije šta je sajt)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.vercel.app';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${baseUrl}/#organization`,
+        name: 'Gdje Večeras',
+        url: baseUrl,
+        logo: `${baseUrl}/logo-final.png`,
+        sameAs: [
+          'https://www.instagram.com/gdjeveceras',
+          'https://www.tiktok.com/@gdjeveceras2',
+          'https://www.facebook.com/share/1EaMwFTjic/',
+        ],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}/#website`,
+        url: baseUrl,
+        name: 'Gdje Večeras',
+        inLanguage: 'bs',
+        publisher: { '@id': `${baseUrl}/#organization` },
+      },
+    ],
+  };
+
   return (
     <html lang="bs" className={`${inter.variable} ${manrope.variable}`}>
       <body className="bg-background text-text min-h-screen antialiased flex flex-col relative overflow-x-clip">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
         <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
            <div className="absolute top-0 left-0 w-[45%] h-[45%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
            <div className="absolute bottom-0 right-0 w-[45%] h-[45%] bg-accent/5 blur-[120px] rounded-full" />
@@ -69,6 +102,7 @@ export default async function RootLayout({
           {children}
         </ToastProvider>
         <ServiceWorkerRegister />
+        <GoogleAnalytics />
       </body>
     </html>
   );

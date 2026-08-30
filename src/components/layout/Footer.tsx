@@ -47,7 +47,8 @@ export function Footer() {
           <nav aria-label="Pomoć">
             <h4 className={heading}>Pomoć</h4>
             <div className="flex flex-col gap-3">
-              <Link href="/how-it-works" className={link}>FAQ</Link>
+              <Link href="/faq" className={link}>FAQ — česta pitanja</Link>
+              <Link href="/how-it-works" className={link}>Kako funkcioniše</Link>
               <Link href="/terms" className={link}>Uslovi korištenja</Link>
               <Link href="/privacy" className={link}>Politika privatnosti</Link>
             </div>

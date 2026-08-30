@@ -21,6 +21,7 @@ export interface Venue {
   id: string;
   name: string;
   slug: string;
+  reservationsEnabled?: boolean;
   description?: string;
   address: string;
   city: string;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 import { generateRandomPassword, generateResetToken, hashPassword, hashToken } from '@/lib/password';
@@ -16,6 +17,12 @@ const ADMIN_PASSWORD_TTL_MINUTES = 15;
  */
 export async function POST(request: NextRequest) {
   try {
+    // Zaštita od zloupotrebe (slanje reset emaila u beskonačnost)
+    const rl = rateLimit(`forgot:${getClientIp(request)}`, 3, 15 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json({ error: `Previše zahtjeva. Pokušajte za ${Math.ceil(rl.retryAfter / 60)} minuta.` }, { status: 429 });
+    }
+
     const { email } = await request.json();
 
     if (!email || !isValidEmail(normalizeEmail(email))) {

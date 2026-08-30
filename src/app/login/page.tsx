@@ -135,7 +135,7 @@ export default function Login() {
 
         {adminPasswordSent && (
           <div className="bg-primary/10 border border-primary/20 text-primary p-4 rounded-xl text-sm font-bold mb-6 leading-relaxed">
-            📧 Nova lozinka je poslana na vašu email adresu.
+            <Mail size={16} className="inline mr-1 -mt-0.5 shrink-0" /> Nova lozinka je poslana na vašu email adresu.
             <br />
             <span className="text-muted font-medium">Unesite lozinku iz email-a i ponovo kliknite PRIJAVI SE. Lozinka važi 15 minuta i može se iskoristiti samo jednom.</span>
           </div>

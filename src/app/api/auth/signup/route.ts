@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import {} from '@/lib/auth';
@@ -11,6 +12,12 @@ import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
+    // Zaštita od masovnih registracija (spam botovi)
+    const rl = rateLimit(`signup:${getClientIp(request)}`, 5, 60 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json({ error: `Previše registracija sa ove adrese. Pokušajte za ${Math.ceil(rl.retryAfter / 60)} minuta.` }, { status: 429 });
+    }
+
     const { email, password, name, company } = await request.json();
 
     if (!email || !password || !name) {

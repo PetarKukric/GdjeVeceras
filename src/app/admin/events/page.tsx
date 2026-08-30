@@ -9,7 +9,8 @@ import {
   Trash2, 
   Eye, 
   Clock,
-  CheckCircle} from 'lucide-react';
+  CheckCircle,
+  ImageIcon} from 'lucide-react';
 import { Event, Status } from '@/types';
 import Link from 'next/link';
 
@@ -158,7 +159,7 @@ export default function AdminEvents() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-surface flex-shrink-0 flex items-center justify-center text-xs text-border">
-                            {event.imageUrl ? <img src={event.imageUrl} className="w-full h-full object-cover rounded-lg" alt="" /> : '📷'}
+                            {event.imageUrl ? <img src={event.imageUrl} className="w-full h-full object-cover rounded-lg" alt="Naslovna slika događaja" /> : <ImageIcon size={20} className="opacity-30" />}
                           </div>
                           <div>
                             <p className="font-bold text-sm text-text line-clamp-1">{event.title}</p>

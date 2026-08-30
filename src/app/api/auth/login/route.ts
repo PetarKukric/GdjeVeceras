@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { encrypt } from '@/lib/auth';
 import { cookies } from 'next/headers';
@@ -30,6 +31,12 @@ async function createSession(user: { id: string; email: string; role: string; na
 
 export async function POST(request: NextRequest) {
   try {
+    // Zaštita od brute-force po IP adresi (uz postojeće zaključavanje računa)
+    const rl = rateLimit(`login:${getClientIp(request)}`, 10, 15 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json({ error: `Previše pokušaja prijave. Sačekajte ${rl.retryAfter} sekundi.` }, { status: 429 });
+    }
+
     const { email, password } = await request.json();
 
     if (!email || !password) {

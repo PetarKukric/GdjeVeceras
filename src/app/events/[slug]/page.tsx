@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import { 
   Calendar, 
+  Check,
+  Flag,
   Clock, 
   MapPin, 
   Tag, 
@@ -407,12 +409,12 @@ export default function EventPage() {
                    <div className="w-20 h-20 rounded-2xl bg-surface border border-white/5 flex items-center justify-center text-3xl shrink-0 overflow-hidden">
                       {event.venue.imageUrl ? (
                         <img src={event.venue.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                      ) : '💿'}
+                      ) : <Disc size={28} className='opacity-40' />}
                    </div>
                    <div className="flex-grow">
                       <div className="flex items-center gap-2 mb-2">
                          <h4 className="text-lg font-black text-white uppercase tracking-tight">{event.venue.name}</h4>
-                         <div className="w-4 h-4 rounded-full bg-accent text-[10px] flex items-center justify-center text-white">✓</div>
+                         <div className="w-4 h-4 rounded-full bg-accent flex items-center justify-center text-white"><Check size={10} strokeWidth={3} /></div>
                       </div>
                       <Link href={`/venues/${event.venue.slug}`} className="px-5 py-2 bg-accent/20 text-accent text-[10px] font-black rounded-lg hover:bg-accent hover:text-white transition-all uppercase tracking-widest border border-accent/30 shadow-lg inline-block">
                          Pogledaj profil
@@ -488,7 +490,7 @@ export default function EventPage() {
                   onClick={() => setIsReporting(true)}
                   className="px-6 py-3 rounded-2xl border border-white/5 text-muted hover:text-red-400 text-[10px] font-black uppercase tracking-[0.3em] transition-all bg-card/30"
                 >
-                  🚩 Prijavi problem sa ovim događajem
+                  <Flag size={12} className="inline mr-1 -mt-0.5" />Prijavi problem sa ovim događajem
                 </button>
               </div>
 
@@ -587,6 +589,7 @@ export default function EventPage() {
                )}
 
                <div className="space-y-5 md:space-y-4 pt-6 md:pt-4">
+                  {event.venue?.reservationsEnabled && (
                   <button 
                     onClick={() => setIsReservationModalOpen(true)}
                     disabled={availableUnits === 0 && totalUnits > 0}
@@ -594,6 +597,7 @@ export default function EventPage() {
                   >
                      {availableUnits === 0 && totalUnits > 0 ? 'SVE POPUNJENO' : 'REZERVIŠI STO / SEPARE'}
                   </button>
+                  )}
 
                   <button 
                     onClick={toggleFavorite}
@@ -776,6 +780,28 @@ export default function EventPage() {
           user={user}
         />
       </main>
+
+      {/* STICKY MOBILNI CTA — samo ako lokal prima rezervacije */}
+      {event.venue?.reservationsEnabled && (
+      <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-4">
+        <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl shadow-black/60 flex items-center gap-3 p-3">
+          <button
+            onClick={toggleFavorite}
+            aria-label="Sačuvaj događaj"
+            className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 transition-all ${isFavorited ? 'bg-primary/10 border-primary/40 text-primary' : 'border-border text-muted'}`}
+          >
+            <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
+          </button>
+          <button
+            onClick={() => setIsReservationModalOpen(true)}
+            disabled={availableUnits === 0 && totalUnits > 0}
+            className="flex-grow h-12 bg-primary text-white font-black rounded-xl uppercase tracking-[0.2em] text-[10px] hover:bg-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {availableUnits === 0 && totalUnits > 0 ? 'Sve popunjeno' : 'Rezerviši mjesto'}
+          </button>
+        </div>
+      </div>
+      )}
       <BottomNav />
     </div>
   );

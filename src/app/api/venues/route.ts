@@ -67,6 +67,7 @@ export async function POST(_request: NextRequest) {
         instagramUrl: body.instagramUrl,
         facebookUrl: body.facebookUrl,
         tiktokUrl: body.tiktokUrl,
+        reservationsEnabled: !!body.reservationsEnabled,
         imageUrl: body.imageUrl,
         ownerId: (body.ownerId && body.ownerId !== "") ? body.ownerId : (session.user.role === 'OWNER' ? session.user.id : null),
         slug,

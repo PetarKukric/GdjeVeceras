@@ -89,7 +89,7 @@ export default function AdminDashboard() {
                     {event.imageUrl ? (
                         <img src={event.imageUrl} className="w-full h-full object-cover" alt="" />
                     ) : (
-                        <span className="text-xs">📅</span>
+                        <span className="text-xs"><Calendar size={12} /></span>
                     )}
                   </div>
                   <div className="flex-grow overflow-hidden">

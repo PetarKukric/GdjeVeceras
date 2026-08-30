@@ -209,9 +209,9 @@ export function VenueGallery({ venueId, ownerId, images, currentUser, onRefresh,
                 className="aspect-square relative group rounded-3xl overflow-hidden cursor-pointer shadow-xl border border-white/5"
                 onClick={() => openLightbox(originalIndex)}
               >
-                <img 
-                  src={image.imageUrl} 
-                  alt="" 
+                <img
+                  src={image.imageUrl}
+                  alt="Fotografija lokala"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">

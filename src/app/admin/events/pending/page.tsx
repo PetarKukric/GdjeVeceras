@@ -10,7 +10,8 @@ import {
   MapPin, 
   Clock, 
   Tag,
-  ExternalLink
+  ExternalLink,
+  ImageIcon
 } from 'lucide-react';
 import { Event} from '@/types';
 
@@ -82,7 +83,7 @@ export default function PendingEvents() {
                   {event.imageUrl ? (
                     <img src={event.imageUrl} className="w-full h-full object-cover" alt="" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-border text-6xl opacity-20 italic">📷</div>
+                    <div className="w-full h-full flex items-center justify-center text-border opacity-20"><ImageIcon size={44} /></div>
                   )}
                   <div className="absolute top-4 left-4">
                      <span className="px-3 py-1 bg-yellow-400 text-black text-[10px] font-black uppercase tracking-wider rounded-md shadow-lg">Na čekanju</span>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { hashPassword, hashToken } from '@/lib/password';
 
@@ -7,6 +8,12 @@ import { hashPassword, hashToken } from '@/lib/password';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Zaštita od pogađanja tokena
+    const rl = rateLimit(`reset:${getClientIp(request)}`, 5, 15 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json({ error: `Previše pokušaja. Sačekajte ${rl.retryAfter} sekundi.` }, { status: 429 });
+    }
+
     const { token, password } = await request.json();
 
     if (!token || !password) {

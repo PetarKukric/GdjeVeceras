@@ -86,7 +86,7 @@ export default function AdminReports() {
           </div>
         ) : reports.length === 0 ? (
           <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-xl">
-             <div className="text-4xl mb-4">✅</div>
+             <CheckCircle2 size={36} className="mb-4 text-primary" />
              <h3 className="text-xl font-bold uppercase tracking-tight">Sve je čisto</h3>
              <p className="text-muted mt-1 font-medium">Trenutno nema aktivnih prijava od korisnika.</p>
           </div>

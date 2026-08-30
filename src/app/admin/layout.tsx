@@ -8,6 +8,11 @@ import { redirect } from 'next/navigation';
 // i logovani korisnici upadaju u redirect petlju u produkciji.
 export const dynamic = 'force-dynamic';
 
+// Admin se NE indeksuje od strane Google-a
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 export default async function AdminLayout({
   children,
 }: {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Heart, Flame, Sparkles } from 'lucide-react';
+import { MapPin, Heart, Flame, Sparkles, Disc3, Guitar } from 'lucide-react';
 import { Event } from '@/types';
 import Link from 'next/link';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
@@ -87,7 +87,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-surface to-background flex items-center justify-center">
-            <span className="text-4xl opacity-20">{event.category === 'PARTY' ? '💿' : '🎸'}</span>
+            <span className="opacity-20">{event.category === 'PARTY' ? <Disc3 size={36} /> : <Guitar size={36} />}</span>
           </div>
         )}
         

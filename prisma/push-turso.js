@@ -80,6 +80,27 @@ async function main() {
     }
   }
 
+  // CREATE TABLE IF NOT EXISTS ne dodaje nova polja postojećim tabelama.
+  // Ove aditivne izmjene su bezbjedne za postojeću Turso bazu i ponovljene deploye.
+  const additiveMigrations = [
+    'ALTER TABLE "Venue" ADD COLUMN "reservationsEnabled" BOOLEAN NOT NULL DEFAULT false',
+  ];
+  for (const migration of additiveMigrations) {
+    try {
+      await prisma.$executeRawUnsafe(migration);
+      ok++;
+    } catch (e) {
+      const msg = String(e && e.message || e);
+      if (/duplicate column name|already exists/i.test(msg)) {
+        skipped++;
+        continue;
+      }
+      console.error('✗ Aditivna migracija nije prošla:', migration);
+      console.error('  Greška:', msg.slice(0, 200));
+      process.exit(1);
+    }
+  }
+
   await prisma.$disconnect();
   console.log(`✅ Šema postavljena: ${ok} naredbi izvršeno, ${skipped} već postojalo.`);
 }

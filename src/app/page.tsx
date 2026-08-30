@@ -188,7 +188,7 @@ export default function Home() {
           <div className="absolute inset-0" aria-hidden="true">
             <img
               src="/hero-concert.jpg"
-              alt=""
+              alt="Koncertna atmosfera — publika pod svjetlima bine"
               className="absolute right-0 top-0 h-full w-full md:w-[62%] object-cover object-center"
             />
             {/* Lijevo→desno: skoro crno → slika vidljiva (desktop) */}
