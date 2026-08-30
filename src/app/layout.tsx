@@ -18,7 +18,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com'),
   title: {
     default: "Gdje Večeras — Pronađi. Izaberi. Izađi.",
     template: "%s | Gdje Večeras",
@@ -62,7 +62,7 @@ export default async function RootLayout({
   const user = session ? session.user : null;
 
   // JSON-LD: Organization + WebSite (Google razumije šta je sajt)
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [

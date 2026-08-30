@@ -25,6 +25,8 @@ import {
   Beer,
   Share2,
   Heart,
+  Check,
+  Moon,
   ChevronRight,
   ExternalLink
 } from 'lucide-react';
@@ -229,7 +231,7 @@ export default function VenuePage() {
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase leading-none">
                       {venue.name}
                     </h1>
-                    <div className="w-6 h-6 rounded-full bg-accent text-[10px] flex items-center justify-center text-white shrink-0">✓</div>
+                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-white shrink-0"><Check size={12} strokeWidth={3} /></div>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-1.5 text-muted font-bold text-[10px] uppercase tracking-widest">
@@ -360,7 +362,7 @@ export default function VenuePage() {
 
                 {upcomingEvents.length === 0 ? (
                   <div className="bg-surface/30 border border-white/5 rounded-3xl p-20 text-center">
-                    <div className="w-20 h-20 bg-card rounded-3xl flex items-center justify-center mx-auto mb-8 text-4xl opacity-10">🌙</div>
+                    <div className="w-20 h-20 bg-card rounded-3xl flex items-center justify-center mx-auto mb-8 opacity-10"><Moon size={40} /></div>
                     <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tight">Trenutno nema događaja</h3>
                     <p className="text-muted text-[10px] font-bold uppercase tracking-widest max-w-sm mx-auto opacity-40">
                       Pratite ovaj lokal na mrežama za nova dešavanja.

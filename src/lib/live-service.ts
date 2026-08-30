@@ -120,7 +120,7 @@ export async function sendLiveUpdateNotifications(eventId: string, venueId: stri
           await prisma.notification.update({
             where: { id: existing.id },
             data: {
-              content: `🔴 ${event.title}: ${event.venue.name} ima ${updateCount} novih LIVE objava.`,
+              content: `${event.title}: ${event.venue.name} ima ${updateCount} novih LIVE objava.`,
               isRead: false,
               createdAt: now
             }
@@ -133,7 +133,7 @@ export async function sendLiveUpdateNotifications(eventId: string, venueId: stri
               userId: user.id,
               eventId: event.id,
               type: 'EVENT_LIVE_UPDATE',
-              content: `🔴 NOVO UŽIVO: ${event.title}. ${event.venue.name} je upravo objavio novu ${mediaLabel} sa događaja.`
+              content: `NOVO UŽIVO: ${event.title}. ${event.venue.name} je upravo objavio novu ${mediaLabel} sa događaja.`
             }
           });
         }

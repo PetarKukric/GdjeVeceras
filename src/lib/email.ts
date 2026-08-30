@@ -51,7 +51,7 @@ const WRAPPER = (inner: string) => `
 `;
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
   const verificationLink = `${baseUrl}/verify-email?token=${token}`;
   return sendMail(
     'Potvrdi svoju email adresu — Gdje Večeras',
@@ -82,7 +82,7 @@ export async function sendAdminPasswordEmail(email: string, password: string) {
 
 /** Link za resetovanje lozinke (obični korisnici). */
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
   const resetLink = `${baseUrl}/reset-password?token=${token}`;
   return sendMail(
     'Resetovanje lozinke — Gdje Večeras',

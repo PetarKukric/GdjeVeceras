@@ -50,7 +50,7 @@ export default async function EventSlugLayout({
   const event = await getEvent(slug);
   if (!event) return <>{children}</>;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Event',

@@ -5,7 +5,7 @@ import type { MetadataRoute } from 'next';
  * Zaključano: admin, API i lične stranice (chat, podešavanja, reset lozinke...).
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
   return {
     rules: [
       {

@@ -6,15 +6,11 @@ export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('bl_session')?.value;
   const pathname = request.nextUrl.pathname;
   
-  console.log(`MIDDLEWARE: Path: ${pathname}, Has Cookie: ${!!sessionCookie}`);
-
   let session = null;
   if (sessionCookie) {
     try {
       session = await decrypt(sessionCookie);
-      console.log(`MIDDLEWARE: Decrypted session user: ${session?.user?.email}, Role: ${session?.user?.role}`);
     } catch {
-      console.log('MIDDLEWARE: Decrypt failed');
     }
   }
 

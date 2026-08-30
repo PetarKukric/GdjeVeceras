@@ -57,7 +57,7 @@ export default async function VenueSlugLayout({
   const venue = await getVenue(slug);
   if (!venue) return <>{children}</>;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
   const jsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
