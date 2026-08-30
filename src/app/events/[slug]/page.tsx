@@ -221,8 +221,10 @@ export default function EventPage() {
           <div className="lg:col-span-8 space-y-10 md:space-y-8">
             
             {/* HERO CARD */}
-            <div className="relative rounded-3xl sm:rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group">
-              <div className="aspect-[16/9] sm:aspect-[21/9] relative">
+            <div className="relative rounded-3xl sm:rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group flex flex-col min-h-[360px] sm:min-h-[400px] lg:min-h-[440px]">
+
+              {/* IMAGE LAYER */}
+              <div className="absolute inset-0">
                 {event.imageUrl ? (
                   <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 ) : (
@@ -241,32 +243,31 @@ export default function EventPage() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,110,0.1),transparent_50%)]" />
-                
-                {/* Badge Top Left */}
-                <div className="absolute top-6 left-6">
-                   <div className="px-4 py-1.5 bg-primary/90 backdrop-blur-md rounded-xl text-[10px] font-black uppercase tracking-widest text-white border border-white/10 shadow-lg">
-                      Istaknuto
-                   </div>
-                </div>
+              </div>
 
-                {/* Floating Actions Top Right */}
-                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-3">
-                   <button 
+              {/* TOP RED: badge + akcije - u normalnom toku, naslov ih ne može preklopiti */}
+              <div className="relative z-10 flex items-center justify-between gap-3 p-4 sm:p-6">
+                <div className="px-4 py-1.5 bg-primary/90 backdrop-blur-md rounded-xl text-[10px] font-black uppercase tracking-widest text-white border border-white/10 shadow-lg">
+                   Istaknuto
+                </div>
+                <div className="flex gap-3">
+                   <button
                      onClick={() => setIsShareModalOpen(true)}
                      className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all shadow-lg group/btn"
                    >
-                      <Share2 size={18} className="group-hover/btn:scale-110 transition-transform" />
+                     <Share2 size={18} className="group-hover/btn:scale-110 transition-transform" />
                    </button>
-                   <button 
+                   <button
                      onClick={toggleFavorite}
                      className={`w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all shadow-lg group/btn ${isFavorited ? 'text-primary' : 'text-white hover:text-primary'}`}
                    >
-                      <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="group-hover/btn:scale-110 transition-transform" />
+                     <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="group-hover/btn:scale-110 transition-transform" />
                    </button>
                 </div>
+              </div>
 
-                {/* Title Overlay */}
-                <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-8 sm:right-8 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
+              {/* NASLOV - gura se na dno, uvijek ima mjesta */}
+              <div className="relative z-10 mt-auto p-4 pb-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
                    <div className="w-20 h-24 sm:w-24 sm:h-28 bg-white text-background rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-2xl">
                       <span className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">
                          {startDate.toLocaleDateString('bs', { weekday: 'short' }).toUpperCase()}
@@ -278,8 +279,8 @@ export default function EventPage() {
                          {startDate.toLocaleDateString('bs', { month: 'short' }).toUpperCase()}
                       </span>
                    </div>
-                   <div className="flex-grow">
-                      <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-none uppercase tracking-tighter mb-4 text-shadow-lg">
+                   <div className="flex-grow min-w-0">
+                      <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-none uppercase tracking-tighter mb-4 break-words text-shadow-lg">
                         {event.title} <br className="hidden sm:block" />
                         <span className="text-primary/90">@ {event.venue.name}</span>
                       </h1>
@@ -295,7 +296,6 @@ export default function EventPage() {
                          </div>
                       </div>
                    </div>
-                </div>
               </div>
             </div>
 
@@ -601,7 +601,8 @@ export default function EventPage() {
                )}
 
                <div className="space-y-5 md:space-y-4 pt-6 md:pt-4">
-                  {event.venue?.reservationsEnabled && (
+                  {/* Vlasnik/admin ne vidi kupčevce CTA (ima svoj link "Rezervacije za događaj" ispod) */}
+                  {event.venue?.reservationsEnabled && !isOwner && (
                   <button 
                     onClick={() => setIsReservationModalOpen(true)}
                     disabled={availableUnits === 0 && totalUnits > 0}
@@ -795,7 +796,7 @@ export default function EventPage() {
       </main>
 
       {/* STICKY MOBILNI CTA — samo ako lokal prima rezervacije */}
-      {event.venue?.reservationsEnabled && (
+      {event.venue?.reservationsEnabled && !isOwner && (
       <div className="md:hidden fixed bottom-16 left-0 right-0 z-40 px-4">
         <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl shadow-black/60 flex items-center gap-3 p-3">
           <button

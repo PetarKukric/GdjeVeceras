@@ -184,51 +184,55 @@ export default function VenuePage() {
           <div className="lg:col-span-8 space-y-8">
             
             {/* HERO SECTION */}
-            <section className="relative w-full aspect-[21/9] min-h-[300px] rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group">
-              {venue.imageUrl ? (
-                <img 
-                  src={venue.imageUrl} 
-                  alt={venue.name} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full bg-surface flex items-center justify-center text-border opacity-10" aria-hidden="true">
-                  <MapPin size={72} />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,110,0.1),transparent_50%)]" />
-              
-              {/* Top Right Actions */}
-              <div className="absolute top-6 right-6 flex gap-3">
-                 <button 
-                   onClick={() => setIsShareModalOpen(true)}
-                   className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all shadow-lg group/btn"
-                 >
-                    <Share2 size={18} className="group-hover/btn:scale-110 transition-transform" />
-                 </button>
-                 <button 
-                   onClick={toggleFavorite}
-                   className={`w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all shadow-lg group/btn ${isFavorited ? 'text-primary' : 'text-white hover:text-primary'}`}
-                 >
-                    <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="group-hover/btn:scale-110 transition-transform" />
-                 </button>
+            <section className="relative w-full rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group flex flex-col min-h-[360px] sm:min-h-[420px]">
+
+              {/* IMAGE LAYER - blago zatamnjena: tekst čitljiv, slika ostaje vidljiva */}
+              <div className="absolute inset-0">
+                {venue.imageUrl ? (
+                  <img
+                    src={venue.imageUrl}
+                    alt={venue.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-surface flex items-center justify-center text-border opacity-10" aria-hidden="true">
+                    <MapPin size={72} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,0,110,0.1),transparent_50%)]" />
               </div>
 
-              {/* Badge */}
-              <div className="absolute top-6 left-6">
-                 <div className="bg-primary/90 backdrop-blur-md border border-white/10 px-4 py-1.5 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
-                   Istaknuti lokal
-                 </div>
+              {/* TOP RED: badge + akcije - u normalnom toku, bez preklapanja */}
+              <div className="relative z-10 flex items-center justify-between gap-3 p-4 sm:p-6">
+                <div className="bg-primary/90 backdrop-blur-md border border-white/10 px-4 py-1.5 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg">
+                  Istaknuti lokal
+                </div>
+                <div className="flex gap-3">
+                   <button
+                     onClick={() => setIsShareModalOpen(true)}
+                     className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all shadow-lg group/btn"
+                   >
+                     <Share2 size={18} className="group-hover/btn:scale-110 transition-transform" />
+                   </button>
+                   <button
+                     onClick={toggleFavorite}
+                     className={`w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all shadow-lg group/btn ${isFavorited ? 'text-primary' : 'text-white hover:text-primary'}`}
+                   >
+                     <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="group-hover/btn:scale-110 transition-transform" />
+                   </button>
+                </div>
               </div>
-              
-              <div className="absolute bottom-8 left-8 flex items-end gap-6">
+
+              {/* NASLOV - gura se na dno, uvijek ima mjesta */}
+              <div className="relative z-10 mt-auto p-4 pb-5 sm:p-8 flex flex-wrap items-end gap-4 sm:gap-6">
                 <div className="w-24 h-24 rounded-3xl bg-card border-4 border-background shadow-2xl flex items-center justify-center text-4xl shrink-0 overflow-hidden">
                    {venue.imageUrl ? <img src={venue.imageUrl} alt={venue.name} className="w-full h-full object-cover" /> : <MapPin size={36} className="opacity-20" aria-hidden="true" />}
                 </div>
-                <div className="flex-grow pb-2">
+                <div className="flex-grow min-w-0 pb-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase leading-none">
+                    <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter uppercase leading-none break-words">
                       {venue.name}
                     </h1>
                     <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-white shrink-0"><Check size={12} strokeWidth={3} /></div>
