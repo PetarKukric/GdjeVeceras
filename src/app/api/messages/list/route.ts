@@ -15,6 +15,7 @@ export async function GET() {
       // Admins see all messages
       messages = await prisma.message.findMany({
         orderBy: { createdAt: 'desc' },
+        take: 200,
         include: {
           venue: true,
           sender: {

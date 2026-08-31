@@ -3,11 +3,13 @@
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void error;
   return (
     <html lang="bs">
       <body className="bg-background text-text min-h-screen flex items-center justify-center px-4">

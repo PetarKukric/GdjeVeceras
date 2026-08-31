@@ -17,7 +17,7 @@ type ParsedItem = {
   line: number;
   error?: string;
   // lokal (blok i linija format)
-  name?: string; address?: string; city?: string; phone?: string;
+  name?: string; address?: string; city?: string; phone?: string; email?: string;
   website?: string; instagramUrl?: string; facebookUrl?: string; tiktokUrl?: string;
   description?: string; tip?: string; latitude?: number; longitude?: number;
   hours?: HoursMap | null;
@@ -179,6 +179,7 @@ function parseBlockFile(text: string, knownCities: string[]): ParsedItem[] {
       address: cleanAddress(kv['Lokacija'] || ''),
       city: normalizeCity(kv['Grad'] || '', knownCities),
       phone: NOT_SET.test(kv['Telefon'] || '') ? '' : (kv['Telefon'] || '').trim(),
+      email: NOT_SET.test(kv['Email'] || '') ? '' : (kv['Email'] || '').trim(),
       website: cleanUrl(kv['Website'] || ''),
       instagramUrl: cleanUrl(kv['Instagram'] || ''),
       facebookUrl: cleanUrl(kv['Facebook'] || ''),
@@ -333,7 +334,7 @@ export default function ImportPage() {
         ? {
             name: q.name || '', address: q.address || '', city: q.city || '', phone: q.phone || '',
             website: q.website || '', instagramUrl: q.instagramUrl || '', facebookUrl: q.facebookUrl || '',
-            tiktokUrl: q.tiktokUrl || '', description: q.description || '', tip: q.tip || '',
+            tiktokUrl: q.tiktokUrl || '', description: q.description || '', tip: q.tip || '', email: q.email || '',
           }
         : { title: q.title || '', venueName: q.venueName || '', city: q.city || '', date: q.date || '', time: q.time || '20:00', category: q.category || 'PARTY', price: q.price || '', description: q.description || '', venueId: '' }
     );
@@ -393,6 +394,7 @@ export default function ImportPage() {
     { key: 'instagramUrl', label: 'Instagram' },
     { key: 'facebookUrl', label: 'Facebook' },
     { key: 'tiktokUrl', label: 'TikTok' },
+    { key: 'email', label: 'Email' },
     { key: 'description', label: 'Opis' },
   ];
 

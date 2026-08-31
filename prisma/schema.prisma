@@ -59,6 +59,7 @@ model Venue {
   instagramUrl String?
   facebookUrl  String?
   tiktokUrl    String?
+  email        String?
   reservationsEnabled Boolean @default(false)
   imageUrl     String?
   createdAt    DateTime        @default(now())
@@ -157,6 +158,8 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
   message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
   event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Event {
@@ -202,6 +205,9 @@ model Event {
   recurrenceStart DateTime?
   recurrenceEnd DateTime?
   occurrenceExceptions EventOccurrenceException[] @relation("EventOccurrences")
+
+  @@index([status, startDateTime])
+  @@index([venueId])
 }
 
 model EventVenue {
@@ -411,6 +417,8 @@ model Reservation {
   user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   assignedItems  EventFloorItem[]  @relation("ItemReservation")
   assignedGroups EventTableGroup[] @relation("GroupReservation")
+
+  @@index([userId])
 }
 
 enum FloorItemType {

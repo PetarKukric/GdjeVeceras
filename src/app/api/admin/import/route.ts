@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         if (!existing) return NextResponse.json({ error: 'Lokal ne postoji.' }, { status: 404 });
 
         const update: Record<string, unknown> = {};
-        for (const key of ['address', 'city', 'phone', 'website', 'instagramUrl', 'facebookUrl', 'tiktokUrl', 'description'] as const) {
+        for (const key of ['address', 'city', 'phone', 'website', 'instagramUrl', 'facebookUrl', 'tiktokUrl', 'description', 'email'] as const) {
           const v = data[key];
           if (!existing[key] && typeof v === 'string' && v.trim() !== '') update[key] = v.trim();
         }
@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
           instagramUrl: data.instagramUrl ? String(data.instagramUrl).trim() : null,
           facebookUrl: data.facebookUrl ? String(data.facebookUrl).trim() : null,
           tiktokUrl: data.tiktokUrl ? String(data.tiktokUrl).trim() : null,
+          email: data.email ? String(data.email).trim() : null,
           latitude: lat !== null && !isNaN(lat) ? lat : null,
           longitude: lng !== null && !isNaN(lng) ? lng : null,
           imageUrl: imageUrl || null,

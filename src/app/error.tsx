@@ -3,11 +3,13 @@
 import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void error;
   return (
     <main className="flex-grow flex items-center justify-center px-4 py-24 w-full">
       <div className="max-w-lg w-full text-center">

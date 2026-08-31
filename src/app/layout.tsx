@@ -25,8 +25,10 @@ export const metadata: Metadata = {
   },
   description: "Žurke, koncerti i najbolji lokali u Banjoj Luci, Gradišci, Prnjavoru i Srpcu — sve na jednom mjestu. Pronađi. Izaberi. Izađi.",
   manifest: "/manifest.webmanifest",
+  applicationName: "Gdje Večeras",
   icons: {
     icon: [
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
@@ -35,7 +37,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "GdjeVečeras",
+    title: "Gdje Večeras",
   },
   openGraph: {
     title: "Gdje Večeras — Pronađi. Izaberi. Izađi.",
