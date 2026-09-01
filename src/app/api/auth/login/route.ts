@@ -4,13 +4,10 @@ import prisma from '@/lib/prisma';
 import { encrypt } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
-import { generateRandomPassword, hashPassword, verifyPassword } from '@/lib/password';
-import { sendAdminPasswordEmail } from '@/lib/email';
+import { verifyPassword } from '@/lib/password';
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
-const ADMIN_PASSWORD_TTL_MINUTES = 15;
-const ADMIN_RESEND_COOLDOWN_MS = 60 * 1000; // max 1 email u minuti
 
 async function createSession(user: { id: string; email: string; role: string; name: string | null }) {
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -80,8 +77,9 @@ export async function POST(request: NextRequest) {
     }
 
     // ===== ADMIN: email-OTP prijava =====
-    // Svaki pokušaj prijave sa pogrešnom/isteklom lozinkom generiše NOVU
-    // nasumičnu jednokratnu lozinku koja se šalje na email.
+    // OTP se izdaje isključivo kroz "Zaboravljena lozinka". Pogrešan login
+    // ne smije generisati novu lozinku jer bi napadač mogao spamovati admina
+    // i stalno poništavati prethodno izdani OTP.
     if (user.role === 'ADMIN') {
       const passwordOk =
         user.passwordHash &&
@@ -103,34 +101,20 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ message: 'Uspešna prijava', user: sessionUser });
       }
 
-      // Pogrešna/istekla lozinka → generiši i pošalji novu (uz rate limit)
-      const lastResent = user.adminLoginResentAt ? new Date(user.adminLoginResentAt).getTime() : 0;
-      if (Date.now() - lastResent < ADMIN_RESEND_COOLDOWN_MS) {
-        const waitSeconds = Math.ceil((ADMIN_RESEND_COOLDOWN_MS - (Date.now() - lastResent)) / 1000);
-        return NextResponse.json(
-          { error: `Nova lozinka je već poslata. Sačekaj ${waitSeconds}s pa pokušaj ponovo.` },
-          { status: 429 }
-        );
-      }
-
-      const newPassword = generateRandomPassword(12);
-      const hashed = await hashPassword(newPassword);
-      const expiresAt = new Date(Date.now() + ADMIN_PASSWORD_TTL_MINUTES * 60 * 1000);
+      const failedAttempts = user.failedLoginAttempts + 1;
+      const lockoutUntil = failedAttempts >= MAX_FAILED_ATTEMPTS
+        ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000)
+        : null;
       await prisma.user.update({
         where: { id: user.id },
         data: {
-          passwordHash: hashed,
-          adminPasswordExpiresAt: expiresAt,
-          adminLoginResentAt: new Date(),
-          failedLoginAttempts: 0,
-          loginLockoutUntil: null,
+          failedLoginAttempts: lockoutUntil ? 0 : failedAttempts,
+          loginLockoutUntil: lockoutUntil,
         },
       });
-      await sendAdminPasswordEmail(user.email, newPassword);
       return NextResponse.json({
-        adminPasswordSent: true,
-        message: 'Nova lozinka je poslana na vašu email adresu.',
-      });
+        error: 'Pogrešna ili istekla jednokratna lozinka. Zatražite novu preko opcije „Zaboravljena lozinka“.',
+      }, { status: 401 });
     }
 
     // ===== OBIČNI KORISNICI =====

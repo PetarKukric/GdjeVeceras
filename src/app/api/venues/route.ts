@@ -69,7 +69,11 @@ export async function POST(_request: NextRequest) {
         tiktokUrl: body.tiktokUrl,
         reservationsEnabled: !!body.reservationsEnabled,
         imageUrl: body.imageUrl,
-        ownerId: (body.ownerId && body.ownerId !== "") ? body.ownerId : (session.user.role === 'OWNER' ? session.user.id : null),
+        // Samo ADMIN smije dodijeliti lokal drugom korisniku.
+        // OWNER koji kreira lokal uvijek postaje vlasnik tog lokala.
+        ownerId: session.user.role === 'ADMIN'
+          ? ((body.ownerId && body.ownerId !== '') ? body.ownerId : null)
+          : session.user.id,
         slug,
         openingHours: {
           create: (body.openingHours || []).map((h: any) => ({
@@ -85,9 +89,9 @@ export async function POST(_request: NextRequest) {
       },
     });
 
-    if (body.ownerId || session.user.role === 'OWNER') {
+    if (session.user.role === 'ADMIN' && body.ownerId) {
       await prisma.user.update({
-        where: { id: body.ownerId || session.user.id },
+        where: { id: body.ownerId },
         data: { role: 'OWNER' }
       });
     }

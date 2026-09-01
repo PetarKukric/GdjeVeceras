@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { saveUpload, deleteUpload } from '@/lib/uploads';
 import crypto from 'crypto';
+import { detectMedia, mediaMatchesDeclaredType } from '@/lib/media-validation';
 import { isEventLive, archiveEventLiveMedia, sendLiveUpdateNotifications } from '@/lib/live-service';
 
 export async function GET(
@@ -85,11 +86,14 @@ export async function POST(
       return NextResponse.json({ error: 'Nema fajla.' }, { status: 400 });
     }
 
-    // Validation
+    const allowedMimeTypes = new Set([
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/quicktime', 'video/webm',
+    ]);
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
 
-    if (!isImage && !isVideo) {
+    if ((!isImage && !isVideo) || !allowedMimeTypes.has(file.type)) {
       return NextResponse.json({ error: 'Dozvoljene su samo slike i video snimci.' }, { status: 400 });
     }
 
@@ -103,12 +107,17 @@ export async function POST(
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const detected = detectMedia(buffer);
 
-    const filename = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    if (!detected || !mediaMatchesDeclaredType(detected, file.type)) {
+      return NextResponse.json({ error: 'Sadržaj fajla ne odgovara dozvoljenom formatu.' }, { status: 400 });
+    }
+
+    const filename = `${crypto.randomUUID()}.${detected.ext}`;
     const mediaUrl = await saveUpload(
       `live/${event.id}/${filename}`,
       buffer,
-      file.type
+      detected.mime
     );
 
     const liveMedia = await prisma.eventLiveMedia.create({
@@ -116,7 +125,7 @@ export async function POST(
         eventId: event.id,
         venueId: event.venueId,
         uploadedByUserId: session.user.id,
-        type: isVideo ? 'VIDEO' : 'IMAGE',
+        type: detected.kind,
         mediaUrl,
         caption: caption || null,
       },

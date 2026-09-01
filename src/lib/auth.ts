@@ -1,53 +1,14 @@
-import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { decrypt, encrypt } from '@/lib/session-token';
 
-// Tajni ključ iz env varijable (produkcija); fallback SAMO za lokalni razvoj.
-// U produkciji JWT_SECRET MORA biti postavljen — fallback ključ je javno vidljiv
-// u repu, pa bi bez env varijable bilo ko mogao kovati sesijski kolačić (i ADMIN
-// sesiju). Zato fail-closed: prijava odbija da radi bez JWT_SECRET.
-const DEV_FALLBACK_SECRET = 'gradiska-events-very-secret-key-123456789';
-
-function getKey(): Uint8Array {
-  if (process.env.JWT_SECRET) return new TextEncoder().encode(process.env.JWT_SECRET);
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'JWT_SECRET nije postavljen! Postavi ga u Vercel → Settings → Environment Variables (nasumičan, dug niz).'
-    );
-  }
-  return new TextEncoder().encode(DEV_FALLBACK_SECRET);
-}
+export { decrypt, encrypt } from '@/lib/session-token';
+export type { JWTPayload } from '@/lib/session-token';
 
 // SameSite: 'lax' u produkciji (zaštita od CSRF); 'none' samo u razvoju
 // (cross-origin preview iframe-ovi). Aplikacija i API su na istom domenu,
 // pa 'lax' ne smeta normalnom radu sajta.
 const COOKIE_SAMESITE: 'lax' | 'none' = process.env.NODE_ENV === 'production' ? 'lax' : 'none';
-
-export interface JWTPayload {
-  user: { id: string; email: string; role: string; name: string };
-  expires: string | Date;
-}
-
-export async function encrypt(payload: JWTPayload) {
-  return await new SignJWT(payload as unknown as Record<string, unknown>)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('24h')
-    .sign(getKey());
-}
-
-export async function decrypt(input: string): Promise<JWTPayload | null> {
-  if (!input) return null;
-  try {
-    const { payload } = await jwtVerify(input, getKey(), {
-      algorithms: ['HS256'],
-    });
-    return payload as unknown as JWTPayload;
-  } catch (error) {
-    console.error('Auth: Decrypt failed', error);
-    return null;
-  }
-}
 
 export async function login(user: { id: string; email: string; role: string; name: string }) {
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -73,7 +34,29 @@ export async function getSession() {
     const cookieStore = await cookies();
     const session = cookieStore.get('bl_session')?.value;
     if (!session) return null;
-    return await decrypt(session);
+    const parsed = await decrypt(session);
+    if (!parsed?.user?.id) return null;
+
+    // Uloga i status naloga u JWT-u mogu zastarjeti. Za serverske zahtjeve
+    // uvijek potvrdi trenutno stanje u bazi, tako da zabrana ili uklanjanje
+    // ADMIN/OWNER uloge počinju važiti odmah, a ne tek nakon isteka cookieja.
+    const { default: prisma } = await import('@/lib/prisma');
+    const currentUser = await prisma.user.findUnique({
+      where: { id: parsed.user.id },
+      select: { id: true, email: true, role: true, name: true, restricted: true },
+    });
+
+    if (!currentUser || currentUser.restricted) return null;
+
+    return {
+      ...parsed,
+      user: {
+        id: currentUser.id,
+        email: currentUser.email,
+        role: currentUser.role,
+        name: currentUser.name || '',
+      },
+    };
   } catch (error) {
     // Tokom statičke faze build-a nema kolačića (nema korisnika) —
     // Next.js javlja "Dynamic server usage" i to je potpuno očekivano.

@@ -122,8 +122,10 @@ export async function PUT(
         await tx.venueTag.deleteMany({ where: { venueId: existingVenue.id } });
       }
 
-      // Convert empty ownerId string to null
-      const ownerId = body.ownerId === "" ? null : (body.ownerId || existingVenue.ownerId);
+      // Prenos/uklanjanje vlasništva je administrativna operacija.
+      const ownerId = session.user.role === 'ADMIN'
+        ? (body.ownerId === '' ? null : (body.ownerId || existingVenue.ownerId))
+        : existingVenue.ownerId;
 
       return await tx.venue.update({
         where: { slug },
@@ -157,7 +159,7 @@ export async function PUT(
       });
     });
 
-    if (body.ownerId) {
+    if (session.user.role === 'ADMIN' && body.ownerId) {
       await prisma.user.update({
         where: { id: body.ownerId },
         data: { role: 'OWNER' }

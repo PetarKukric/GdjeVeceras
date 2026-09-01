@@ -19,6 +19,7 @@ import {
   Share2,
   Users,
   Music,
+  Mic2,
   Disc,
   Disc3,
   Guitar,
@@ -284,6 +285,13 @@ export default function EventPage() {
                         {event.title} <br className="hidden sm:block" />
                         <span className="text-primary/90">@ {event.venue.name}</span>
                       </h1>
+                      {event.performers && (
+                        <div className="mb-4 flex max-w-full items-center gap-2 text-sm font-black uppercase tracking-wider text-white sm:text-base">
+                          <Mic2 size={18} className="shrink-0 text-primary" />
+                          <span className="text-muted">Izvođač:</span>
+                          <span className="truncate text-white">{event.performers}</span>
+                        </div>
+                      )}
                       <div className="flex flex-wrap gap-3">
                          <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <Disc size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Tech House' : 'Pop / Rock'}

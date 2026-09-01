@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { saveUpload } from '@/lib/uploads';
+import { detectMedia, mediaMatchesDeclaredType } from '@/lib/media-validation';
 import crypto from 'crypto';
 
 /**
@@ -27,8 +28,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Nema fajla za upload.' }, { status: 400 });
     }
 
-    // Validacija tipa
-    if (!file.type.startsWith('image/')) {
+    const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+    if (!allowedMimeTypes.has(file.type)) {
       return NextResponse.json({ error: 'Dozvoljene su samo slike (JPG, PNG, GIF, WebP).' }, { status: 400 });
     }
 
@@ -46,9 +47,14 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const ext = (name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/g, '');
-    const filename = `${crypto.randomUUID()}.${ext}`;
-    const url = await saveUpload(`covers/${filename}`, buffer, file.type);
+    // Browserov MIME i ekstenzija se mogu lažirati; potvrdi magic bytes.
+    const detected = detectMedia(buffer);
+    if (!detected || detected.kind !== 'IMAGE' || !mediaMatchesDeclaredType(detected, file.type)) {
+      return NextResponse.json({ error: 'Sadržaj fajla ne odgovara dozvoljenom formatu slike.' }, { status: 400 });
+    }
+
+    const filename = `${crypto.randomUUID()}.${detected.ext}`;
+    const url = await saveUpload(`covers/${filename}`, buffer, detected.mime);
 
     return NextResponse.json({ url }, { status: 201 });
   } catch (error) {

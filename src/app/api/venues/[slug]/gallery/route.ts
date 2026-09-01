@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { saveUpload, deleteUpload } from '@/lib/uploads';
+import { detectMedia, mediaMatchesDeclaredType } from '@/lib/media-validation';
 import crypto from 'crypto';
 
 export async function POST(
@@ -36,11 +37,14 @@ export async function POST(
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Validation
+    const allowedMimeTypes = new Set([
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/quicktime', 'video/webm',
+    ]);
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
 
-    if (!isImage && !isVideo) {
+    if ((!isImage && !isVideo) || !allowedMimeTypes.has(file.type)) {
       return NextResponse.json({ error: 'Dozvoljeni formati su slike i video snimci.' }, { status: 400 });
     }
 
@@ -54,19 +58,24 @@ export async function POST(
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const detected = detectMedia(buffer);
 
-    const filename = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    if (!detected || !mediaMatchesDeclaredType(detected, file.type)) {
+      return NextResponse.json({ error: 'Sadržaj fajla ne odgovara dozvoljenom formatu.' }, { status: 400 });
+    }
+
+    const filename = `${crypto.randomUUID()}.${detected.ext}`;
     const imageUrl = await saveUpload(
       `venues/${venueId}/${filename}`,
       buffer,
-      file.type
+      detected.mime
     );
 
     const venueImage = await prisma.venueImage.create({
       data: {
         venueId,
         imageUrl,
-        type: isVideo ? 'VIDEO' : 'IMAGE',
+        type: detected.kind,
         displayOrder: 0,
       },
     });

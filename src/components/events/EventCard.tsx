@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Heart, Flame, Sparkles, Music2 } from 'lucide-react';
+import { MapPin, Heart, Flame, Sparkles, Music2, Mic2 } from 'lucide-react';
 import { Event } from '@/types';
 import Link from 'next/link';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
@@ -166,6 +166,12 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
             </h3>
 
             <div className="space-y-1.5">
+              {event.performers && (
+                <div className="flex min-w-0 items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-white">
+                  <Mic2 size={12} className="shrink-0 text-primary" />
+                  <span className="truncate">{event.performers}</span>
+                </div>
+              )}
               <div className="flex min-w-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted">
                 <MapPin size={12} className="shrink-0 text-primary" />
                 <span className="truncate">{event.venue?.name || 'Nepoznata lokacija'}</span>
