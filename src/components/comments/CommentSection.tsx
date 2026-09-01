@@ -11,6 +11,7 @@ import {
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import Link from 'next/link';
 import { useToast } from '@/components/ui/Toast';
+import { formatSerbianDate } from '@/lib/date-format';
 
 interface User {
   id: string;
@@ -241,7 +242,7 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
                         </div>
                         <p className="text-[10px] text-muted font-bold uppercase tracking-widest mt-1">
                           <ClientOnly fallback={<span>...</span>}>
-                            {new Date(comment.createdAt).toLocaleDateString('bs', { day: 'numeric', month: 'short', year: 'numeric' })} u {new Date(comment.createdAt).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
+                            {formatSerbianDate(comment.createdAt)} u {new Date(comment.createdAt).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
                           </ClientOnly>
                         </p>
                       </div>

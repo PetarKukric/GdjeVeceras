@@ -11,6 +11,7 @@ import {
   RefreshCcw
 } from 'lucide-react';
 import Link from 'next/link';
+import { formatSerbianDate } from '@/lib/date-format';
 
 interface Report {
   id: string;
@@ -103,7 +104,7 @@ export default function AdminReports() {
                     <span className="text-sm font-black uppercase tracking-wider text-text">
                       {getReasonLabel(report.reason)}
                     </span>
-                    <span className="text-xs text-muted font-bold">• {new Date(report.createdAt).toLocaleDateString('bs')}</span>
+                    <span className="text-xs text-muted font-bold">• {formatSerbianDate(report.createdAt)}</span>
                   </div>
                   <p className="text-sm text-text leading-relaxed italic border-l-2 border-primary pl-4 py-1 bg-surface/50 rounded-r-lg">
                     &quot;{report.description}&quot;

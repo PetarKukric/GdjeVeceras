@@ -7,6 +7,7 @@ import { Search, MessageSquare, ArrowLeft, ArrowRight, Send, ShieldAlert, Ban, L
 import Link from 'next/link';
 import {} from '@/components/ui/Toast';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { formatSerbianDate } from '@/lib/date-format';
 
 // --- Types ---
 interface User {
@@ -450,7 +451,7 @@ export default function ChatPage() {
                                   <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1">{m.sharedEvent.title}</h4>
                                   <p className="text-[10px] font-bold opacity-60 uppercase mt-1">{m.sharedEvent.venue?.name}</p>
                                   <p className="text-[10px] font-black text-white bg-white/10 w-fit px-2 py-1 rounded-md mt-2">
-                                     {new Date(m.sharedEvent.startDateTime).toLocaleDateString('bs', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase()} • {new Date(m.sharedEvent.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
+                                     {formatSerbianDate(m.sharedEvent.startDateTime)} • {new Date(m.sharedEvent.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}
                                   </p>
                                </div>
                                <Link href={`/events/${m.sharedEvent.slug}`} className="block w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-center text-[10px] font-black uppercase tracking-widest transition-all">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { cache } from 'react';
+import { formatSerbianDate } from '@/lib/date-format';
 
 /**
  * Jedinstveni naslov + opis + Event JSON-LD za svaki događaj.
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   const desc =
     (event.description || '').slice(0, 155) ||
-    `${event.title} u ${event.venue?.name || 'lokalu'}, ${event.venue?.city || ''} — ${new Date(event.startDateTime).toLocaleDateString('bs')} Datum, cijena i rezervacije na Gdje Večeras.`;
+    `${event.title} u ${event.venue?.name || 'lokalu'}, ${event.venue?.city || ''} — ${formatSerbianDate(event.startDateTime)} Datum, cijena i rezervacije na Gdje Večeras.`;
 
   return {
     title: `${event.title} — ${event.venue?.name || ''}`,

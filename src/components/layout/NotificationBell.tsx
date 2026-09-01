@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, MessageSquare, Clock, Zap, Camera} from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/components/ui/Toast';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export function NotificationBell({ user }: { user: any }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -123,7 +124,7 @@ export function NotificationBell({ user }: { user: any }) {
                       </p>
                       <div className="flex items-center gap-2 mt-1 text-muted text-[10px] font-bold uppercase tracking-widest">
                         <Clock size={10} />
-                        {new Date(n.createdAt).toLocaleDateString('bs')}
+                        {formatSerbianDate(n.createdAt)}
                       </div>
                     </div>
                     {!n.isRead && (

@@ -5,6 +5,7 @@ import { AdminHeader } from '@/components/admin/AdminLayout';
 import { FloorPlanEditor } from '@/components/admin/FloorPlanEditor';
 import { MapPin, Calendar, ChevronRight } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export default function AdminFloorPlan() {
   const [venues, setVenues] = useState<any[]>([]);
@@ -122,7 +123,7 @@ export default function AdminFloorPlan() {
                                  >
                                     <p className="text-[10px] font-black text-white uppercase truncate">{e.title}</p>
                                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">
-                                       {new Date(e.startDateTime).toLocaleDateString('bs', {day:'2-digit', month:'short'})}
+                                       {formatSerbianDate(e.startDateTime)}
                                     </p>
                                  </button>
                               ))}

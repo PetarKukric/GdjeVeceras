@@ -13,6 +13,7 @@ import {
   ImageIcon} from 'lucide-react';
 import { Event, Status } from '@/types';
 import Link from 'next/link';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export default function AdminEvents() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -174,7 +175,7 @@ export default function AdminEvents() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm">
-                          <p>{new Date(event.startDateTime).toLocaleDateString('bs')}</p>
+                          <p>{formatSerbianDate(event.startDateTime)}</p>
                           <p className="text-xs text-muted">{new Date(event.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                       </td>

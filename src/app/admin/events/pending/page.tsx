@@ -14,6 +14,7 @@ import {
   ImageIcon
 } from 'lucide-react';
 import { Event} from '@/types';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export default function PendingEvents() {
   const [events, setEvents] = useState<(Event & { createdBy: { name: string, email: string } })[]>([]);
@@ -96,7 +97,7 @@ export default function PendingEvents() {
                     <div>
                       <h3 className="text-2xl font-black text-text leading-tight mb-2">{event.title}</h3>
                       <div className="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-widest text-muted">
-                        <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> {new Date(event.startDateTime).toLocaleDateString('bs')}</span>
+                        <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> {formatSerbianDate(event.startDateTime)}</span>
                         <span className="flex items-center gap-1.5"><Clock size={14} className="text-primary" /> {new Date(event.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</span>
                         <span className="flex items-center gap-1.5"><MapPin size={14} className="text-primary" /> {event.venue.name}</span>
                         <span className="flex items-center gap-1.5"><Tag size={14} className="text-primary" /> {event.category}</span>

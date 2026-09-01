@@ -50,6 +50,7 @@ import { ShareModal } from '@/components/share/ShareModal';
 import { LiveFeed } from '@/components/events/LiveFeed';
 import { ReservationModal } from '@/components/events/ReservationModal';
 import { useToast } from '@/components/ui/Toast';
+import { formatSerbianDate } from '@/lib/date-format';
 
 const TAG_ICONS: Record<string, any> = {
   'Parking': Car,
@@ -269,15 +270,12 @@ export default function EventPage() {
 
               {/* NASLOV - gura se na dno, uvijek ima mjesta */}
               <div className="relative z-10 mt-auto p-4 pb-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
-                   <div className="w-20 h-24 sm:w-24 sm:h-28 bg-white text-background rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-2xl">
+                   <div className="w-32 h-24 sm:h-28 bg-white text-background rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-2xl px-2">
                       <span className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">
-                         {startDate.toLocaleDateString('bs', { weekday: 'short' }).toUpperCase()}
+                         Datum
                       </span>
-                      <span className="text-3xl sm:text-4xl font-black leading-none">
-                         {startDate.getDate()}
-                      </span>
-                      <span className="text-[10px] font-black uppercase tracking-widest mt-1 opacity-60">
-                         {startDate.toLocaleDateString('bs', { month: 'short' }).toUpperCase()}
+                      <span className="text-base sm:text-lg font-black leading-none tabular-nums whitespace-nowrap">
+                         {formatSerbianDate(startDate)}
                       </span>
                    </div>
                    <div className="flex-grow min-w-0">
@@ -348,7 +346,7 @@ export default function EventPage() {
                         </div>
                         <div>
                            <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
-                           <p className="text-xs font-bold text-white uppercase">{startDate.toLocaleDateString('bs', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                           <p className="text-xs font-bold text-white uppercase">{formatSerbianDate(startDate)}</p>
                         </div>
                      </div>
                      <div className="flex items-center gap-4 group">
@@ -553,7 +551,7 @@ export default function EventPage() {
                      </div>
                      <div>
                         <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
-                        <p className="text-sm font-bold text-white uppercase">{startDate.toLocaleDateString('bs', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
+                        <p className="text-sm font-bold text-white uppercase">{formatSerbianDate(startDate)}</p>
                      </div>
                   </div>
                   <div className="flex gap-4">
@@ -693,7 +691,7 @@ export default function EventPage() {
                           <img src={e.imageUrl || '/hero-bg.jpg'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                           <div className="absolute inset-0 bg-black/20" />
                           <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[7px] font-black text-white uppercase">
-                             {new Date(e.startDateTime).toLocaleDateString('bs', { weekday: 'short' })}
+                             {formatSerbianDate(e.startDateTime)}
                           </div>
                        </div>
                        <div className="flex-grow min-w-0">
@@ -705,7 +703,7 @@ export default function EventPage() {
                           <div className="flex items-center justify-between mt-2">
                              <div className="flex items-center gap-1.5 text-[10px] font-black text-white uppercase">
                                 <span className="w-1.5 h-1.5 rounded-full bg-primary" /> 
-                                {new Date(e.startDateTime).getDate()} {new Date(e.startDateTime).toLocaleDateString('bs', { month: 'short' })}
+                                {formatSerbianDate(e.startDateTime)}
                              </div>
                              <span className="text-[10px] font-bold text-muted">{new Date(e.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>

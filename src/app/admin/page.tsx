@@ -12,6 +12,7 @@ import {
   ArrowUpRight,
   TrendingUp} from 'lucide-react';
 import Link from 'next/link';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex-grow overflow-hidden">
                     <p className="font-bold text-sm truncate">{event.title}</p>
-                    <p className="text-[10px] text-muted uppercase tracking-wider">{event.venue?.name} • {new Date(event.startDateTime).toLocaleDateString('bs')}</p>
+                    <p className="text-[10px] text-muted uppercase tracking-wider">{event.venue?.name} • {formatSerbianDate(event.startDateTime)}</p>
                   </div>
                   <div className="text-right shrink-0">
                     <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${event.status === 'PUBLISHED' ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>

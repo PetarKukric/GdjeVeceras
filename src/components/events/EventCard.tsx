@@ -6,6 +6,7 @@ import { Event } from '@/types';
 import Link from 'next/link';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
 import { useToast } from '@/components/ui/Toast';
+import { formatSerbianDate } from '@/lib/date-format';
 
 interface EventCardProps {
   event: Event;
@@ -137,7 +138,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
   };
 
   const eventUrl = `/events/${event.slug}${event.occurrenceDate ? `?date=${event.occurrenceDate}` : ''}`;
-  const dateLabel = startDate.toLocaleDateString('bs', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  const dateLabel = formatSerbianDate(startDate);
   const priceLabel = !event.price ? 'BESPLATNO' : `${event.price} ${event.currency || 'KM'}`;
 
   return (

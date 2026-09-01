@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { AdminHeader } from '@/components/admin/AdminLayout';
 import { MessageSquare, Mail, MapPin,  ArrowRight, RefreshCcw } from 'lucide-react';
 import Link from 'next/link';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export default function AdminMessages() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -69,7 +70,7 @@ export default function AdminMessages() {
                     <span className={`text-sm uppercase tracking-wider ${!m.isRead ? 'text-white font-black' : 'text-muted font-bold'}`}>
                       {m.senderName}
                     </span>
-                    <span className="text-[10px] text-muted font-bold">• {new Date(m.createdAt).toLocaleDateString('bs')}</span>
+                    <span className="text-[10px] text-muted font-bold">• {formatSerbianDate(m.createdAt)}</span>
                   </div>
                   <h4 className="text-base font-black text-white uppercase tracking-tight truncate">{m.subject}</h4>
                   <div className="flex flex-wrap gap-4 pt-1">

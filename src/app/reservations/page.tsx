@@ -6,6 +6,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { Clock, Calendar, CheckCircle2, XCircle, AlertCircle,  ArrowRight, Users } from 'lucide-react';
 import Link from 'next/link';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { formatSerbianDate } from '@/lib/date-format';
 
 export default function UserReservations() {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -96,7 +97,7 @@ export default function UserReservations() {
                               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-2">
                                  <div className="flex items-center gap-2 text-muted">
                                     <Calendar size={14} className="text-primary" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">{new Date(res.startTime).toLocaleDateString('bs', {day:'numeric', month:'long'})}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{formatSerbianDate(res.startTime)}</span>
                                  </div>
                                  <div className="flex items-center gap-2 text-muted">
                                     <Clock size={14} className="text-primary" />

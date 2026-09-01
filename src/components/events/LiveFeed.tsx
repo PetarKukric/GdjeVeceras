@@ -10,6 +10,7 @@ import {
   Send,
   Trash2
 } from 'lucide-react';
+import { formatSerbianDate } from '@/lib/date-format';
 
 interface LiveMedia {
   id: string;
@@ -133,7 +134,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
     if (diffMin < 60) return `Prije ${diffMin} min`;
     const diffHours = Math.floor(diffMin / 60);
     if (diffHours < 24) return `Prije ${diffHours} h`;
-    return date.toLocaleDateString('bs');
+    return formatSerbianDate(date);
   };
 
   if (loading && media.length === 0) {
