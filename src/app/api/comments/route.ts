@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,6 +58,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Morate biti prijavljeni da biste ostavili komentar.' }, { status: 401 });
     }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
 
     const body = await request.json();
     const { content, eventId, venueId } = body;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 import { saveUpload } from '@/lib/uploads';
 import { detectMedia, mediaMatchesDeclaredType } from '@/lib/media-validation';
 import crypto from 'crypto';
@@ -15,6 +16,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
 
     // Admin ili vlasnik lokala
     if (session.user.role !== 'ADMIN' && session.user.role !== 'OWNER') {

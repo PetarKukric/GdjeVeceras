@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 
 export async function GET(
   request: NextRequest,
@@ -13,6 +14,8 @@ export async function GET(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
 
     // Security check: is the user a participant?
     const participant = await prisma.conversationParticipant.findFirst({

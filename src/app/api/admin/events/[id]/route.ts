@@ -60,6 +60,10 @@ export async function PUT(
         const event = await prisma.event.findUnique({ where: { id } });
         const venue = await prisma.venue.findFirst({ where: { id: event?.venueId, ownerId: session.user.id } });
         if (!venue) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const targetVenue = await prisma.venue.findFirst({ where: { id: body.venueId, ownerId: session.user.id } });
+        if (!targetVenue) {
+          return NextResponse.json({ error: 'Događaj možete premjestiti samo u lokal koji pripada vama.' }, { status: 403 });
+        }
     }
 
     // ===== UREDI SAMO JEDAN TERMIN ponavljajućeg događaja =====
@@ -125,6 +129,7 @@ export async function PUT(
         startDateTime: new Date(body.startDateTime),
         endDateTime: body.endDateTime ? new Date(body.endDateTime) : undefined,
         price: body.price,
+        currency: body.currency === 'EUR' ? 'EUR' : 'KM',
         imageUrl: body.imageUrl,
         performers: body.performers,
         minimumAge: body.minimumAge ? parseInt(body.minimumAge) : null,
@@ -134,7 +139,7 @@ export async function PUT(
         dressCodeType: body.dressCodeType || 'NONE',
         dressCodeName: body.dressCodeName || null,
         dressCodeDescription: body.dressCodeDescription || null,
-        status: body.status,
+        status: session.user.role === 'ADMIN' ? body.status : existingEvent.status,
       },
     });
 

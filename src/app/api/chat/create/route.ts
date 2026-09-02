@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,6 +9,8 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
 
     const { targetUserId } = await request.json();
 

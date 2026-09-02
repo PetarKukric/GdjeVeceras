@@ -5,6 +5,7 @@ import { getCityBySlug, getCityByName } from '@/lib/cities';
 import { getSarajevoNow, sarajevoStartOfDay } from '@/lib/bosnia-time';
 import { expandRecurringEvents, toExceptionMap, validateRecurrenceInput } from '@/lib/recurrence';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 
 // Ograničenje ekspanzije ponavljajućih događaja za otvorenije opsege (upcoming/all)
 const EXPANSION_WINDOW_MS = 60 * 24 * 60 * 60 * 1000; // 60 dana
@@ -254,6 +255,11 @@ export async function POST(_request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Morate biti prijavljeni' }, { status: 401 });
     }
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'OWNER') {
+      return NextResponse.json({ error: 'Nemate dozvolu za dodavanje događaja.' }, { status: 403 });
+    }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
 
     const body = await _request.json();
     

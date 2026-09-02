@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 
 export async function GET(_request: NextRequest) {
@@ -45,6 +46,8 @@ export async function POST(_request: NextRequest) {
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'OWNER')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
 
     const body = await _request.json();
     

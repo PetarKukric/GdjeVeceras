@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import {} from '@/lib/auth';
-import {} from 'next/headers';
+import { login } from '@/lib/auth';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 import { hasValidMxRecord } from '@/lib/server-validation';
 import { sendVerificationEmail } from '@/lib/email';
@@ -65,7 +64,7 @@ export async function POST(request: NextRequest) {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email: normalizedEmail,
         passwordHash,
@@ -76,12 +75,23 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send verification email
-    await sendVerificationEmail(normalizedEmail, verificationToken);
+    let verificationEmailSent = true;
+    try {
+      await sendVerificationEmail(normalizedEmail, verificationToken);
+    } catch (emailError) {
+      verificationEmailSent = false;
+      console.error('Verification email could not be sent:', emailError);
+    }
+
+    await login({ id: user.id, email: user.email, role: user.role, name: user.name || '' });
 
     return NextResponse.json({ 
-      message: 'Poslali smo verifikacioni email na tvoju adresu.',
-      requiresVerification: true
+      message: verificationEmailSent
+        ? 'Nalog je napravljen. Potvrdi email da otključaš sve opcije.'
+        : 'Nalog je napravljen. Verifikacioni email trenutno nije poslan; pokušaj ponovo iz obavijesti na sajtu.',
+      user: { id: user.id, email: user.email, role: user.role, name: user.name, emailVerified: false },
+      requiresVerification: true,
+      verificationEmailSent,
     }, { status: 201 });
   } catch (error) {
     console.error('Signup error:', error);

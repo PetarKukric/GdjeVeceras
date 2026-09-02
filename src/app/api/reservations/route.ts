@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { requireVerifiedEmail } from '@/lib/verification';
 import { resolveOccurrence, toExceptionMap } from '@/lib/recurrence';
 import { isValidBosnianPhone } from '@/lib/validation';
 
@@ -82,6 +83,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Prijavi se da bi napravio rezervaciju.' }, { status: 401 });
+    }
+    const verificationError = await requireVerifiedEmail(session.user.id);
+    if (verificationError) return verificationError;
     const body = await request.json();
     
     // Check if event exists

@@ -1,18 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { BottomNav } from '@/components/layout/BottomNav';
-import { Lock, Mail, User, Loader2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, Mail, User, Loader2, AlertCircle } from 'lucide-react';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 
 export default function Signup() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -57,7 +54,8 @@ export default function Signup() {
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess(true);
+        window.location.href = '/';
+        return;
       } else {
         if (data.error === 'Email je već registrovan.') {
           setEmailError(data.error);
@@ -74,28 +72,6 @@ export default function Signup() {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-background text-text flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-card border border-border rounded-3xl p-12 text-center shadow-2xl animate-fade-up">
-          <div className="w-20 h-20 bg-primary/20 rounded-3xl flex items-center justify-center mx-auto mb-8 text-primary shadow-xl">
-            <Mail size={40} />
-          </div>
-          <h1 className="text-3xl font-black uppercase tracking-tight mb-4 text-white">Provjerite email</h1>
-          <p className="text-muted font-medium mb-10 leading-relaxed">
-            Poslali smo verifikacioni link na <span className="text-white font-bold">{formData.email}</span>. Molimo potvrdite adresu da biste aktivirali nalog.
-          </p>
-          <button 
-            onClick={() => router.push('/login')}
-            className="w-full h-14 bg-surface border border-border text-white font-black rounded-2xl hover:bg-card transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
-          >
-            NASTAVI NA PRIJAVU <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-text flex flex-col text-left">

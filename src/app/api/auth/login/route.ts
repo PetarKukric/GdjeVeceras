@@ -9,7 +9,7 @@ import { verifyPassword } from '@/lib/password';
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
-async function createSession(user: { id: string; email: string; role: string; name: string | null }) {
+async function createSession(user: { id: string; email: string; role: string; name: string | null; emailVerified?: Date | null }) {
   const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const session = await encrypt({
     user: { id: user.id, email: user.email, role: user.role, name: user.name || '' },
@@ -23,7 +23,7 @@ async function createSession(user: { id: string; email: string; role: string; na
     sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
     path: '/',
   });
-  return { id: user.id, email: user.email, role: user.role, name: user.name || '' };
+  return { id: user.id, email: user.email, role: user.role, name: user.name || '', emailVerified: !!user.emailVerified };
 }
 
 export async function POST(request: NextRequest) {
@@ -57,14 +57,6 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Pogrešan email ili lozinka.' }, { status: 401 });
-    }
-
-    if (!user.emailVerified) {
-      return NextResponse.json({
-        error: 'Prvo potvrdi svoj email.',
-        requiresVerification: true,
-        email: user.email
-      }, { status: 403 });
     }
 
     // Rate limit: zaključan nalog?

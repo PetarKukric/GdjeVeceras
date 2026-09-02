@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Search, Heart, MessageSquare, Clock, Settings, LayoutDashboard } from 'lucide-react';
+import { Search, Heart, MessageSquare, Clock, Settings, LayoutDashboard, Mail, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ClientOnly } from '@/components/ui/ClientOnly';
@@ -10,6 +10,8 @@ import { NotificationBell } from './NotificationBell';
 export function Header({ initialUser = null }: { initialUser?: any }) {
   const [user, setUser] = useState(initialUser);
   const [chatUnread, setChatUnread] = useState(0);
+  const [resending, setResending] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
   const pathname = usePathname();
 
   useEffect(() => {
@@ -40,6 +42,25 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
     }
   }, [user]);
 
+  const resendVerification = async () => {
+    if (!user?.email || resending) return;
+    setResending(true);
+    setVerificationMessage('');
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      });
+      const data = await res.json();
+      setVerificationMessage(data.message || data.error || 'Pokušaj ponovo kasnije.');
+    } catch {
+      setVerificationMessage('Slanje trenutno nije uspjelo.');
+    } finally {
+      setResending(false);
+    }
+  };
+
   const navLinks = [
     { name: 'Početna', href: '/' },
     { name: 'Događaji', href: '/events' },
@@ -52,6 +73,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
   if (!pathname || pathname.startsWith('/admin')) return null;
 
   return (
+    <>
     <header className="sticky top-0 z-[500] bg-background/60 backdrop-blur-2xl border-b border-white/5 h-16 md:h-20 shadow-2xl">
       <div className="max-w-7xl mx-auto px-4 h-full">
         <div className="flex justify-between items-center h-full">
@@ -157,5 +179,18 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
         </div>
       </div>
     </header>
+    {user && user.emailVerified === false && (
+      <div className="relative z-[490] border-b border-amber-400/20 bg-amber-400/10 px-4 py-2.5 text-center text-xs text-amber-100">
+        <span className="inline-flex flex-wrap items-center justify-center gap-2">
+          <Mail size={14} />
+          Potvrdi email da bi mogao rezervisati, komentarisati i koristiti chat.
+          <button onClick={resendVerification} disabled={resending} className="font-black text-white underline underline-offset-4 disabled:opacity-50">
+            {resending ? <Loader2 size={13} className="animate-spin" /> : 'Pošalji ponovo'}
+          </button>
+          {verificationMessage && <span className="text-amber-200">{verificationMessage}</span>}
+        </span>
+      </div>
+    )}
+    </>
   );
 }
