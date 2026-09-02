@@ -7,6 +7,7 @@ import { Music, Disc3, Martini, Building2, Sparkles } from 'lucide-react';
 const CATEGORIES = [
   { name: 'Klubovi', icon: Building2, href: '/venues' },
   { name: 'Muzika uživo', icon: Music, href: '/events?category=LIVE_MUSIC' },
+  { name: 'Koncerti', icon: Music, href: '/events?category=CONCERT' },
   { name: 'Žurke', icon: Disc3, href: '/events?category=PARTY' },
   { name: 'Kafići / Barovi', icon: Martini, href: '/venues' },
   { name: 'Ostalo', icon: Sparkles, href: '/events' },
@@ -15,7 +16,7 @@ const CATEGORIES = [
 /** KATEGORIJE kartice po referenci: tamne, suptilan border, pink ikona, hover pink border. */
 export function CategoryCards() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
       {CATEGORIES.map((cat) => (
         <Link
           key={cat.name}

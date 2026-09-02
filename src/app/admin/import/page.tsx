@@ -57,7 +57,8 @@ Subota: 07-01
 Nedjelja: 08-00`;
 
 const EXAMPLE_LINE = `LOKAL;Club Cristal;Dositejeva bb;Gradiška;Najpopularniji klub u regiji
-DOGAĐAJ;Techno Invasion;Club Cristal;Gradiška;2026-09-05;22:00;PARTY;10`;
+DOGAĐAJ;Techno Invasion;Club Cristal;Gradiška;2026-09-05;22:00;PARTY;10
+DOGAĐAJ;Ljetni koncert;Arena;Banja Luka;2026-09-12;20:00;CONCERT;25`;
 
 // ============================== POMOĆNE ==============================
 const NOT_SET = /nije navedeno/i;
@@ -719,6 +720,7 @@ export default function ImportPage() {
                     <select className={inputCls} value={edit.category || 'PARTY'} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>
                       <option value="PARTY">Žurka</option>
                       <option value="LIVE_MUSIC">Muzika uživo</option>
+                      <option value="CONCERT">Koncert</option>
                     </select>
                   </div>
                 </div>

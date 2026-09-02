@@ -197,7 +197,7 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
             {priceLabel}
           </span>
           <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-primary">
-            <Music2 size={11} /> {event.category === 'PARTY' ? 'Žurka' : 'Muzika uživo'}
+            <Music2 size={11} /> {event.category === 'PARTY' ? 'Žurka' : event.category === 'CONCERT' ? 'Koncert' : 'Muzika uživo'}
           </span>
           {isPopular && showPopularBadge && (
             <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-accent">

@@ -22,6 +22,7 @@ const TYPE_OPTIONS = [
   { value: '', label: 'Svi događaji' },
   { value: 'PARTY', label: 'Žurke' },
   { value: 'LIVE_MUSIC', label: 'Muzika uživo' },
+  { value: 'CONCERT', label: 'Koncerti' },
 ];
 
 /**

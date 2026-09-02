@@ -208,7 +208,11 @@ export async function POST(request: NextRequest) {
       const venueId = selectedVenue.id;
 
       const catRaw = String(data.category || '').toLowerCase();
-      const category = catRaw.includes('live') || catRaw.includes('muz') ? 'LIVE_MUSIC' : 'PARTY';
+      const category = catRaw.includes('concert') || catRaw.includes('koncert')
+        ? 'CONCERT'
+        : catRaw.includes('live') || catRaw.includes('muz')
+          ? 'LIVE_MUSIC'
+          : 'PARTY';
 
       const priceRaw = data.price === '' || data.price === undefined || data.price === null ? null : parseFloat(String(data.price));
       const price = priceRaw !== null && !isNaN(priceRaw) && priceRaw >= 0 ? priceRaw : null;

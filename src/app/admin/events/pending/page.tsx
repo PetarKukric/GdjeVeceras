@@ -100,7 +100,7 @@ export default function PendingEvents() {
                         <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> {formatSerbianDate(event.startDateTime)}</span>
                         <span className="flex items-center gap-1.5"><Clock size={14} className="text-primary" /> {new Date(event.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })}</span>
                         <span className="flex items-center gap-1.5"><MapPin size={14} className="text-primary" /> {event.venue.name}</span>
-                        <span className="flex items-center gap-1.5"><Tag size={14} className="text-primary" /> {event.category}</span>
+                        <span className="flex items-center gap-1.5"><Tag size={14} className="text-primary" /> {event.category === 'PARTY' ? 'Žurka' : event.category === 'CONCERT' ? 'Koncert' : 'Muzika uživo'}</span>
                       </div>
                     </div>
                     <div className="text-right">

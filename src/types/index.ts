@@ -1,4 +1,4 @@
-export type Category = 'LIVE_MUSIC' | 'PARTY';
+export type Category = 'LIVE_MUSIC' | 'PARTY' | 'CONCERT';
 export type Status = 'PENDING' | 'PUBLISHED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
 export type DressCodeType = 'CASUAL' | 'ELEGANT' | 'SPECIAL' | 'NONE';
 

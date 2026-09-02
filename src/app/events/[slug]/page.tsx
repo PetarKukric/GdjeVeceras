@@ -73,6 +73,9 @@ const TAG_ICONS: Record<string, any> = {
   'Kokteli': Beer,
 };
 
+const categoryLabel = (category: string) =>
+  category === 'PARTY' ? 'Žurka' : category === 'CONCERT' ? 'Koncert' : 'Muzika uživo';
+
 export default function EventPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -238,7 +241,7 @@ export default function EventPage() {
                            {event.category === 'PARTY' ? <Disc3 size={44} /> : <Guitar size={44} />}
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted">
-                           {event.category === 'PARTY' ? 'Žurka' : 'Muzika uživo'}
+                           {categoryLabel(event.category)}
                         </span>
                      </div>
                   </div>
@@ -292,10 +295,10 @@ export default function EventPage() {
                       )}
                       <div className="flex flex-wrap gap-3">
                          <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <Disc size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Tech House' : 'Pop / Rock'}
+                            <Disc size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Tech House' : event.category === 'CONCERT' ? 'Koncert' : 'Pop / Rock'}
                          </div>
                          <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <Music size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Party' : 'Svirka'}
+                            <Music size={12} className="text-primary" /> {categoryLabel(event.category)}
                          </div>
                          <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
                             <Users size={12} className="text-primary" /> Noćni život
@@ -367,7 +370,7 @@ export default function EventPage() {
                         </div>
                         <div>
                            <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Kategorija</p>
-                           <p className="text-xs font-bold text-white uppercase">{event.category}, Party</p>
+                           <p className="text-xs font-bold text-white uppercase">{categoryLabel(event.category)}</p>
                         </div>
                      </div>
                      <div className="flex items-center gap-4 group">

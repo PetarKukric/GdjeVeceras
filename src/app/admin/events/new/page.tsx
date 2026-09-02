@@ -190,6 +190,7 @@ export default function NewEvent() {
                           >
                              <option value="PARTY">Žurka</option>
                              <option value="LIVE_MUSIC">Muzika uživo</option>
+                             <option value="CONCERT">Koncert</option>
                           </select>
                        </div>
                        <div>

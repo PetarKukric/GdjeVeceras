@@ -54,6 +54,9 @@ export async function PUT(
     if (body.dressCodeType === 'SPECIAL' && !body.dressCodeName) {
       return NextResponse.json({ error: 'Naziv dress code-a je obavezan za specijalni tip.' }, { status: 400 });
     }
+    if (!body.editOccurrenceOnly && !['PARTY', 'LIVE_MUSIC', 'CONCERT'].includes(body.category)) {
+      return NextResponse.json({ error: 'Nepoznata kategorija događaja.' }, { status: 400 });
+    }
 
     // If owner, verify they own the venue
     if (session.user.role === 'OWNER') {

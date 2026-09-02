@@ -181,7 +181,7 @@ export default function AdminEvents() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-surface border border-border">
-                          {event.category === 'PARTY' ? 'Žurka' : 'Svirka'}
+                          {event.category === 'PARTY' ? 'Žurka' : event.category === 'CONCERT' ? 'Koncert' : 'Svirka'}
                         </span>
                       </td>
                       <td className="px-6 py-4">

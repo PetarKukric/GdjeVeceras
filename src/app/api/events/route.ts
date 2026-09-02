@@ -267,6 +267,9 @@ export async function POST(_request: NextRequest) {
     if (!body.title || !body.venueId || !body.startDateTime || !body.category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    if (!['PARTY', 'LIVE_MUSIC', 'CONCERT'].includes(body.category)) {
+      return NextResponse.json({ error: 'Nepoznata kategorija događaja.' }, { status: 400 });
+    }
 
     // Authorization check
     if (session.user.role === 'OWNER') {

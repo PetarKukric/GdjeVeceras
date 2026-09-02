@@ -60,7 +60,7 @@ export async function getPersonalizedRecommendations(userId: string, limit: numb
     if (catScore > 0) {
       score += catScore * 10;
       if (catScore >= 2) {
-        reason = `Zato što često čuvaš ${event.category === 'PARTY' ? 'DJ događaje' : 'koncerte'}`;
+        reason = `Zato što često čuvaš ${event.category === 'PARTY' ? 'DJ događaje' : event.category === 'CONCERT' ? 'koncerte' : 'muziku uživo'}`;
       } else {
         reason = 'Slično događajima koje si sačuvao';
       }

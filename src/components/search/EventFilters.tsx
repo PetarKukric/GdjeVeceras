@@ -128,13 +128,13 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
                 <Tag size={12} className="text-primary" /> Kategorija
               </label>
               <div className="flex flex-col gap-2">
-                {(['ALL', 'LIVE_MUSIC', 'PARTY'] as const).map((cat) => (
+                {(['ALL', 'LIVE_MUSIC', 'CONCERT', 'PARTY'] as const).map((cat) => (
                   <button
                     key={cat}
                     onClick={() => updateFilter('category', cat)}
                     className={`text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${filters.category === cat ? 'bg-primary/10 border-primary text-primary' : 'bg-surface border-border text-muted hover:border-border/80 hover:text-text'}`}
                   >
-                    {cat === 'ALL' ? 'SVE' : cat === 'LIVE_MUSIC' ? 'MUZIKA UŽIVO' : 'ŽURKA'}
+                    {cat === 'ALL' ? 'SVE' : cat === 'LIVE_MUSIC' ? 'MUZIKA UŽIVO' : cat === 'CONCERT' ? 'KONCERT' : 'ŽURKA'}
                   </button>
                 ))}
               </div>

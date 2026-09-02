@@ -264,6 +264,7 @@ enum Role {
 enum Category {
   LIVE_MUSIC
   PARTY
+  CONCERT
 }
 
 enum Status {

@@ -127,7 +127,7 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
                         <div className="h-16 w-full rounded-xl mb-3 bg-gradient-to-r from-primary/15 via-surface to-background border border-white/5 flex items-center justify-center gap-2">
                            <Disc3 size={18} className="text-primary" />
                            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-muted">
-                              {event.category === 'PARTY' ? 'Žurka' : 'Muzika uživo'}
+                              {event.category === 'PARTY' ? 'Žurka' : event.category === 'CONCERT' ? 'Koncert' : 'Muzika uživo'}
                            </span>
                         </div>
                       )}
