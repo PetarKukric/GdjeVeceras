@@ -18,6 +18,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { toISOFromLocalInput, toLocalDatetimeValue } from '@/lib/bosnia-time';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 export default function EditEvent() {
   const router = useRouter();
@@ -93,6 +94,7 @@ export default function EditEvent() {
     startDateTime: '',
     endDateTime: '',
     price: 0,
+    currency: 'KM',
     imageUrl: '',
     performers: '',
     minimumAge: '',
@@ -160,6 +162,7 @@ export default function EditEvent() {
             startDateTime: event.startDateTime ? toLocalDatetimeValue(new Date(event.startDateTime)) : '',
             endDateTime: event.endDateTime ? toLocalDatetimeValue(new Date(event.endDateTime)) : '',
             price: event.price || 0,
+            currency: event.currency || 'KM',
             imageUrl: event.imageUrl || '',
             performers: event.performers || '',
             minimumAge: event.minimumAge?.toString() || '',
@@ -409,6 +412,36 @@ export default function EditEvent() {
               </div>
 
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
+                <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
+                  <Tag size={18} /> Izvođač i ulaz
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Izvođač / DJ</label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                      placeholder="Npr. DJ Marko, Top orkestar"
+                      value={formData.performers}
+                      onChange={(e) => setFormData({ ...formData, performers: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Minimalna dob</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                      placeholder="Npr. 18"
+                      value={formData.minimumAge}
+                      onChange={(e) => setFormData({ ...formData, minimumAge: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
                  <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
                     <Calendar size={18} /> Vrijeme i cijena
                  </h3>
@@ -433,13 +466,24 @@ export default function EditEvent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Cijena (KM)</label>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Cijena</label>
                       <input 
                         type="number" 
                         className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
                       />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Valuta</label>
+                      <select
+                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
+                        value={formData.currency}
+                        onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      >
+                        <option value="KM">KM</option>
+                        <option value="EUR">EUR</option>
+                      </select>
                     </div>
                  </div>
               </div>
@@ -599,9 +643,15 @@ export default function EditEvent() {
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Status i linkovi
+                    <ImageIcon size={18} /> Slika, status i linkovi
                  </h3>
                  <div className="space-y-4 pt-4">
+                    <ImageUploader
+                      label="Naslovna slika događaja"
+                      value={formData.imageUrl}
+                      onChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                      aspect="video"
+                    />
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Status</label>
                       <select 
@@ -613,6 +663,18 @@ export default function EditEvent() {
                          <option value="PENDING">Na čekanju</option>
                          <option value="CANCELLED">Otkazano</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Link za ulaznice</label>
+                      <input type="url" value={formData.ticketUrl} onChange={(e) => setFormData({ ...formData, ticketUrl: e.target.value })} placeholder="https://..." className="w-full px-4 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Instagram link</label>
+                      <input type="url" value={formData.instagramUrl} onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })} placeholder="https://instagram.com/..." className="w-full px-4 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2 text-left">Facebook link</label>
+                      <input type="url" value={formData.facebookUrl} onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })} placeholder="https://facebook.com/..." className="w-full px-4 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm" />
                     </div>
                  </div>
               </div>
