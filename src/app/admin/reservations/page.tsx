@@ -116,13 +116,13 @@ export default function AdminReservations() {
         <div className="bg-card border border-white/5 rounded-3xl overflow-hidden">
            {/* FILTER BAR */}
            <div className="p-6 border-b border-white/5 bg-surface/50 flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
-                 <div className="relative">
+              <div className="flex items-center gap-4 flex-wrap w-full sm:w-auto">
+                 <div className="relative w-full sm:w-auto">
                     <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                     <input 
                        type="text" 
                        placeholder="Pretraži ime ili broj..." 
-                       className="pl-10 pr-6 py-2.5 bg-background border border-white/10 rounded-xl text-[10px] font-bold text-white focus:outline-none focus:border-primary transition-all w-64"
+                       className="pl-10 pr-6 py-2.5 bg-background border border-white/10 rounded-xl text-[10px] font-bold text-white focus:outline-none focus:border-primary transition-all w-full sm:w-64"
                        value={search}
                        onChange={e => setSearch(e.target.value)}
                     />
@@ -163,7 +163,7 @@ export default function AdminReservations() {
                        <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Događaj / Vrijeme</th>
                        <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Osobe</th>
                        <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Status</th>
-                       <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest text-right">Akcije</th>
+                       <th className="sticky right-0 z-10 min-w-[250px] px-4 md:px-8 py-5 bg-surface text-[10px] font-black text-muted uppercase tracking-widest text-right">Akcije</th>
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-white/5">
@@ -204,8 +204,8 @@ export default function AdminReservations() {
                                    {r.status === 'PENDING' ? 'NA ČEKANJU' : r.status === 'CONFIRMED' ? 'POTVRĐENO' : r.status === 'NO_SHOW' ? 'NEDOLAZAK' : r.status === 'CANCELLED' ? 'OTKAZANO' : r.status === 'COMPLETED' ? 'ZAVRŠENO' : r.status}
                                 </div>
                              </td>
-                             <td className="px-8 py-6 text-right">
-                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <td className="sticky right-0 z-10 min-w-[250px] px-4 md:px-8 py-6 text-right bg-card group-hover:bg-[#17171b] transition-colors">
+                                <div className="flex flex-wrap items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                    {r.status === 'PENDING' && (
                                       <button onClick={() => setAssigningRes(r)} className="px-4 py-2 bg-white/10 text-white hover:bg-primary hover:text-white rounded-xl transition-all text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-lg">
                                          Dodijeli sto

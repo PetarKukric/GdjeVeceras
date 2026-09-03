@@ -93,8 +93,12 @@ export async function POST(_request: NextRequest) {
     });
 
     if (session.user.role === 'ADMIN' && body.ownerId) {
-      await prisma.user.update({
-        where: { id: body.ownerId },
+      // Dodjela lokala ne smije administratoru ukloniti ADMIN ovlaštenja.
+      await prisma.user.updateMany({
+        where: {
+          id: body.ownerId,
+          role: { not: 'ADMIN' }
+        },
         data: { role: 'OWNER' }
       });
     }

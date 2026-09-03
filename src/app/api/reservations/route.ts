@@ -57,8 +57,11 @@ export async function GET(request: NextRequest) {
     if (eventId) where.eventId = eventId;
     if (venueId) where.venueId = venueId;
 
-    // Obični korisnici vide samo svoje rezervacije
-    if (session.user.role !== 'ADMIN') {
+    // ADMIN vidi sve, OWNER samo rezervacije svojih lokala,
+    // a obični korisnik samo rezervacije koje je lično napravio.
+    if (session.user.role === 'OWNER') {
+        where.venue = { ownerId: session.user.id };
+    } else if (session.user.role !== 'ADMIN') {
         where.userId = session.user.id;
     }
 

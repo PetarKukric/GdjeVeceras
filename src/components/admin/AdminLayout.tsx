@@ -42,7 +42,7 @@ export function AdminSidebar() {
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, roles: ['ADMIN'] },
     { name: 'Događaji', href: '/admin/events', icon: Calendar, roles: ['ADMIN', 'OWNER'] },
-    { name: 'Rezervacije', href: '/admin/reservations', icon: Clock, roles: ['ADMIN'] },
+    { name: 'Rezervacije', href: '/admin/reservations', icon: Clock, roles: ['ADMIN', 'OWNER'] },
     { name: 'Stolovi', href: '/admin/floor-plan', icon: MapPin, roles: ['ADMIN'] },
     { name: 'Poruke', href: '/admin/messages', icon: MessageSquare, roles: ['ADMIN'] },
     { name: 'Na čekanju', href: '/admin/events/pending', icon: AlertTriangle, roles: ['ADMIN'] },
