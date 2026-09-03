@@ -154,8 +154,75 @@ export default function AdminReservations() {
               </button>
            </div>
 
-           {/* TABLE */}
-           <div className="overflow-x-auto">
+           {/* MOBILE CARDS — akcije su stalno vidljive (telefon nema hover) */}
+           <div className="md:hidden divide-y divide-white/5">
+              {filtered.length === 0 ? (
+                 <div className="px-5 py-16 text-center text-muted text-xs font-bold uppercase tracking-widest italic opacity-50">
+                    Nema pronađenih rezervacija.
+                 </div>
+              ) : filtered.map(r => {
+                 const hasAssignedTable = (r.assignedItems?.length || 0) > 0 || (r.assignedGroups?.length || 0) > 0;
+                 return (
+                    <article key={r.id} className="p-4 space-y-4 bg-card">
+                       <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                             <p className="text-sm font-black text-white uppercase truncate">{r.name}</p>
+                             <p className="mt-1 text-[11px] font-bold text-muted flex items-center gap-1.5">
+                                <Phone size={12} /> {r.phone}
+                             </p>
+                          </div>
+                          <div className={`shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getStatusColor(r.status)}`}>
+                             <span className={`w-1.5 h-1.5 rounded-full ${r.status === 'PENDING' ? 'bg-yellow-500 animate-pulse' : r.status === 'CONFIRMED' ? 'bg-green-500' : 'bg-current'}`} />
+                             {r.status === 'PENDING' ? 'ČEKA' : r.status === 'CONFIRMED' ? 'POTVRĐENO' : r.status === 'NO_SHOW' ? 'NEDOLAZAK' : r.status === 'CANCELLED' ? 'OTKAZANO' : r.status === 'COMPLETED' ? 'ZAVRŠENO' : r.status}
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-[1fr_auto] gap-3 p-3 rounded-xl bg-background/60 border border-white/5">
+                          <div className="min-w-0">
+                             <p className="text-xs font-bold text-white uppercase truncate">{r.event.title}</p>
+                             <p className="mt-1 text-[10px] font-bold text-muted flex items-center gap-1">
+                                <Clock size={11} /> {new Date(r.startTime).toLocaleTimeString('bs', {hour:'2-digit', minute:'2-digit'})}
+                             </p>
+                          </div>
+                          <span className="self-center px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg text-[10px] font-black text-white">
+                             {r.numberOfPeople} OS.
+                          </span>
+                       </div>
+
+                       <div className="grid grid-cols-2 gap-2">
+                          {(r.status === 'PENDING' || (r.status === 'CONFIRMED' && hasAssignedTable)) && (
+                             <button onClick={() => setAssigningRes(r)} className="col-span-2 min-h-11 px-4 py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                {hasAssignedTable ? 'Promijeni sto' : 'Dodijeli sto'}
+                             </button>
+                          )}
+                          {r.status === 'PENDING' && (
+                             <button onClick={() => updateStatus(r.id, 'CONFIRMED')} className="min-h-11 px-3 py-3 bg-green-500/15 text-green-400 border border-green-500/25 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                Potvrdi
+                             </button>
+                          )}
+                          {r.status !== 'CANCELLED' && r.status !== 'NO_SHOW' && r.status !== 'COMPLETED' && (
+                             <button onClick={() => updateStatus(r.id, 'CANCELLED')} className="min-h-11 px-3 py-3 bg-red-500/15 text-red-400 border border-red-500/25 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                Otkaži
+                             </button>
+                          )}
+                          {(r.status === 'PENDING' || r.status === 'CONFIRMED') && (
+                             <button onClick={() => updateStatus(r.id, 'NO_SHOW')} className="min-h-11 px-3 py-3 bg-gray-500/15 text-gray-300 border border-gray-500/25 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                Nije došao
+                             </button>
+                          )}
+                          {r.status === 'CONFIRMED' && (
+                             <button onClick={() => updateStatus(r.id, 'COMPLETED')} className="min-h-11 px-3 py-3 bg-primary/15 text-primary border border-primary/25 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                Završi
+                             </button>
+                          )}
+                       </div>
+                    </article>
+                 );
+              })}
+           </div>
+
+           {/* DESKTOP TABLE */}
+           <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left">
                  <thead>
                     <tr className="bg-surface/30 border-b border-white/5">
