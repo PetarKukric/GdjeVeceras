@@ -1,4 +1,17 @@
-export type DayGroup = 'WEEKDAYS' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+export type DayGroup = 'WEEKDAYS' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+
+export const INDIVIDUAL_WEEKDAYS: DayGroup[] = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY'];
+
+export const OPENING_HOUR_LABELS: Record<DayGroup, string> = {
+  WEEKDAYS: 'Radni dani (Pon-Čet)',
+  MONDAY: 'Ponedjeljak',
+  TUESDAY: 'Utorak',
+  WEDNESDAY: 'Srijeda',
+  THURSDAY: 'Četvrtak',
+  FRIDAY: 'Petak',
+  SATURDAY: 'Subota',
+  SUNDAY: 'Nedjelja',
+};
 
 export interface OpeningHour {
   dayGroup: DayGroup;
@@ -26,8 +39,11 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
   const currentTimeVal = currentHour * 60 + currentMinute;
 
   // Map JS getDay to our Groups
+  const hasIndividualWeekdays = openingHours.some((h) => INDIVIDUAL_WEEKDAYS.includes(h.dayGroup));
   const dayToGroup = (day: number): DayGroup => {
-    if (day >= 1 && day <= 4) return 'WEEKDAYS';
+    if (day >= 1 && day <= 4) {
+      return hasIndividualWeekdays ? INDIVIDUAL_WEEKDAYS[day - 1] : 'WEEKDAYS';
+    }
     if (day === 5) return 'FRIDAY';
     if (day === 6) return 'SATURDAY';
     return 'SUNDAY';

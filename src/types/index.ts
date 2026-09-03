@@ -5,7 +5,7 @@ export type DressCodeType = 'CASUAL' | 'ELEGANT' | 'SPECIAL' | 'NONE';
 export interface OpeningHour {
   id: string;
   venueId: string;
-  dayGroup: 'WEEKDAYS' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+  dayGroup: 'WEEKDAYS' | 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
   openTime: string | null;
   closeTime: string | null;
   isClosed: boolean;

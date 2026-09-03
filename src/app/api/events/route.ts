@@ -91,9 +91,13 @@ export async function GET(_request: NextRequest) {
     } else if (dateFilter === 'weekend') {
       // Vikend: petak (sarajevsko vrijeme) do nedjelje 23:59:59
       const dayOfWeek = bosniaNow.getUTCDay(); // 0=ned..6=sub u Sarajevu
-      const daysToFriday = (5 - dayOfWeek + 7) % 7;
-      const friday = new Date(todayStart.getTime() + daysToFriday * 24 * 60 * 60 * 1000);
-      const sunday = new Date(friday.getTime() + 3 * 24 * 60 * 60 * 1000 - 1);
+      const daysToFriday = dayOfWeek === 6 ? -1 : dayOfWeek === 0 ? -2 : 5 - dayOfWeek;
+      const fridayLocal = new Date(bosniaNow);
+      fridayLocal.setUTCDate(fridayLocal.getUTCDate() + daysToFriday);
+      const mondayLocal = new Date(fridayLocal);
+      mondayLocal.setUTCDate(mondayLocal.getUTCDate() + 3);
+      const friday = sarajevoStartOfDay(fridayLocal);
+      const sunday = new Date(sarajevoStartOfDay(mondayLocal).getTime() - 1);
       where.startDateTime = { gte: friday, lte: sunday };
       rangeStart = friday; rangeEnd = sunday;
     } else if (dateFilter === 'upcoming') {

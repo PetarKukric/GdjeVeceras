@@ -54,7 +54,13 @@ export function getSarajevoNow(): Date {
 
 /** Početak dana u Sarajevu, kao apsolutni UTC trenutak. */
 export function sarajevoStartOfDay(sarajevoNow: Date): Date {
-  const offset = getSarajevoOffsetMs(new Date());
+  const targetNoon = new Date(Date.UTC(
+    sarajevoNow.getUTCFullYear(),
+    sarajevoNow.getUTCMonth(),
+    sarajevoNow.getUTCDate(),
+    12, 0, 0, 0
+  ));
+  const offset = getSarajevoOffsetMs(targetNoon);
   const sod = Date.UTC(
     sarajevoNow.getUTCFullYear(),
     sarajevoNow.getUTCMonth(),

@@ -483,9 +483,15 @@ export default function VenuePage() {
                </div>
 
                <div className="space-y-4">
-                  {['WEEKDAYS', 'FRIDAY', 'SATURDAY', 'SUNDAY'].map(group => {
+                  {(venue.openingHours?.some((h: any) => ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY'].includes(h.dayGroup))
+                    ? ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
+                    : ['WEEKDAYS', 'FRIDAY', 'SATURDAY', 'SUNDAY']).map(group => {
                     const hours = venue.openingHours?.find((h: any) => h.dayGroup === group);
-                    const label = group === 'WEEKDAYS' ? 'Radni dani (Pon-Čet)' : 
+                    const label = group === 'WEEKDAYS' ? 'Radni dani (Pon-Čet)' :
+                                 group === 'MONDAY' ? 'Ponedjeljak' :
+                                 group === 'TUESDAY' ? 'Utorak' :
+                                 group === 'WEDNESDAY' ? 'Srijeda' :
+                                 group === 'THURSDAY' ? 'Četvrtak' :
                                  group === 'FRIDAY' ? 'Petak' :
                                  group === 'SATURDAY' ? 'Subota' : 'Nedjelja';
                     return (

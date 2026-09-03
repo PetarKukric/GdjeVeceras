@@ -29,6 +29,20 @@ const PREDEFINED_TAGS = [
   'Live muzika', 'Plesni podij', 'Klima'
 ];
 
+type OpeningHourForm = { dayGroup: string; openTime: string; closeTime: string; isClosed: boolean };
+const INDIVIDUAL_WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY'];
+const HOUR_LABELS: Record<string, string> = {
+  WEEKDAYS: 'Radni dani (Pon-Čet)', MONDAY: 'Ponedjeljak', TUESDAY: 'Utorak',
+  WEDNESDAY: 'Srijeda', THURSDAY: 'Četvrtak', FRIDAY: 'Petak',
+  SATURDAY: 'Subota', SUNDAY: 'Nedjelja'
+};
+const DEFAULT_HOURS: OpeningHourForm[] = [
+  { dayGroup: 'WEEKDAYS', openTime: '08:00', closeTime: '23:00', isClosed: false },
+  { dayGroup: 'FRIDAY', openTime: '08:00', closeTime: '02:00', isClosed: false },
+  { dayGroup: 'SATURDAY', openTime: '10:00', closeTime: '03:00', isClosed: false },
+  { dayGroup: 'SUNDAY', openTime: '10:00', closeTime: '22:00', isClosed: false },
+];
+
 export default function EditVenue() {
   const router = useRouter();
   const params = useParams();
@@ -40,12 +54,8 @@ export default function EditVenue() {
   const [customTag, setCustomTag] = useState('');
   const { showToast } = useToast();
 
-  const [openingHours, setOpeningHours] = useState([
-    { dayGroup: 'WEEKDAYS', openTime: '08:00', closeTime: '23:00', isClosed: false },
-    { dayGroup: 'FRIDAY', openTime: '08:00', closeTime: '02:00', isClosed: false },
-    { dayGroup: 'SATURDAY', openTime: '10:00', closeTime: '03:00', isClosed: false },
-    { dayGroup: 'SUNDAY', openTime: '10:00', closeTime: '22:00', isClosed: false },
-  ]);
+  const [sameWeekdayHours, setSameWeekdayHours] = useState(true);
+  const [openingHours, setOpeningHours] = useState<OpeningHourForm[]>(DEFAULT_HOURS);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -104,8 +114,14 @@ export default function EditVenue() {
         });
 
         if (data.openingHours && data.openingHours.length > 0) {
-          // Map existing hours, but keep all groups
-          const mappedHours = openingHours.map(group => {
+          const hasIndividualWeekdays = data.openingHours.some((h: any) => INDIVIDUAL_WEEKDAYS.includes(h.dayGroup));
+          setSameWeekdayHours(!hasIndividualWeekdays);
+          const groups = hasIndividualWeekdays
+            ? [...INDIVIDUAL_WEEKDAYS, 'FRIDAY', 'SATURDAY', 'SUNDAY']
+            : ['WEEKDAYS', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+          const mappedHours = groups.map(dayGroup => {
+            const group = DEFAULT_HOURS.find((hour) => hour.dayGroup === dayGroup)
+              || { ...DEFAULT_HOURS[0], dayGroup };
             const existing = data.openingHours.find((h: any) => h.dayGroup === group.dayGroup);
             return existing ? {
               dayGroup: existing.dayGroup,
@@ -148,6 +164,24 @@ export default function EditVenue() {
     const newHours = [...openingHours];
     newHours[index] = { ...newHours[index], [field]: value };
     setOpeningHours(newHours);
+  };
+
+  const toggleSameWeekdayHours = (checked: boolean) => {
+    setSameWeekdayHours(checked);
+    setOpeningHours((current) => {
+      if (checked) {
+        const first = current.find((hour) => INDIVIDUAL_WEEKDAYS.includes(hour.dayGroup)) || current[0];
+        return [
+          { ...first, dayGroup: 'WEEKDAYS' },
+          ...current.filter((hour) => !INDIVIDUAL_WEEKDAYS.includes(hour.dayGroup) && hour.dayGroup !== 'WEEKDAYS'),
+        ];
+      }
+      const shared = current.find((hour) => hour.dayGroup === 'WEEKDAYS') || current[0];
+      return [
+        ...INDIVIDUAL_WEEKDAYS.map((dayGroup) => ({ ...shared, dayGroup })),
+        ...current.filter((hour) => hour.dayGroup !== 'WEEKDAYS'),
+      ];
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -263,13 +297,23 @@ export default function EditVenue() {
                     <Clock size={18} /> Radno vrijeme
                  </h3>
                  <div className="space-y-6">
+                    <label className="flex items-start gap-3 p-4 bg-surface/50 rounded-xl border border-border/50 cursor-pointer">
+                       <input
+                          type="checkbox"
+                          className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                          checked={sameWeekdayHours}
+                          onChange={(e) => toggleSameWeekdayHours(e.target.checked)}
+                       />
+                       <span>
+                          <span className="block text-xs font-black uppercase tracking-widest">Isto radno vrijeme od ponedjeljka do četvrtka</span>
+                          <span className="block mt-1 text-[11px] text-muted">Isključite ako neki radni dan ima drugačije vrijeme.</span>
+                       </span>
+                    </label>
                     {openingHours.map((group, index) => (
                        <div key={group.dayGroup} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-surface/50 rounded-xl border border-border/50">
                           <div className="min-w-[140px]">
                              <p className="text-xs font-black uppercase tracking-widest">
-                                {group.dayGroup === 'WEEKDAYS' ? 'Radni dani (Pon-Čet)' : 
-                                 group.dayGroup === 'FRIDAY' ? 'Petak' :
-                                 group.dayGroup === 'SATURDAY' ? 'Subota' : 'Nedjelja'}
+                                {HOUR_LABELS[group.dayGroup]}
                              </p>
                           </div>
                           

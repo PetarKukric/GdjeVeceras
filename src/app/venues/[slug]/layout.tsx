@@ -11,6 +11,10 @@ type Params = { params: Promise<{ slug: string }> };
 
 const DAY_MAP: Record<string, string[]> = {
   WEEKDAYS: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+  MONDAY: ['Monday'],
+  TUESDAY: ['Tuesday'],
+  WEDNESDAY: ['Wednesday'],
+  THURSDAY: ['Thursday'],
   FRIDAY: ['Friday'],
   SATURDAY: ['Saturday'],
   SUNDAY: ['Sunday'],

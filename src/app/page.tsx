@@ -27,6 +27,16 @@ const EventMap = dynamic(() => import('@/components/map/EventMap'), {
   loading: () => <div className="w-full h-full bg-card border border-border rounded-3xl animate-pulse flex items-center justify-center text-muted uppercase text-[10px] font-black tracking-widest">Učitavanje mape...</div>
 });
 
+const SARAJEVO_WEEKDAY = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Europe/Sarajevo',
+  weekday: 'short',
+});
+
+const weekendTabForDate = (date: Date): 'PET' | 'SUB' | 'NED' => {
+  const weekday = SARAJEVO_WEEKDAY.format(date);
+  return weekday === 'Sat' ? 'SUB' : weekday === 'Sun' ? 'NED' : 'PET';
+};
+
 export default function Home() {
   const router = useRouter();
   const [activeCategory] = useState<Category | 'ALL'>('ALL');
@@ -38,6 +48,10 @@ export default function Home() {
   const [isLocating, setIsLocating] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [, setLoadingRecommendations] = useState(false);
+
+  useEffect(() => {
+    setActiveWeekendTab(weekendTabForDate(new Date()));
+  }, []);
 
   useEffect(() => {
     async function fetchFavorites() {
@@ -159,11 +173,11 @@ export default function Home() {
 
   const filteredWeekendEvents = React.useMemo(() => {
     if (!weekendData) return [];
-    const dayMap = { 'PET': 5, 'SUB': 6, 'NED': 0 };
+    const dayMap = { PET: 'Fri', SUB: 'Sat', NED: 'Sun' } as const;
     const targetDay = dayMap[activeWeekendTab];
     return weekendData.events.filter(event => {
       const date = new Date(event.startDateTime);
-      return date.getDay() === targetDay;
+      return SARAJEVO_WEEKDAY.format(date) === targetDay;
     });
   }, [weekendData, activeWeekendTab]);
 
