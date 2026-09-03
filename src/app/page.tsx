@@ -160,7 +160,7 @@ export default function Home() {
   const {
     data: weekendData,
     loading: weekendLoading
-  } = useEvents({ date: 'weekend', city: selectedCity });
+  } = useEvents({ date: 'weekend', city: selectedCity, limit: 100 });
 
   const {
     data: mapEventsData
