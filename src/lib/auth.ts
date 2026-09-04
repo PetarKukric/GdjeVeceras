@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { decrypt, encrypt } from '@/lib/session-token';
+import { decrypt, encrypt, SESSION_DURATION_MS } from '@/lib/session-token';
 
-export { decrypt, encrypt } from '@/lib/session-token';
+export { decrypt, encrypt, SESSION_DURATION_MS } from '@/lib/session-token';
 export type { JWTPayload } from '@/lib/session-token';
 
 // SameSite: 'lax' u produkciji (zaštita od CSRF); 'none' samo u razvoju
@@ -11,7 +11,7 @@ export type { JWTPayload } from '@/lib/session-token';
 const COOKIE_SAMESITE: 'lax' | 'none' = process.env.NODE_ENV === 'production' ? 'lax' : 'none';
 
 export async function login(user: { id: string; email: string; role: string; name: string }) {
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + SESSION_DURATION_MS);
   const session = await encrypt({ user, expires });
   const cookieStore = await cookies();
   
@@ -77,7 +77,7 @@ export async function updateSession(request: NextRequest) {
   const parsed = await decrypt(session);
   if (!parsed) return;
 
-  parsed.expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  parsed.expires = new Date(Date.now() + SESSION_DURATION_MS);
   const res = NextResponse.next();
   res.cookies.set({
     name: 'bl_session',

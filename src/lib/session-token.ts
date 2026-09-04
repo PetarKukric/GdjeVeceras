@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 
 const DEV_FALLBACK_SECRET = 'gradiska-events-very-secret-key-123456789';
+export const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
 function getKey(): Uint8Array {
   if (process.env.JWT_SECRET) return new TextEncoder().encode(process.env.JWT_SECRET);
@@ -19,7 +20,7 @@ export async function encrypt(payload: JWTPayload) {
   return new SignJWT(payload as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('24h')
+    .setExpirationTime('30d')
     .sign(getKey());
 }
 

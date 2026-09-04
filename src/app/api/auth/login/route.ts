@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
-import { encrypt } from '@/lib/auth';
+import { encrypt, SESSION_DURATION_MS } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 import { verifyPassword } from '@/lib/password';
@@ -10,7 +10,7 @@ const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
 async function createSession(user: { id: string; email: string; role: string; name: string | null; emailVerified?: Date | null }) {
-  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const expires = new Date(Date.now() + SESSION_DURATION_MS);
   const session = await encrypt({
     user: { id: user.id, email: user.email, role: user.role, name: user.name || '' },
     expires,
