@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { toISOFromLocalInput } from '@/lib/bosnia-time';
+import { ImageUploader } from '@/components/admin/ImageUploader';
 
 export default function NewEvent() {
   const router = useRouter();
@@ -444,9 +445,15 @@ export default function NewEvent() {
             <div className="space-y-6">
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Link za karte
+                    <ImageIcon size={18} /> Slika i linkovi
                  </h3>
                  <div className="space-y-4 pt-4">
+                    <ImageUploader
+                      label="Naslovna slika događaja (opciono)"
+                      value={formData.imageUrl}
+                      onChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                      aspect="video"
+                    />
                     <div>
                       <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Link za karte</label>
                       <input 

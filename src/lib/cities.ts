@@ -21,6 +21,9 @@ export const SUPPORTED_CITIES: City[] = [
   { slug: 'banja-luka', name: 'Banja Luka', locative: 'Banjoj Luci', lat: 44.7722, lng: 17.1910, zoom: 13 },
   { slug: 'prnjavor', name: 'Prnjavor', locative: 'Prnjavoru', lat: 44.8700, lng: 17.6625, zoom: 13 },
   { slug: 'srbac', name: 'Srbac', locative: 'Srpcu', lat: 45.0966, lng: 17.5242, zoom: 13 },
+  { slug: 'doboj', name: 'Doboj', locative: 'Doboju', lat: 44.7318, lng: 18.0870, zoom: 13 },
+  { slug: 'laktasi', name: 'Laktaši', locative: 'Laktašima', lat: 44.9086, lng: 17.3015, zoom: 13 },
+  { slug: 'prijedor', name: 'Prijedor', locative: 'Prijedoru', lat: 44.9799, lng: 16.7140, zoom: 13 },
 ];
 
 /** Lokativni oblik grada ("u Banjoj Luci") — za rečenice */

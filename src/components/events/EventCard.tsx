@@ -146,11 +146,25 @@ export function EventCard({ event, isFavoritedInitial = false, onFavoriteToggle,
       href={eventUrl}
       className="group relative flex min-h-[230px] h-full flex-col overflow-hidden rounded-[24px] border border-primary/30 bg-background text-left shadow-xl shadow-black/30 transition-all duration-300 hover:-translate-y-1 hover:border-primary/70 hover:shadow-primary/10"
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.035] via-transparent to-primary/[0.035]" />
-      <div className="pointer-events-none absolute right-0 top-0 h-[72%] w-[58%] opacity-90 transition-transform duration-500 group-hover:scale-105">
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-transparent z-10" />
-        <CategoryArtwork category={event.category} />
-      </div>
+      {event.imageUrl ? (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <img
+            src={event.imageUrl}
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-black/25" />
+        </div>
+      ) : (
+        <>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.035] via-transparent to-primary/[0.035]" />
+          <div className="pointer-events-none absolute right-0 top-0 h-[72%] w-[58%] opacity-90 transition-transform duration-500 group-hover:scale-105">
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-transparent z-10" />
+            <CategoryArtwork category={event.category} />
+          </div>
+        </>
+      )}
 
       <div className="relative z-20 flex flex-1 p-4 sm:p-5 pb-3">
         <div className="mr-[35%] flex min-w-0 flex-1 gap-3">
