@@ -40,7 +40,7 @@ export function EventCard({ event, variant = 'compact', isFavoritedInitial = fal
   }
   return <article className={`event-card event-card--${variant}`}>
     <Link href={href} className="event-card__image" aria-label={`Pogledaj: ${event.title}`}>
-      {image ? <img src={image} alt="" loading="lazy" onError={() => setFailedImage(true)} /> : <Music2 size={32} aria-hidden="true" />}
+      {image ? <img src={image} alt="" loading={variant === 'featured' ? 'eager' : 'lazy'} fetchPriority={variant === 'featured' ? 'high' : 'auto'} decoding="async" sizes={variant === 'featured' ? '(max-width: 768px) calc(100vw - 32px), 620px' : '(max-width: 430px) 76px, 104px'} onError={() => setFailedImage(true)} /> : <Music2 size={32} aria-hidden="true" />}
     </Link>
     <div className="event-card__body">
       <Link href={href}><h3>{event.title}</h3></Link>

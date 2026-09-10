@@ -194,7 +194,10 @@ export default function VenuePage() {
                   <img
                     src={venue.imageUrl}
                     alt={venue.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                    fetchPriority="high"
+                    decoding="async"
+                    sizes="(max-width: 768px) 100vw, 768px"
                   />
                 ) : (
                   <div className="w-full h-full bg-surface flex items-center justify-center text-border opacity-10" aria-hidden="true">

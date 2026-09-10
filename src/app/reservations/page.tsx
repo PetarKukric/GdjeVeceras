@@ -99,7 +99,7 @@ export default function UserReservations() {
                     return (
                         <div key={res.id} className="reservation-card bg-card border border-border rounded-2xl p-4 grid gap-4">
                            <div className="w-20 h-24 rounded-xl overflow-hidden bg-surface shrink-0 relative">
-                              <img src={res.event.imageUrl || res.venue.imageUrl || '/logo-final.png'} alt="" className="w-full h-full object-contain transition-transform duration-700" />
+                              <img src={res.event.imageUrl || res.venue.imageUrl || '/logo-final.png'} alt="" className="w-full h-full object-cover object-center transition-transform duration-700" loading="lazy" decoding="async" sizes="96px" />
                               <div className="absolute inset-0 bg-black/20" />
                            </div>
 

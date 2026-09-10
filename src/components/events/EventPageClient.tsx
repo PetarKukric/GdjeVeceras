@@ -222,7 +222,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
               {/* IMAGE LAYER */}
               <div className="relative h-[260px] sm:h-[360px] bg-background">
                 {event.imageUrl ? (
-                  <a href={event.imageUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full" aria-label="Otvori cijeli plakat"><img src={event.imageUrl} alt={event.title} className="w-full h-full object-contain" /></a>
+                  <a href={event.imageUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full" aria-label="Otvori cijeli plakat"><img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover object-center" fetchPriority="high" decoding="async" sizes="(max-width: 768px) 100vw, 768px" /></a>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-surface via-background to-surface relative flex items-center justify-center overflow-hidden">
                      <div className="absolute top-0 right-0 w-72 h-72 bg-primary/15 rounded-full blur-[100px]" />
@@ -420,7 +420,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
                 <div className="bg-card/50 border border-white/5 rounded-3xl p-6 flex items-center gap-6 group hover:border-primary/20 transition-all shadow-xl">
                    <div className="w-20 h-20 rounded-2xl bg-surface border border-white/5 flex items-center justify-center text-3xl shrink-0 overflow-hidden">
                       {event.venue.imageUrl ? (
-                        <img src={event.venue.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                        <img src={event.venue.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" loading="lazy" decoding="async" sizes="96px" />
                       ) : <Disc size={28} className='opacity-40' />}
                    </div>
                    <div className="flex-grow">
