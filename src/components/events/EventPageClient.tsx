@@ -36,7 +36,8 @@ import {
   Shirt,
   Beer,
   Tag as TagIcon,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 import {} from '@/lib/services';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -192,6 +193,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
   if (!data) return null;
 
   const { event, related } = data;
+  const eventDisplayImage = event.imageUrl || event.venue?.imageUrl;
   const startDate = new Date(event.startDateTime);
   const endDate = event.endDateTime ? new Date(event.endDateTime) : null;
   const isOwner = user && (user.id === event.venue?.ownerId || user.role === 'ADMIN');
@@ -220,9 +222,9 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
             <div className="event-detail-hero relative rounded-2xl overflow-hidden bg-card border border-border group flex flex-col">
 
               {/* IMAGE LAYER */}
-              <div className="relative h-[260px] sm:h-[360px] bg-background">
-                {event.imageUrl ? (
-                  <a href={event.imageUrl} target="_blank" rel="noopener noreferrer" className="block w-full h-full" aria-label="Otvori cijeli plakat"><img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover object-center" fetchPriority="high" decoding="async" sizes="(max-width: 768px) 100vw, 768px" /></a>
+              <div className="relative aspect-[4/3] min-h-[260px] max-h-[520px] bg-background">
+                {eventDisplayImage ? (
+                  <a href={eventDisplayImage} target="_blank" rel="noopener noreferrer" className="block w-full h-full" aria-label="Otvori cijelu sliku"><img src={eventDisplayImage} alt={event.title} className="w-full h-full object-cover object-center" fetchPriority="high" decoding="async" sizes="(max-width: 768px) 100vw, 768px" /></a>
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-surface via-background to-surface relative flex items-center justify-center overflow-hidden">
                      <div className="absolute top-0 right-0 w-72 h-72 bg-primary/15 rounded-full blur-[100px]" />
@@ -237,65 +239,41 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
                      </div>
                   </div>
                 )}
-
-
-              </div>
-
-              {/* TOP RED: badge + akcije - u normalnom toku, naslov ih ne može preklopiti */}
-              <div className="relative z-10 flex items-center justify-between gap-3 p-4 sm:p-6">
-                <div className="px-4 py-1.5 bg-primary/90 backdrop-blur-md rounded-xl text-[10px] font-black uppercase tracking-widest text-white border border-white/10 shadow-lg">
-                   Istaknuto
-                </div>
-                <div className="flex gap-3">
+                <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
+                  <Link href="/events" className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur-md" aria-label="Nazad na događaje">
+                    <ArrowLeft size={22} />
+                  </Link>
+                  <div className="flex gap-2">
                    <button
                      onClick={() => setIsShareModalOpen(true)}
-                     className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all shadow-lg group/btn"
+                     className="w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all group/btn"
+                     aria-label="Podijeli događaj"
                    >
                      <Share2 size={18} className="group-hover/btn:scale-110 transition-transform" />
                    </button>
                    <button
                      onClick={toggleFavorite}
-                     className={`w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all shadow-lg group/btn ${isFavorited ? 'text-primary' : 'text-white hover:text-primary'}`}
+                     className={`w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all group/btn ${isFavorited ? 'text-primary' : 'text-white hover:text-primary'}`}
+                     aria-label={isFavorited ? 'Ukloni iz sačuvanih' : 'Sačuvaj događaj'}
                    >
                      <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="group-hover/btn:scale-110 transition-transform" />
                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* NASLOV - gura se na dno, uvijek ima mjesta */}
-              <div className="relative z-10 mt-auto p-4 pb-5 sm:p-8 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
-                   <div className="w-32 h-24 sm:h-28 bg-white text-background rounded-2xl flex flex-col items-center justify-center shrink-0  px-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60">
-                         Datum
-                      </span>
-                      <span className="text-base sm:text-lg font-black leading-none tabular-nums whitespace-nowrap">
-                         {formatSerbianDate(startDate)}
-                      </span>
-                   </div>
-                   <div className="flex-grow min-w-0">
-                      <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-none uppercase tracking-tighter mb-4 break-words text-shadow-lg">
-                        {event.title} <br className="hidden sm:block" />
-                        <span className="text-primary/90">@ {event.venue.name}</span>
-                      </h1>
-                      {event.performers && (
-                        <div className="mb-4 flex max-w-full items-center gap-2 text-sm font-black uppercase tracking-wider text-white sm:text-base">
-                          <Mic2 size={18} className="shrink-0 text-primary" />
-                          <span className="text-muted">Izvođač:</span>
-                          <span className="truncate text-white">{event.performers}</span>
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-3">
-                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <Disc size={12} className="text-primary" /> {event.category === 'PARTY' ? 'Tech House' : event.category === 'CONCERT' ? 'Koncert' : 'Pop / Rock'}
-                         </div>
-                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <Music size={12} className="text-primary" /> {categoryLabel(event.category)}
-                         </div>
-                         <div className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
-                            <Users size={12} className="text-primary" /> Noćni život
-                         </div>
-                      </div>
-                   </div>
+              <div className="event-detail-summary relative z-10 p-5 sm:p-8">
+                <h1>{event.title}</h1>
+                {event.performers && <p className="event-detail-summary__performer">{event.performers}</p>}
+                <div className="event-detail-summary__facts">
+                  <p><Calendar size={20} /><span>{formatSerbianDate(startDate)} · {startDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}</span></p>
+                  <Link href={`/venues/${event.venue.slug}`}><MapPin size={20} /><span>{event.venue.name} · {event.venue.city}</span><ChevronRight size={18} className="ml-auto" /></Link>
+                  <p><Ticket size={20} /><span>{typeof event.price === 'number' && event.price > 0 ? `${event.price} ${event.currency || 'KM'}` : 'Cijena ulaza nije navedena'}</span></p>
+                </div>
+                <div className="event-detail-summary__description">
+                  <h2>O događaju</h2>
+                  <p>{event.description || 'Opis događaja nije unesen.'}</p>
+                </div>
               </div>
             </div>
 
@@ -322,7 +300,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
             <div className="space-y-16 py-8">
 
               {/* O DOGAĐAJU */}
-              <section id="detalji" className="space-y-8 text-left">
+              <section id="detalji" className="event-detail-more space-y-8 text-left">
                 <div className="flex items-center gap-3">
                    <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
                    <h2 className="text-2xl font-black uppercase tracking-tight">O događaju</h2>
@@ -682,7 +660,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
                   {related.similarEvents.length > 0 ? related.similarEvents.slice(0, 3).map((e: any) => (
                     <Link key={e.id} href={`/events/${e.slug}`} className="bg-card/40 backdrop-blur-sm border border-white/5 p-4 rounded-3xl flex items-center gap-4 hover:border-primary/30 transition-all group shadow-xl">
                        <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 relative">
-                          <img src={e.imageUrl || '/hero-bg.jpg'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <img src={e.imageUrl || e.venue?.imageUrl || '/logo-final.png'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
                           <div className="absolute inset-0 bg-black/20" />
                           <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[7px] font-black text-white uppercase">
                              {formatSerbianDate(e.startDateTime)}
@@ -782,7 +760,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
             id: event.id,
             title: event.title,
             slug: event.slug,
-            imageUrl: event.imageUrl,
+            imageUrl: eventDisplayImage,
             date: (event as any).occurrenceDate || undefined
           }}
         />

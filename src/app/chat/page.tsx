@@ -445,7 +445,7 @@ export default function ChatPage() {
                           {m.type === 'EVENT_SHARE' && m.sharedEvent ? (
                             <div className="space-y-4 min-w-[190px] max-w-full">
                                <div className="aspect-[2/1] rounded-2xl overflow-hidden bg-black/20 border border-white/5">
-                                  <img src={m.sharedEvent.imageUrl || '/hero-bg.jpg'} className="w-full h-full object-cover" alt="" />
+                                  <img src={m.sharedEvent.imageUrl || m.sharedEvent.venue?.imageUrl || '/logo-final.png'} className="w-full h-full object-cover" alt="" loading="lazy" decoding="async" />
                                </div>
                                <div>
                                   <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1">{m.sharedEvent.title}</h4>
@@ -461,7 +461,7 @@ export default function ChatPage() {
                           ) : m.type === 'VENUE_SHARE' && m.sharedVenue ? (
                             <div className="space-y-4 min-w-[190px] max-w-full">
                                <div className="aspect-[2/1] rounded-2xl overflow-hidden bg-black/20 border border-white/5">
-                                  <img src={m.sharedVenue.imageUrl || '/hero-bg.jpg'} className="w-full h-full object-cover" alt="" />
+                                  <img src={m.sharedVenue.imageUrl || '/logo-final.png'} className="w-full h-full object-cover" alt="" loading="lazy" decoding="async" />
                                </div>
                                <div>
                                   <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1">{m.sharedVenue.name}</h4>

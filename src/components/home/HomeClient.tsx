@@ -473,7 +473,7 @@ export function HomeClient({ initialCity, initialDate, initialEvents, explicitCi
                   className="min-w-[300px] snap-start bg-surface border border-border rounded-2xl p-4 flex items-center gap-4 hover:border-primary/40 transition-all group"
                 >
                   <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-card">
-                    <img src={event.imageUrl || '/hero-bg.jpg'} alt="" className="w-full h-full object-cover" />
+                    <img src={event.imageUrl || event.venue?.imageUrl || '/logo-final.png'} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   </div>
                   <div className="flex-grow min-w-0 text-left">
                     <h4 className="text-sm font-black text-white line-clamp-1 group-hover:text-primary transition-colors">{event.title}</h4>

@@ -255,9 +255,19 @@ body {
 .event-detail h1 { text-transform:none; letter-spacing:-.02em; font-size:clamp(30px,4vw,44px); line-height:1.15; overflow-wrap:anywhere; }
 .event-detail-hero { box-shadow:none; }
 .event-detail-hero [class*="blur-"] { display:none; }
+.event-detail-summary h1 { margin:0; color:#F5F5F7; font-size:clamp(1.75rem,7vw,2.6rem); font-weight:800; line-height:1.08; letter-spacing:-.03em; }
+.event-detail-summary__performer { margin-top:.45rem; color:#A5A5B2; font-size:1rem; font-weight:650; }
+.event-detail-summary__facts { margin-top:1.25rem; padding:.35rem 1rem; border:1px solid #272730; border-radius:16px; background:#111117; }
+.event-detail-summary__facts p,.event-detail-summary__facts a { min-height:48px; display:flex; align-items:center; gap:.75rem; color:#F5F5F7; font-size:.9rem; font-weight:650; }
+.event-detail-summary__facts p+*,.event-detail-summary__facts a+* { border-top:1px solid #272730; }
+.event-detail-summary__facts svg { flex-shrink:0; color:#FF006E; }
+.event-detail-summary__description { margin-top:1.5rem; }
+.event-detail-summary__description h2 { margin-bottom:.5rem; color:#F5F5F7; font-size:1.15rem; font-weight:750; text-transform:none; }
+.event-detail-summary__description p { color:#A5A5B2; font-size:1rem; line-height:1.6; }
 .panel-sidebar nav a { flex-shrink:0; }
 .panel-sidebar .uppercase { text-transform:none; letter-spacing:normal; }
-@media(max-width:767px) { .discovery-page section { min-width:0; } .discovery-page section > .grid:not(.discovery-results) { gap:14px; } .event-detail [class*="text-[10px]"] { font-size:12px; letter-spacing:normal; text-transform:none; } }
+@media(max-width:767px) { .discovery-page section { min-width:0; } .discovery-page section > .grid:not(.discovery-results) { gap:14px; } .event-detail [class*="text-[10px]"] { font-size:12px; letter-spacing:normal; text-transform:none; } .event-detail > nav { display:none; } .event-detail > div { padding-top:12px; } .event-detail .event-detail-hero { border-radius:18px; } .event-detail .event-detail-more { padding-top:0; } }
+@media(min-width:768px) { .event-detail-summary__description { display:none; } }
 .discover-supplement { margin-top:32px; }
 .event-card__body a:focus-visible, .venue-card:focus-visible, .mobile-nav a:focus-visible { outline:2px solid #FF006E; outline-offset:3px; }
 input, select, textarea { max-width:100%; }
