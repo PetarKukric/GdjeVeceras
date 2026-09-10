@@ -8,7 +8,7 @@ import { useVenues } from '@/hooks/useVenues';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MapPin, Search } from 'lucide-react';
 import { VenueCardSkeleton } from '@/components/ui/Skeleton';
-import { SUPPORTED_CITIES, getCityBySlug } from '@/lib/cities';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 import { readSavedCity, saveCity } from '@/lib/city-preference';
 import { useRouter } from 'next/navigation';
 

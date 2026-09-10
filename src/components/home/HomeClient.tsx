@@ -219,8 +219,6 @@ export function HomeClient({ initialCity, initialDate, initialEvents, explicitCi
   }, [weekendData, activeWeekendTab]);
 
   const liveEvents = clock === null ? [] : (tonightData?.events || []).filter(event => new Date(event.startDateTime).getTime() <= clock && Boolean(event.endDateTime) && new Date(event.endDateTime).getTime() > clock);
-  const cityForUrl = selectedCity ? `?city=${selectedCity}` : '';
-
   const updateDiscoveryUrl = (city: string, date: string) => {
     const params = new URLSearchParams();
     params.set('city', city);
