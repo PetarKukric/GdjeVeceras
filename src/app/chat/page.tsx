@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {} from '@/components/ui/ClientOnly';
-import { Search, MessageSquare, ArrowLeft, ArrowRight, Send, ShieldAlert, Ban, Loader2, Info, Globe, MapPin} from 'lucide-react';
+import { Search, MessageSquare, ArrowLeft, ArrowRight, Send, ShieldAlert, Ban, Loader2, Info, Globe, MapPin, PenSquare, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import {} from '@/components/ui/Toast';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -40,6 +40,13 @@ export default function ChatPage() {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [view, setView] = useState<'list' | 'chat'>('list'); // For mobile
+  const [conversationQuery, setConversationQuery] = useState('');
+  const [findingUsers, setFindingUsers] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const [hasNewMessages, setHasNewMessages] = useState(false);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const nearBottomRef = useRef(true);
+  const previousMessageCount = useRef(0);
 
   // 1. Check Session
   useEffect(() => {
@@ -83,6 +90,8 @@ export default function ChatPage() {
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
+        if (data.length > previousMessageCount.current && !nearBottomRef.current) setHasNewMessages(true);
+        previousMessageCount.current = data.length;
         if (id !== 'global') {
           // Refresh list to clear unread count locally
           setConversations(prev => prev.map(c => c.id === id ? { ...c, unreadCount: 0 } : c));
@@ -90,6 +99,18 @@ export default function ChatPage() {
       }
     } catch {}
   }, []);
+
+  const scrollToLatest = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const container = messagesRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+    nearBottomRef.current = true;
+    setHasNewMessages(false);
+  }, []);
+
+  useEffect(() => {
+    if (nearBottomRef.current) requestAnimationFrame(() => scrollToLatest(previousMessageCount.current ? 'smooth' : 'auto'));
+  }, [messages, scrollToLatest]);
 
   useEffect(() => {
     if (activeConvId) {
@@ -105,6 +126,7 @@ export default function ChatPage() {
     if (!newMessage.trim() || isSending || !activeConvId) return;
 
     setIsSending(true);
+    setSendError('');
     const content = newMessage.trim();
     setNewMessage('');
 
@@ -122,10 +144,12 @@ export default function ChatPage() {
         if (activeConvId !== 'global') fetchConversations(); // Update last message in sidebar
       } else {
         const err = await res.json();
-        alert(err.error || 'Greška pri slanju.');
+        setNewMessage(content);
+        setSendError(err.error || 'Poruka nije poslata. Pokušaj ponovo.');
       }
     } catch {
-      alert('Mrežna greška.');
+      setNewMessage(content);
+      setSendError('Nema veze sa serverom. Pokušaj ponovo.');
     } finally {
       setIsSending(false);
     }
@@ -257,6 +281,10 @@ export default function ChatPage() {
   }
 
   const activeConv = conversations.find(c => c.id === activeConvId);
+  const visibleConversations = conversations.filter(conv => {
+    const haystack = `${conv.otherUser?.name || ''} ${conv.lastMessage?.content || ''}`.toLocaleLowerCase('bs');
+    return haystack.includes(conversationQuery.trim().toLocaleLowerCase('bs'));
+  });
 
   return (
     <div className="min-h-screen bg-background text-text flex flex-col max-h-screen overflow-hidden">
@@ -264,17 +292,24 @@ export default function ChatPage() {
         
         {/* --- Sidebar (Chat List) --- */}
         <aside className={`${view === 'chat' ? 'hidden' : 'flex'} md:flex flex-col w-full md:w-96 border-r border-border/50 bg-surface/30 backdrop-blur-xl animate-fade-up`}>
-          <div className="p-8 border-b border-border/50">
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="text-2xl font-black uppercase tracking-tighter text-white">Razgovori</h1>
+          <div className="p-4 md:p-5 border-b border-border/50">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-white">Razgovori</h1>
+              <button onClick={() => setFindingUsers(value => !value)} className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted hover:text-primary" aria-label="Započni novi razgovor"><PenSquare size={19}/></button>
             </div>
 
-            {/* User Search Input */}
             <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18}/>
+              <input value={conversationQuery} onChange={e => setConversationQuery(e.target.value)} placeholder="Pretraži razgovore..." className="w-full h-12 pl-12 pr-4 bg-background/50 border border-border rounded-xl text-sm focus:outline-none focus:border-primary text-white"/>
+            </div>
+
+            {/* Odvojena pretraga korisnika */}
+            {findingUsers && (
+            <div className="relative group mt-3">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" size={18} />
               <input
                 type="text"
-                placeholder="Pretraži korisnike..."
+                placeholder="Pronađi korisnika..."
                 className="w-full h-12 pl-12 pr-4 bg-background/50 border border-border/50 rounded-2xl text-sm focus:outline-none focus:border-primary transition-all text-white placeholder:text-muted/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -303,7 +338,7 @@ export default function ChatPage() {
                   )}
                 </div>
               )}
-            </div>
+            </div>)}
           </div>
 
           <div className="flex-grow overflow-y-auto scrollbar-hide">
@@ -313,16 +348,16 @@ export default function ChatPage() {
                 setActiveConvId('global');
                 setView('chat');
               }}
-              className={`w-full p-6 flex items-center gap-4 transition-all border-b border-border/20 group relative ${activeConvId === 'global' ? 'bg-primary/10' : 'hover:bg-surface/50'}`}
+              className={`w-full p-4 flex items-center gap-3 transition-all border-b border-border/20 group relative ${activeConvId === 'global' ? 'bg-primary/10' : 'hover:bg-surface/50'}`}
             >
-              <div className={`w-14 h-14 rounded-2xl shrink-0 border-2 transition-all flex items-center justify-center font-black text-sm uppercase ${activeConvId === 'global' ? 'bg-primary border-white/20 text-white shadow-lg' : 'bg-surface border-border text-primary group-hover:border-primary/50'}`}>
+              <div className={`w-12 h-12 rounded-xl shrink-0 border transition-all flex items-center justify-center font-bold text-sm ${activeConvId === 'global' ? 'bg-primary border-primary text-white' : 'bg-surface border-border text-primary'}`}>
                 <Globe size={24} />
               </div>
               <div className="flex-grow overflow-hidden text-left">
-                <h4 className={`text-sm font-black uppercase tracking-tight truncate ${activeConvId === 'global' ? 'text-white' : 'text-muted group-hover:text-white'}`}>
-                  Globalni Chat
+                <h4 className={`text-sm font-semibold truncate ${activeConvId === 'global' ? 'text-white' : 'text-muted group-hover:text-white'}`}>
+                  Globalni chat
                 </h4>
-                <p className="text-[10px] text-primary font-black uppercase tracking-widest italic">Naša zajednica</p>
+                <p className="text-xs text-muted truncate">Zajednica GdjeVečeras</p>
               </div>
             </button>
 
@@ -331,21 +366,21 @@ export default function ChatPage() {
                  Nema aktivnih razgovora
               </div>
             ) : (
-              conversations.map((conv) => (
+              visibleConversations.map((conv) => (
                 <button
                   key={conv.id}
                   onClick={() => {
                     setActiveConvId(conv.id);
                     setView('chat');
                   }}
-                  className={`w-full p-6 flex items-center gap-4 transition-all border-b border-border/20 group relative ${activeConvId === conv.id ? 'bg-primary/5' : 'hover:bg-surface/50'}`}
+                  className={`w-full p-4 flex items-center gap-3 transition-all border-b border-border/20 group relative ${activeConvId === conv.id ? 'bg-primary/5' : 'hover:bg-surface/50'}`}
                 >
-                  <div className={`w-14 h-14 rounded-2xl shrink-0 border-2 transition-all flex items-center justify-center font-black text-sm uppercase ${activeConvId === conv.id ? 'bg-primary border-white/20 text-white shadow-lg' : 'bg-surface border-border text-muted group-hover:border-primary/50'}`}>
+                  <div className={`w-12 h-12 rounded-xl shrink-0 border transition-all flex items-center justify-center font-bold text-sm ${activeConvId === conv.id ? 'bg-primary border-primary text-white' : 'bg-surface border-border text-muted'}`}>
                     {(conv.otherUser?.name ?? '??').substring(0, 2)}
                   </div>
                   <div className="flex-grow overflow-hidden text-left">
                     <div className="flex justify-between items-center mb-1">
-                      <span className={`text-sm font-black uppercase tracking-tight truncate ${activeConvId === conv.id ? 'text-white' : 'text-muted group-hover:text-white'}`}>
+                      <span className={`text-sm font-semibold truncate ${activeConvId === conv.id ? 'text-white' : 'text-muted group-hover:text-white'}`}>
                         {conv.otherUser?.name ?? 'Korisnik'}
                       </span>
                       {conv.lastMessage && (
@@ -378,7 +413,7 @@ export default function ChatPage() {
           {activeConvId ? (
             <>
               {/* Chat Header */}
-              <div className="h-16 px-3 md:h-24 md:px-8 border-b border-border/50 flex items-center justify-between bg-surface/20 backdrop-blur-md sticky top-0 z-30">
+              <div className="h-16 px-3 md:px-5 border-b border-border flex items-center justify-between bg-card sticky top-0 z-30">
                 <div className="flex items-center gap-4">
                   <button onClick={() => setView('list')} className="md:hidden p-2 text-muted hover:text-white transition-all bg-surface rounded-xl">
                     <ArrowLeft size={20} />
@@ -387,12 +422,10 @@ export default function ChatPage() {
                     {activeConvId === 'global' ? <Globe size={24} /> : (activeConv?.otherUser?.name ?? '??').substring(0, 2)}
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-white uppercase tracking-tight leading-none">
-                      {activeConvId === 'global' ? 'Gdje Večeras Chat' : (activeConv?.otherUser?.name ?? 'Korisnik')}
+                    <h2 className="text-base font-semibold text-white leading-none">
+                      {activeConvId === 'global' ? 'Globalni chat' : (activeConv?.otherUser?.name ?? 'Korisnik')}
                     </h2>
-                    <div className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1.5 flex items-center gap-1.5">
-                       <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> {activeConvId === 'global' ? 'Globalna soba' : 'Online'}
-                    </div>
+                    <p className="text-xs text-muted mt-1">{activeConvId === 'global' ? 'Zajednica' : 'Privatni razgovor'}</p>
                   </div>
                 </div>
 
@@ -409,7 +442,7 @@ export default function ChatPage() {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-grow overflow-y-auto p-8 space-y-6 scrollbar-hide bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-80">
+              <div ref={messagesRef} onScroll={e => { const el=e.currentTarget; nearBottomRef.current=el.scrollHeight-el.scrollTop-el.clientHeight<120; if(nearBottomRef.current) setHasNewMessages(false); }} className="chat-messages flex-grow overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-hide">
                 {messages.length === 0 ? (
                   <div className="h-full flex items-center justify-center text-center opacity-50">
                     <div className="bg-surface/50 border border-border/50 p-10 rounded-3xl max-w-xs">
@@ -418,9 +451,10 @@ export default function ChatPage() {
                     </div>
                   </div>
                 ) : (
-                  messages.map((m) => (
-                    <div 
-                      key={m.id} 
+                  messages.map((m, index) => (
+                    <React.Fragment key={m.id}>
+                    {(index === 0 || new Date(messages[index - 1].createdAt).toDateString() !== new Date(m.createdAt).toDateString()) && <div className="chat-date-divider"><span>{new Date(m.createdAt).toLocaleDateString('bs', {day:'numeric',month:'long',year:'numeric'})}</span></div>}
+                    <div
                       className={`flex ${m.senderId === user.id ? 'justify-end' : 'justify-start'}`}
                     >
                       <div className={`max-w-[80%] flex flex-col ${m.senderId === user.id ? 'items-end' : 'items-start'}`}>
@@ -437,10 +471,10 @@ export default function ChatPage() {
                           </div>
                         )}
                         
-                        <div className={`p-5 rounded-[1.8rem] text-sm font-medium shadow-2xl relative group/msg ${
-                          m.senderId === user.id 
-                            ? 'bg-primary text-white rounded-tr-none border-2 border-white/10' 
-                            : 'bg-card text-muted border border-border/50 rounded-tl-none'
+                        <div className={`chat-bubble p-3.5 rounded-2xl text-sm font-medium relative group/msg ${
+                          m.senderId === user.id
+                            ? 'chat-bubble--mine text-white rounded-tr-md'
+                            : 'bg-card text-text border border-border rounded-tl-md'
                         }`}>
                           {m.type === 'EVENT_SHARE' && m.sharedEvent ? (
                             <div className="space-y-4 min-w-[190px] max-w-full">
@@ -493,6 +527,7 @@ export default function ChatPage() {
                         </p>
                       </div>
                     </div>
+                    </React.Fragment>
                   ))
                 )}
                 {/* Scroll Anchor */}
@@ -500,15 +535,16 @@ export default function ChatPage() {
               </div>
 
               {/* Message Input */}
-              <div className="p-3 pb-safe md:p-8 border-t border-border/50 bg-surface/10 backdrop-blur-xl">
+              {hasNewMessages && <button onClick={() => scrollToLatest()} className="absolute bottom-24 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/40 bg-card px-4 py-2 text-xs font-semibold text-primary shadow-xl"><ChevronDown size={15} className="inline mr-1"/>Nove poruke</button>}
+              <div className="chat-composer p-3 md:p-4 border-t border-border bg-card">
                 <form 
                   onSubmit={handleSend}
                   className="flex gap-4 items-center bg-card border border-border/50 p-2 rounded-3xl shadow-2xl focus-within:border-primary/50 transition-all"
                 >
-                  <input
-                    type="text"
+                  <textarea
                     placeholder="Napiši poruku..."
-                    className="flex-grow h-12 bg-transparent border-none focus:ring-0 text-sm font-medium px-6 text-white placeholder:text-muted/40"
+                    rows={1}
+                    className="flex-grow min-h-12 max-h-32 resize-none overflow-y-auto bg-transparent border-none focus:ring-0 text-sm font-medium px-4 py-3 text-white placeholder:text-muted/60"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {
@@ -526,6 +562,7 @@ export default function ChatPage() {
                     <Send size={18} />
                   </button>
                 </form>
+                {sendError && <p className="mt-2 px-2 text-xs text-red-400" role="alert">{sendError}</p>}
               </div>
             </>
           ) : (

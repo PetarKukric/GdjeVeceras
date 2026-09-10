@@ -271,4 +271,13 @@ body {
 .discover-supplement { margin-top:32px; }
 .event-card__body a:focus-visible, .venue-card:focus-visible, .mobile-nav a:focus-visible { outline:2px solid #FF006E; outline-offset:3px; }
 input, select, textarea { max-width:100%; }
+.chat-messages { background:#09090D; overscroll-behavior:contain; }
+.chat-bubble { max-width:min(78vw,560px); overflow-wrap:anywhere; }
+.chat-bubble--mine { background:#8f1649; border:1px solid #bc2868; }
+.chat-date-divider { display:flex; align-items:center; gap:12px; color:#A5A5B2; font-size:12px; }
+.chat-date-divider::before,.chat-date-divider::after { content:""; height:1px; flex:1; background:#272730; }
+.chat-composer { padding-bottom:max(.75rem,env(safe-area-inset-bottom)); }
+@media(max-width:767px) { .chat-messages { padding-bottom:1rem; } }
+.floor-item-label { font-size:13px; line-height:1; white-space:nowrap; max-width:120px; overflow:hidden; text-overflow:ellipsis; }
+.floor-workspace-controls input::placeholder { color:#777784; }
 @media(max-width:430px) { .event-card { grid-template-columns:76px minmax(0,1fr); gap:10px; } .event-card--featured { display:flex; } .event-card__body { padding-right:24px; } .event-card--featured .event-card__body { padding:16px; } }

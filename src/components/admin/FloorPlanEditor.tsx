@@ -17,7 +17,11 @@ import {
   User,
   AlertTriangle,
   X,
-  MoreVertical
+  MoreVertical,
+  Search,
+  List,
+  LayoutGrid,
+  Pencil
 } from 'lucide-react';
 
 import { useToast } from '@/components/ui/Toast';
@@ -57,6 +61,9 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   const snapToGrid = true; // poravnanje na grid uvijek uključeno
   const [reservation, setReservation] = useState<any>(null);
   const [zoom, setZoom] = useState(1);
+  const [workspaceView, setWorkspaceView] = useState<'PLAN' | 'LIST'>('PLAN');
+  const [editMode, setEditMode] = useState(false);
+  const [query, setQuery] = useState('');
   const boardRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
@@ -65,7 +72,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   const isAssignMode = !!assigningReservationId;
 
   // Prevent drag in assign mode
-  const canDrag = !isAssignMode;
+  const canDrag = !isAssignMode && editMode;
 
   const handleZoom = (delta: number) => {
       setZoom(prev => Math.max(0.3, Math.min(2, prev + delta)));
@@ -189,7 +196,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   };
 
   const handleMouseDown = (e: React.MouseEvent, item: FloorItem) => {
-    if (e.button !== 0 || isAssignMode) return;
+    if (e.button !== 0 || isAssignMode || !editMode) return;
     e.stopPropagation();
     setPropertiesOpen(false);
     
@@ -223,10 +230,10 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
             );
         }
     } else {
-        // Edit mode click — samo selekcija (opcije se otvaraju preko tri tačke)
+        // U pregledu klik samo bira sto; u uređivanju se svojstva otvaraju posebno.
         if (!isDragging && !e.shiftKey) {
             setSelectedIds([item.id]);
-            setPropertiesOpen(false);
+            setPropertiesOpen(!editMode);
         }
     }
   };
@@ -401,6 +408,8 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   };
 
   const selectedItems = items.filter(i => selectedIds.includes(i.id));
+  const collator = new Intl.Collator('bs', { numeric: true, sensitivity: 'base' });
+  const visibleItems = items.filter(item => `${item.name} ${item.reservation?.name || ''}`.toLocaleLowerCase('bs').includes(query.trim().toLocaleLowerCase('bs'))).sort((a,b) => collator.compare(a.name,b.name));
   const selectedCapacity = selectedItems.reduce((sum, i) => sum + (i.capacity || 0), 0);
   const guestCount = reservation?.numberOfPeople || 0;
   const isCapacitySufficient = guestCount > 0 && selectedCapacity >= guestCount;
@@ -425,6 +434,18 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   const selectedItem = selectedIds.length === 1 ? items.find(i => i.id === selectedIds[0]) || null : null;
   const popupAnchorItem = selectedItem || selectedItems[0] || null;
 
+  const focusItem = (item: FloorItem) => {
+    setWorkspaceView('PLAN');
+    setSelectedIds(item.groupId ? items.filter(candidate => candidate.groupId === item.groupId).map(candidate => candidate.id) : [item.id]);
+    setPropertiesOpen(true);
+    setZoom(current => Math.max(current, .9));
+    window.setTimeout(() => {
+      const container = containerRef.current;
+      if (!container) return;
+      container.scrollTo({ left: Math.max(0, item.x * Math.max(zoom, .9) - container.clientWidth / 2), top: Math.max(0, item.y * Math.max(zoom, .9) - container.clientHeight / 2), behavior: 'smooth' });
+    }, 50);
+  };
+
   // Pozicija malog prozora sa svojstvima — pored izabranog stola/separea
   const POPUP_W = 280;
   let popupPos: { left: number; top: number } | null = null;
@@ -441,9 +462,20 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
 
   return (
     <div className="relative flex flex-col h-full min-h-[70dvh]">
+      <div className="floor-workspace-controls shrink-0 border-b border-border bg-card p-3 space-y-3">
+        <div className="grid grid-cols-2 rounded-xl border border-border bg-background p-1">
+          <button onClick={() => setWorkspaceView('PLAN')} className={`h-10 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 ${workspaceView === 'PLAN' ? 'bg-primary text-white' : 'text-muted'}`}><LayoutGrid size={16}/>Plan</button>
+          <button onClick={() => setWorkspaceView('LIST')} className={`h-10 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 ${workspaceView === 'LIST' ? 'bg-primary text-white' : 'text-muted'}`}><List size={16}/>Lista</button>
+        </div>
+        <div className="flex gap-2">
+          <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-border bg-background px-3"><Search size={17} className="text-muted"/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Broj stola ili ime gosta..." className="h-11 min-w-0 flex-1 bg-transparent text-sm text-white outline-none"/></label>
+          {!isAssignMode && <button onClick={() => { setEditMode(value => !value); setPropertiesOpen(false); }} className={`h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold flex items-center gap-2 ${editMode ? 'border-primary bg-primary text-white' : 'border-border text-muted'}`}><Pencil size={16}/><span className="hidden sm:inline">{editMode ? 'Uređivanje' : 'Pregled'}</span></button>}
+        </div>
+        {mode === 'EVENT' && <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted"><span><i className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 mr-1.5"/>Slobodno</span><span><i className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500 mr-1.5"/>Rezervisano</span><span><i className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 mr-1.5"/>Zauzeto</span><span><i className="inline-block w-2.5 h-2.5 rounded-sm border-2 border-primary mr-1.5"/>Izabrano</span></div>}
+      </div>
       {/* TOOLBAR — mobitel: SAČUVAJ preko cijele širine + grid 3 kolone; desktop: jedan red */}
-      <div className="shrink-0 p-3 md:p-4 border-b border-white/5 bg-surface z-40">
-        {!isAssignMode ? (
+      <div className={`${!editMode && !isAssignMode ? 'hidden' : ''} shrink-0 p-3 md:p-4 border-b border-white/5 bg-surface z-40`}>
+        {!isAssignMode && editMode ? (
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
             {/* MOBIL: SAČUVAJ puna širina, prvi red — nemoguće promašiti */}
             <button 
@@ -499,7 +531,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
               </button>
             </div>
           </div>
-        ) : (
+        ) : isAssignMode ? (
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl shrink-0">
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -507,12 +539,21 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
               <span className="text-[10px] md:text-[10px] font-black text-primary uppercase tracking-widest">{reservation?.name ? 'Dodjela: ' + reservation.name : 'Dodjela'}</span>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* BOARD AREA + OVERLAYS */}
       <div className="relative flex-1 min-h-[45dvh]">
-        <div 
+        {workspaceView === 'LIST' ? (
+          <div className="absolute inset-0 overflow-y-auto p-3 md:p-4 space-y-2 bg-background">
+            {visibleItems.filter(item => item.type === 'TABLE' || item.type === 'BOOTH').map(item => <div key={item.id} className={`grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-xl border p-3 ${selectedIds.includes(item.id) ? 'border-primary bg-primary/5' : 'border-border bg-card'}`}>
+              <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><strong className="text-sm text-white">{item.name}</strong><span className="rounded-md bg-white/5 px-2 py-1 text-xs text-muted">{item.capacity} mjesta</span><span className={`text-xs font-semibold ${item.status === 'AVAILABLE' ? 'text-green-400' : item.status === 'RESERVED' ? 'text-yellow-400' : item.status === 'OCCUPIED' ? 'text-red-400' : 'text-muted'}`}>{item.status === 'AVAILABLE' ? 'Slobodno' : item.status === 'RESERVED' ? 'Rezervisano' : item.status === 'OCCUPIED' ? 'Zauzeto' : 'Nedostupno'}</span></div>{item.reservation && <p className="mt-1 text-sm text-muted truncate">{item.reservation.name} · {item.reservation.numberOfPeople} osoba</p>}</div>
+              <button onClick={() => focusItem(item)} className="self-center rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary">Prikaži na planu</button>
+            </div>)}
+            {visibleItems.filter(item => item.type === 'TABLE' || item.type === 'BOOTH').length === 0 && <p className="py-12 text-center text-sm text-muted">Nema stolova koji odgovaraju pretrazi.</p>}
+          </div>
+        ) : <>
+        <div
             ref={containerRef}
             className="absolute inset-0 overflow-auto cursor-crosshair select-none bg-[radial-gradient(#ffffff05_1px,transparent_1px)] bg-[size:20px_20px]"
             onScroll={(e) => setBoardScroll({ left: e.currentTarget.scrollLeft, top: e.currentTarget.scrollTop })}
@@ -553,6 +594,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                         if (item.status === 'OCCUPIED') borderColor = 'border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]';
                         if (item.status === 'AVAILABLE') borderColor = isSelected ? 'border-primary shadow-[0_0_15px_rgba(255,0,110,0.4)]' : 'border-green-500/30';
                     }
+                    if (isSelected) borderColor = 'border-primary ring-2 ring-primary/30 shadow-[0_0_15px_rgba(255,0,110,0.35)]';
 
                     return (
                         <div 
@@ -568,7 +610,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                                 zIndex: isSelected ? 100 : (isGrouped ? 10 : 1),
                                 touchAction: 'none'
                             }}
-                            className={`absolute ${bgColor} border-2 ${borderColor} rounded-xl flex flex-col items-center justify-center p-2 cursor-move group/item ${isDragging && isSelected ? '' : 'transition-all duration-200'}`}
+                            className={`absolute ${bgColor} border-2 ${borderColor} rounded-xl flex flex-col items-center justify-center p-2 ${editMode ? 'cursor-move' : 'cursor-pointer'} group/item ${isDragging && isSelected ? '' : 'transition-all duration-200'} ${query && !visibleItems.some(match => match.id === item.id) ? 'opacity-20' : ''}`}
                             onClick={(e) => handleItemClick(e, item)}
                         >
                             {isGrouped && !isAssignMode && (
@@ -584,7 +626,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                             )}
 
                             {/* Tri tačke — opcije (svojstva) se otvaraju samo odavde */}
-                            {!isAssignMode && (
+                            {!isAssignMode && editMode && (
                               <button
                                 onMouseDown={(e) => e.stopPropagation()}
                                 onTouchStart={(e) => e.stopPropagation()}
@@ -597,7 +639,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
                               </button>
                             )}
 
-                            <span className="text-[10px] font-black text-white uppercase tracking-tighter text-center leading-none mb-1 max-w-full truncate px-1">{item.name}</span>
+                            <span style={{ transform: `rotate(${-item.rotation}deg)` }} className="floor-item-label rounded-md bg-black/80 px-1.5 py-1 text-center font-bold text-white">{item.name}</span>
                             {item.capacity > 0 && (
                                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{item.capacity} MJ</span>
                             )}
@@ -637,6 +679,7 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
             )}
           </div>
         )}
+        </>}
 
         {/* HINT — dodjela, ništa izabrano */}
         {isAssignMode && selectedIds.length === 0 && (

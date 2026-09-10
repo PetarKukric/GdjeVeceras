@@ -64,9 +64,14 @@ export default function AdminFloorPlan() {
           </div>
         ) : (
           <>
+            <div className="lg:hidden grid gap-3 rounded-2xl border border-border bg-card p-3">
+              <label className="text-xs font-semibold text-muted">Lokal<select value={selectedVenue?.id || ''} onChange={event => { const venue=venues.find(item => item.id===event.target.value); setSelectedVenue(venue || null); setSelectedEvent(null); }} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-white">{venues.map(venue => <option key={venue.id} value={venue.id}>{venue.name} · {venue.city}</option>)}</select></label>
+              <div className="grid grid-cols-2 rounded-xl border border-border bg-background p-1"><button onClick={() => setTab('DEFAULT')} className={`h-10 rounded-lg text-sm font-semibold ${tab==='DEFAULT'?'bg-primary text-white':'text-muted'}`}>Osnovni plan</button><button onClick={() => setTab('EVENT')} className={`h-10 rounded-lg text-sm font-semibold ${tab==='EVENT'?'bg-primary text-white':'text-muted'}`}>Događaj</button></div>
+              {tab==='EVENT' && <label className="text-xs font-semibold text-muted">Događaj<select value={selectedEvent?.id || ''} onChange={event => setSelectedEvent(selectedVenue.events?.find((item:any)=>item.id===event.target.value)||null)} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-white"><option value="">Izaberi događaj</option>{selectedVenue.events?.filter((item:any)=>new Date(item.startDateTime)>=new Date(Date.now()-86400000)).map((item:any)=><option key={item.id} value={item.id}>{item.title} · {formatSerbianDate(item.startDateTime)}</option>)}</select></label>}
+            </div>
             <div className="flex flex-col lg:flex-row gap-8">
                {/* VENUE SELECTION */}
-               <div className="lg:w-1/4 space-y-4">
+               <div className="hidden lg:block lg:w-1/4 space-y-4">
                   <h4 className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Lokal</h4>
                   <div className="space-y-2">
                     {venues.map(v => (
@@ -138,7 +143,7 @@ export default function AdminFloorPlan() {
                </div>
 
                {/* EDITOR AREA */}
-               <div className="lg:w-3/4">
+               <div className="min-w-0 lg:w-3/4">
                   {tab === 'DEFAULT' && selectedVenue && (
                       <div className="space-y-4 animate-in fade-in duration-500">
                          <div className="flex items-center gap-3 mb-2">
@@ -153,7 +158,7 @@ export default function AdminFloorPlan() {
                   {tab === 'EVENT' && selectedVenue && (
                       <div className="space-y-4 animate-in fade-in duration-500">
                          {!selectedEvent ? (
-                            <div className="bg-card/50 border border-white/5 rounded-3xl p-40 text-center flex flex-col items-center justify-center gap-6">
+                            <div className="bg-card/50 border border-white/5 rounded-3xl px-6 py-20 text-center flex flex-col items-center justify-center gap-6">
                                <Calendar size={48} className="text-muted opacity-10" />
                                <p className="text-muted text-xs font-bold uppercase tracking-widest">Izaberi događaj sa liste da urediš raspored za to veče.</p>
                             </div>
