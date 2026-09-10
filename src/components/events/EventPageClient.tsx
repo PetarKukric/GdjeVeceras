@@ -18,7 +18,6 @@ import {
   Share2,
   Users,
   Music,
-  Mic2,
   Disc,
   Disc3,
   Guitar,
