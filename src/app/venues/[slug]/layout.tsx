@@ -43,9 +43,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${venue.name} — ${venue.city}`,
     description: desc,
+    alternates: { canonical: `/venues/${venue.slug}` },
     openGraph: {
       title: `${venue.name} — ${venue.city}`,
       description: desc,
+      url: `/venues/${venue.slug}`,
       images: venue.imageUrl ? [{ url: venue.imageUrl }] : undefined,
     },
   };

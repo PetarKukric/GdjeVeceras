@@ -32,7 +32,7 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
     hour: '2-digit',
     minute: '2-digit',
   });
-  
+
   const formatted = formatter.formatToParts(now);
   const currentHour = parseInt(formatted.find(p => p.type === 'hour')?.value || '0');
   const currentMinute = parseInt(formatted.find(p => p.type === 'minute')?.value || '0');
@@ -49,7 +49,8 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
     return 'SUNDAY';
   };
 
-  const currentDay = now.getDay(); // 0-6
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const currentDay = weekdays.indexOf(formatted.find(p => p.type === 'weekday')?.value || 'Sunday');
   const yesterday = (currentDay - 1 + 7) % 7;
 
   const currentGroup = dayToGroup(currentDay);
@@ -69,13 +70,13 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
   if (yesterdayHours && !yesterdayHours.isClosed && yesterdayHours.openTime && yesterdayHours.closeTime) {
     const open = parseTime(yesterdayHours.openTime)!;
     const close = parseTime(yesterdayHours.closeTime)!;
-    
+
     if (close < open) {
       // It's an overnight shift
       if (currentTimeVal < close) {
-        return { 
-          status: 'OPEN', 
-          label: 'OTVORENO', 
+        return {
+          status: 'OPEN',
+          label: 'Otvoreno',
           subLabel: `Zatvara se u ${yesterdayHours.closeTime}`,
           color: 'text-green-500'
         };
@@ -91,9 +92,9 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
     if (close > open) {
       // Normal day shift
       if (currentTimeVal >= open && currentTimeVal < close) {
-        return { 
-          status: 'OPEN', 
-          label: 'OTVORENO', 
+        return {
+          status: 'OPEN',
+          label: 'Otvoreno',
           subLabel: `Zatvara se u ${currentHours.closeTime}`,
           color: 'text-green-500'
         };
@@ -103,9 +104,9 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
       if (currentTimeVal >= open || currentTimeVal < close) {
         // If it's before midnight or after midnight (handled by yesterday check usually, but for consistency)
         if (currentTimeVal >= open) {
-          return { 
-            status: 'OPEN', 
-            label: 'OTVORENO', 
+          return {
+            status: 'OPEN',
+            label: 'Otvoreno',
             subLabel: `Zatvara se u ${currentHours.closeTime}`,
             color: 'text-green-500'
           };
@@ -114,19 +115,20 @@ export function getVenueStatus(openingHours: OpeningHour[]) {
     }
 
     if (currentTimeVal < open) {
-      return { 
-        status: 'CLOSED', 
-        label: 'ZATVORENO', 
+      return {
+        status: 'CLOSED',
+        label: 'Zatvoreno',
         subLabel: `Otvara se u ${currentHours.openTime}`,
         color: 'text-red-500'
       };
     }
   }
 
+  if (!currentHours) return { status: 'UNKNOWN' };
   // Default to closed
-  return { 
-    status: 'CLOSED', 
-    label: 'ZATVORENO', 
+  return {
+    status: 'CLOSED',
+    label: 'Zatvoreno',
     subLabel: '',
     color: 'text-muted'
   };

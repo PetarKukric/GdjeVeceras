@@ -23,9 +23,9 @@ export default async function AdminLayout({
   if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'OWNER')) {
     redirect('/login');
   }
-  
+
   return (
-    <div className="flex min-h-screen bg-background text-text relative z-0 overflow-x-clip">
+    <div className="admin-shell flex min-h-screen bg-background text-text relative z-0 overflow-x-clip">
       <AdminSidebar />
       <div className="flex-grow flex flex-col min-w-0 overflow-x-clip">
         {children}

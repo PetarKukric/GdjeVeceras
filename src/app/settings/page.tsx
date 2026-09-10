@@ -77,7 +77,7 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     if (!confirm('Da li ste SIGURNI da želite trajno obrisati svoj nalog? Ova akcija se ne može poništiti.')) return;
-    if (!confirm('Posljednja potvrda: sav vaš sadržaj (rezervacije, komentari, poruke) biće trajno obrisan. Nastaviti?')) return;
+    if (!confirm('Posljednja potvrda: brišu se nalog, tvoji događaji i povezane rezervacije, komentari, poruke i razgovori u kojima učestvuješ. Nastaviti?')) return;
     setDeleting(true);
     try {
       const res = await fetch('/api/auth/account', { method: 'DELETE' });
@@ -122,25 +122,25 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow max-w-2xl mx-auto w-full px-4 py-12 space-y-8">
+      <main className="flex-grow max-w-2xl mx-auto w-full px-4 py-6 space-y-6">
         <Link href="/" className="inline-flex items-center gap-2 text-muted hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
           <ArrowLeft size={14} /> Nazad
         </Link>
 
         <div className="space-y-2">
-          <h1 className="text-4xl font-black uppercase tracking-tight">Podešavanja</h1>
+          <h1 className="text-[30px] font-bold tracking-tight">Podešavanja</h1>
           <p className="text-muted text-xs font-bold uppercase tracking-[0.2em]">Tvoj nalog</p>
         </div>
 
         <ClientOnly>
-          <div className="bg-card border border-white/5 rounded-3xl p-8 space-y-6">
+          <div className="bg-card border border-white/5 rounded-2xl p-4 md:p-6 space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-sm font-black uppercase">
                 {user.name?.substring(0, 2) || '??'}
               </div>
               <div>
-                <p className="text-base font-black text-white uppercase tracking-tight">{user.name}</p>
-                <p className="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1.5 mt-1">
+                <p className="text-lg font-bold text-white break-words">{user.name}</p>
+                <p className="text-sm font-normal text-muted break-all flex items-center gap-1.5 mt-1">
                   <Mail size={11} /> {user.email}
                 </p>
               </div>
@@ -148,13 +148,13 @@ export default function SettingsPage() {
 
             <div className="h-px bg-white/5" />
 
-            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-muted">
+            <div className="flex items-center gap-3 text-sm font-semibold text-muted">
               <Shield size={14} className="text-primary" /> Uloga: {user.role === 'ADMIN' ? 'Administrator' : user.role === 'OWNER' ? 'Vlasnik lokala' : 'Korisnik'}
             </div>
 
             <button
               onClick={handleLogout}
-              className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+              className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
             >
               <LogOut size={14} /> Odjavi se
             </button>
@@ -163,7 +163,7 @@ export default function SettingsPage() {
 
         {/* PROMJENA LOZINKE */}
         {user.role !== 'ADMIN' && (
-          <div className="bg-card border border-white/5 rounded-3xl p-8 space-y-6">
+          <div className="bg-card border border-white/5 rounded-2xl p-4 md:p-6 space-y-6">
             <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
               <KeyRound size={16} className="text-primary" /> Promijeni lozinku
             </h3>
@@ -217,7 +217,7 @@ export default function SettingsPage() {
             <button
               onClick={handleChangePassword}
               disabled={pwLoading}
-              className="w-full py-4 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+              className="w-full py-4 bg-primary text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
             >
               {pwLoading ? (
                 <>
@@ -233,18 +233,18 @@ export default function SettingsPage() {
         )}
 
         {/* OPASNA ZONA */}
-        <div className="bg-card border border-red-500/20 rounded-3xl p-8 space-y-4">
+        <div className="bg-card border border-red-500/20 rounded-2xl p-4 md:p-6 space-y-4">
           <h3 className="text-sm font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
-            <AlertTriangle size={16} /> Opasna zona
+            <AlertTriangle size={16} /> Upravljanje nalogom
           </h3>
           <p className="text-muted text-xs font-medium leading-relaxed">
-            Brisanjem naloga trajno se uklanjaju svi vaši podaci: rezervacije, komentari, poruke, sačuvani događaji.
+            Brisanjem se uklanjaju nalog, tvoji događaji i povezane rezervacije, komentari, poruke, sačuvane stavke i razgovori u kojima učestvuješ. Ako posjeduješ lokal, prvo moraš prenijeti vlasništvo.
             Ova akcija se ne može poništiti.
           </p>
           <button
             onClick={handleDeleteAccount}
             disabled={deleting}
-            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
           >
             <Trash2 size={14} /> {deleting ? 'Brisanje...' : 'Obriši nalog trajno'}
           </button>

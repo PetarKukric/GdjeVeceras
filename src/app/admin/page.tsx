@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminHeader } from '@/components/admin/AdminLayout';
-import { 
-  Calendar, 
-  CheckCircle, 
-  Clock, 
-  Users, 
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  Users,
   Flag,
   ArrowUpRight,
   TrendingUp} from 'lucide-react';
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
     fetchSessionAndStats();
   }, []);
 
-  if (loading) return <div className="p-4 md:p-8 text-center animate-pulse">Učitavanje Dashboarda...</div>;
+  if (loading) return <div className="p-4 md:p-8 text-center animate-pulse">Učitavanje kontrolne table...</div>;
 
   const statCards = [
     { label: 'Ukupno', value: stats?.totalEvents || 0, icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -59,25 +59,26 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <AdminHeader title="Dashboard" />
-      <main className="p-4 md:p-8 space-y-10 animate-fade-up relative z-[1]">
+      <AdminHeader title="Kontrolna tabla" />
+      <main className="p-4 md:p-8 space-y-6 animate-fade-up relative z-[1]">
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           {statCards.map((stat) => (
-            <div key={stat.label} className="bg-card/50 border border-white/5 p-6 rounded-[1.8rem] shadow-xl hover:border-primary/20 transition-all group">
-              <div className={`${stat.bg} ${stat.color} w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-lg transition-transform group-hover:scale-110`}>
-                <stat.icon size={24} />
+            <div key={stat.label} className="bg-card/50 border border-white/5 p-4 rounded-[1.8rem]  hover:border-primary/20 transition-all group">
+              <div className={`${stat.bg} ${stat.color} w-9 h-9 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110`}>
+                <stat.icon size={20} />
               </div>
-              <p className="text-muted text-[10px] font-black uppercase tracking-widest">{stat.label}</p>
+              <p className="text-muted text-sm font-medium">{stat.label}</p>
               <h3 className="text-3xl font-black mt-2 text-white">{stat.value}</h3>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="flex flex-wrap gap-3"><Link href="/admin/events/new" className="bg-primary rounded-xl px-5 min-h-12 flex items-center text-sm font-semibold">Dodaj događaj</Link><Link href="/admin/reservations" className="border border-border rounded-xl px-4 min-h-12 flex items-center text-sm">Rezervacije</Link><Link href="/admin/floor-plan" className="border border-border rounded-xl px-4 min-h-12 flex items-center text-sm">Raspored stolova</Link></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Events Section */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b border-border flex justify-between items-center">
+            <div className="p-4 border-b border-border flex justify-between items-center">
               <h2 className="font-bold text-lg">Nedavni događaji</h2>
               <Link href="/admin/events" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
                 Vidi sve <ArrowUpRight size={14} />
@@ -113,7 +114,7 @@ export default function AdminDashboard() {
           <div className="space-y-8">
              {/* Pending Events Summary */}
              <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-border flex justify-between items-center">
+              <div className="p-4 border-b border-border flex justify-between items-center">
                 <h2 className="font-bold text-lg uppercase tracking-tight">Događaji na čekanju</h2>
               </div>
               <div className="p-4 md:p-8 text-center">

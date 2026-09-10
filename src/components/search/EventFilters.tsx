@@ -14,6 +14,7 @@ interface FilterState {
   venue: string;
   city: string;
   sort: string;
+  reservations: 'available' | '';
 }
 
 interface EventFiltersProps {
@@ -45,6 +46,8 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
     [filters, onFilterChange]
   );
 
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
+
   const handleSearchChange = (val: string) => {
     setSearchTerm(val);
     debouncedSearch(val);
@@ -64,7 +67,8 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
       priceRange: 'ALL',
       venue: '',
       city: '',
-      sort: 'startTime'
+      sort: 'startTime',
+      reservations: '',
     };
     setFilters(defaultFilters);
     setSearchTerm('');
@@ -79,25 +83,28 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
     if (filters.venue !== '') count++;
     if (filters.city !== '') count++;
     if (filters.sort !== 'startTime') count++;
+    if (filters.reservations === 'available') count++;
     return count;
   }, [filters]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 min-w-0">
+      <div className="city-picker"><MapPin size={18}/><select aria-label="Grad" value={filters.city} onChange={e=>updateFilter('city',e.target.value)}><option value="">Svi gradovi</option>{SUPPORTED_CITIES.map(c=><option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
+      <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Kategorija događaja">{([['ALL','Sve'],['PARTY','Žurke'],['LIVE_MUSIC','Muzika uživo'],['CONCERT','Koncerti']] as const).map(([value,label])=><button key={value} onClick={()=>updateFilter('category',value)} aria-pressed={filters.category===value} className={`min-h-11 px-3 rounded-xl border border-border shrink-0 text-sm ${filters.category===value?'bg-primary text-white':'bg-card text-muted'}`}>{label}</button>)}</div>
       <div className="flex gap-2">
-        <div className="relative flex-grow group">
+        <div className="relative flex-grow min-w-0 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" size={20} />
           <input
             type="text"
             placeholder="Traži žurke, izvođače ili lokale..."
-            className="w-full h-14 pl-12 pr-4 bg-card/50 border border-white/5 rounded-2xl focus:outline-none focus:border-primary transition-all shadow-xl text-sm"
+            className="w-full h-12 pl-12 pr-4 bg-card/50 border border-white/5 rounded-2xl focus:outline-none focus:border-primary transition-all  text-sm"
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
-        <button 
+        <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-6 h-14 rounded-2xl border flex items-center gap-2 font-bold transition-all shadow-xl ${isOpen || activeFilterCount > 0 ? 'bg-primary border-primary text-text' : 'bg-card/50 border-white/5 text-muted hover:text-text hover:bg-white/10'}`}
+          className={`px-6 h-12 rounded-2xl border flex items-center gap-2 font-bold transition-all  ${isOpen || activeFilterCount > 0 ? 'bg-primary border-primary text-text' : 'bg-card/50 border-white/5 text-muted hover:text-text hover:bg-white/10'}`}
         >
           <SlidersHorizontal size={20} />
           <span className="hidden sm:inline uppercase">Filteri</span>
@@ -110,7 +117,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
       </div>
 
       {isOpen && (
-        <div className="bg-card/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden relative">
+        <div className="bg-card/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="flex justify-between items-center mb-10 relative z-10">
             <h3 className="font-black uppercase tracking-widest text-sm flex items-center gap-2">
@@ -118,6 +125,17 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
             </h3>
             <button onClick={resetFilters} className="text-xs font-bold text-muted hover:text-red-400 transition-colors flex items-center gap-1">
               <X size={14} /> RESETUJ SVE
+            </button>
+          </div>
+
+          <div className="mb-6 relative z-10">
+            <button
+              type="button"
+              onClick={() => updateFilter('reservations', filters.reservations === 'available' ? '' : 'available')}
+              aria-pressed={filters.reservations === 'available'}
+              className={`rounded-xl border px-4 py-3 text-xs font-black uppercase tracking-widest ${filters.reservations === 'available' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-surface text-muted'}`}
+            >
+              Samo događaji koji primaju rezervacije
             </button>
           </div>
 
@@ -160,7 +178,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
                     {d.label}
                   </button>
                 ))}
-                <input 
+                <input
                   type="date"
                   className="bg-surface border border-border rounded-xl px-4 py-2.5 text-xs font-bold text-muted focus:outline-none focus:border-primary"
                   value={filters.date.match(/^\d{4}-\d{2}-\d{2}$/) ? filters.date : ''}
@@ -177,7 +195,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
               <div className="flex flex-col gap-2">
                 {[
                   { label: 'SVE CIJENE', value: 'ALL' },
-                  { label: 'BESPLATNO', value: '0-0' },
+                  { label: 'CIJENA NIJE NAVEDENA / 0 KM', value: '0-0' },
                   { label: 'DO 10 KM', value: '0-10' },
                   { label: '10 - 20 KM', value: '10-20' },
                   { label: '20+ KM', value: '20-1000' },
@@ -199,7 +217,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
                 <label className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <SlidersHorizontal size={12} className="text-primary" /> Sortiraj po
                 </label>
-                <select 
+                <select
                   className="w-full px-4 py-2.5 bg-surface border border-border rounded-xl text-xs font-bold text-muted focus:outline-none focus:border-primary"
                   value={filters.sort}
                   onChange={(e) => updateFilter('sort', e.target.value)}
@@ -217,7 +235,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
                 <label className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <MapPin size={12} className="text-primary" /> Grad
                 </label>
-                <select 
+                <select
                   className="w-full px-4 py-2.5 bg-surface border border-border rounded-xl text-xs font-bold text-muted focus:outline-none focus:border-primary"
                   value={filters.city}
                   onChange={(e) => updateFilter('city', e.target.value)}
@@ -233,7 +251,7 @@ export function EventFilters({ initialFilters, onFilterChange, venues }: EventFi
                 <label className="text-[10px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <MapPin size={12} className="text-primary" /> Lokal
                 </label>
-                <select 
+                <select
                   className="w-full px-4 py-2.5 bg-surface border border-border rounded-xl text-xs font-bold text-muted focus:outline-none focus:border-primary"
                   value={filters.venue}
                   onChange={(e) => updateFilter('venue', e.target.value)}

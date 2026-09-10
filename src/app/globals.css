@@ -2,17 +2,17 @@
 
 @theme {
   /* Neutralna premium paleta — 80-90% UI je neutralno, pink je strateski */
-  --color-background: #050505;
+  --color-background: #09090D;
   --color-elevated: #0D0D0F;
   --color-surface: #121216;
-  --color-card: #18181D;
+  --color-card: #15151C;
   --color-primary: #FF006E;
   --color-primary-hover: #FF2D86;
   --color-accent: #F5C518; /* zlatna — samo POPULARNO indikator */
-  --color-text: #FFFFFF;
-  --color-muted: #A7A7B0;
+  --color-text: #F5F5F7;
+  --color-muted: #A5A5B2;
   --color-muted-2: #73737D;
-  --color-border: #232329;
+  --color-border: #272730;
 
   --color-success: #22C55E;
   --color-warning: #F59E0B;
@@ -49,8 +49,8 @@
 }
 
 :root {
-  --background: #050505;
-  --foreground: #FFFFFF;
+  --background: #09090D;
+  --foreground: #F5F5F7;
 }
 
 body {
@@ -83,10 +83,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #09090D;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232329;
+  background: #272730;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -195,3 +195,70 @@ body {
   padding-inline: 1rem;
 }
 @media (min-width: 768px) { .container-xl { padding-inline: 2rem; } }
+/* Shared mobile-first discovery surfaces. */
+.event-card { position:relative; min-width:0; display:grid; grid-template-columns:88px minmax(0,1fr); gap:12px; padding:12px; background:#15151C; border:1px solid #272730; border-radius:18px; }
+.event-card__image { display:flex; align-items:center; justify-content:center; min-width:0; height:104px; border-radius:12px; overflow:hidden; background:#09090D; color:#A5A5B2; }
+.event-card__image img { width:100%; height:100%; object-fit:contain; }
+.event-card__body { min-width:0; padding-right:28px; overflow-wrap:anywhere; }
+.event-card h3 { margin:0 0 4px; font-size:18px; font-weight:750; line-height:1.25; }
+.event-card__performer { color:#A5A5B2; font-size:14px; line-height:1.4; margin-bottom:6px; }
+.event-card__meta { display:flex; align-items:flex-start; gap:6px; font-size:13px; line-height:1.5; color:#A5A5B2; margin-top:5px; }
+.event-card__meta svg { flex-shrink:0; margin-top:2px; color:#FF006E; }
+.event-card__labels { display:flex; flex-wrap:wrap; gap:8px; font-size:12px; margin-top:8px; }
+.event-card__labels a { color:#b8edcf; background:#173027; padding:5px 8px; border-radius:8px; min-height:32px; display:flex; align-items:center; }
+.event-card__save { position:absolute; right:5px; top:5px; width:44px; height:44px; display:grid; place-items:center; color:#A5A5B2; border-radius:50%; }
+.event-card__save[aria-pressed=true] { color:#FF006E; }
+.event-card--featured { display:flex; flex-direction:column; gap:0; padding:0; }
+.event-card--featured .event-card__image { height:200px; border-radius:17px 17px 0 0; }
+.event-card--featured .event-card__body { padding:16px; }
+.event-card--featured .event-card__save { background:#09090De6; }
+.home-intro { padding-top:16px; }
+.home-intro h1 { max-width:650px; font-size:clamp(30px,5vw,48px); font-weight:800; line-height:1.12; margin:16px 0 6px; }
+.home-intro > p { color:#A5A5B2; font-size:16px; }
+.city-picker { display:flex; align-items:center; gap:8px; width:fit-content; max-width:100%; border:1px solid #272730; border-radius:24px; padding:0 12px; color:#FF006E; }
+.city-picker select { min-height:44px; background:transparent; color:#F5F5F7; max-width:100%; font-size:14px; }
+.home-search { margin-top:16px; max-width:720px; }
+.search-field { min-width:0; flex:1; display:flex; align-items:center; gap:8px; padding-left:12px; border:1px solid #272730; border-radius:12px; background:#15151C; color:#A5A5B2; }
+.search-field input { width:100%; min-width:0; min-height:44px; background:transparent; color:#F5F5F7; font-size:14px; }
+.search-field button,.map-button { min-width:44px; min-height:44px; display:grid; place-items:center; }
+.map-button { border:1px solid #272730; border-radius:12px; }
+.quick-dates { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:12px; }
+.quick-dates button { min-height:44px; border:1px solid #272730; border-radius:12px; background:#15151C; font-size:14px; font-weight:650; }
+.quick-dates button[aria-pressed=true] { background:#FF006E; border-color:#FF006E; color:white; }
+.discovery-results { display:grid; gap:14px; align-items:start; }
+.leaflet-control-attribution { max-width:min(280px,80vw); white-space:normal!important; overflow-wrap:anywhere; font-size:11px!important; line-height:1.4!important; }
+.mobile-nav { position:fixed; bottom:0; left:0; right:0; z-index:50; padding-bottom:env(safe-area-inset-bottom); background:#15151Cf5; border-top:1px solid #272730; }
+.mobile-nav__items { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); max-width:600px; margin:auto; }
+.mobile-nav a { min-height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; font-size:11px; line-height:1.2; }
+.reservation-dock { bottom:calc(64px + env(safe-area-inset-bottom)); background:#15151C; border-top:1px solid #272730; padding:12px 16px; }
+.reservation-dock > div { box-shadow:none; border:0; padding:0; }
+.reservation-dock button { text-transform:none; letter-spacing:normal; font-size:16px; }
+.reservation-dock p { text-align:center; font-size:12px; color:#A5A5B2; margin-top:8px; }
+@media(max-width:767px) { body { padding-bottom:calc(72px + env(safe-area-inset-bottom)); } body:has(.admin-shell) { padding-bottom:0; } .event-detail { padding-bottom:190px!important; } }
+@media(min-width:768px) { .mobile-nav { display:none; } .discovery-results { grid-template-columns:repeat(2,minmax(0,1fr)); } .discovery-results .event-card--featured { grid-row:span 2; } .event-card { grid-template-columns:104px minmax(0,1fr); } }
+@media(min-width:1200px) { .discovery-results { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }
+.venue-card { display:flex; align-items:center; gap:12px; padding:16px; background:#15151C; border:1px solid #272730; border-radius:18px; min-width:0; }
+.venue-card__image { width:88px; height:96px; flex-shrink:0; display:grid; place-items:center; background:#09090D; border-radius:12px; color:#A5A5B2; overflow:hidden; }
+.venue-card__image img { width:100%; height:100%; object-fit:contain; }
+.venue-card h3 { font-size:18px; font-weight:700; line-height:1.3; overflow-wrap:anywhere; }
+.venue-card > div:nth-child(2) { flex:1; }
+.reservation-card { grid-template-columns:80px minmax(0,1fr); align-items:start; }
+.reservation-card__actions { grid-column:1/-1; border-top:1px solid #272730; padding-top:12px; }
+.reservation-card__actions > div { order:-1; }
+.reservation-card a, .reservation-card button { min-height:44px; display:flex; align-items:center; }
+.profile-menu { position:relative; }
+.profile-menu summary { list-style:none; width:44px; height:44px; display:grid; place-items:center; border:1px solid #272730; border-radius:50%; cursor:pointer; }
+.profile-menu > div { position:absolute; right:0; top:52px; width:220px; padding:8px; border:1px solid #272730; background:#15151C; border-radius:16px; }
+.profile-menu a { display:flex; gap:10px; align-items:center; min-height:44px; padding:8px 12px; font-size:14px; }
+.profile-menu a:hover { background:#272730; border-radius:8px; }
+.event-detail h1 { text-transform:none; letter-spacing:-.02em; font-size:clamp(30px,4vw,44px); line-height:1.15; overflow-wrap:anywhere; }
+.event-detail-hero { box-shadow:none; }
+.event-detail-hero [class*="blur-"] { display:none; }
+.panel-sidebar nav a { flex-shrink:0; }
+.panel-sidebar .uppercase { text-transform:none; letter-spacing:normal; }
+@media(max-width:767px) { .discovery-page section { min-width:0; } .discovery-page section > .grid:not(.discovery-results) { gap:14px; } .event-detail [class*="text-[10px]"] { font-size:12px; letter-spacing:normal; text-transform:none; } }
+.discover-supplement { margin-top:32px; }
+.event-card__body a:focus-visible, .venue-card:focus-visible, .mobile-nav a:focus-visible { outline:2px solid #FF006E; outline-offset:3px; }
+input, select, textarea { max-width:100%; }
+@media(max-width:430px) { .event-card { grid-template-columns:76px minmax(0,1fr); gap:10px; } .event-card--featured { display:flex; } .event-card__body { padding-right:24px; } .event-card--featured .event-card__body { padding:16px; } }

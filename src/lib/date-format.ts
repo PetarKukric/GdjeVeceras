@@ -18,3 +18,25 @@ export function formatSerbianDate(value: Date | string | number): string {
 
   return day && month && year ? `${day}.${month}.${year}.` : '';
 }
+
+/** Primjer: Petak, 11.9. · 21:00 */
+export function formatEventCardDate(value: Date | string | number): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const weekday = new Intl.DateTimeFormat('sr-Latn-BA', {
+    timeZone: DATE_TIME_ZONE,
+    weekday: 'long',
+  }).format(date);
+  const datePart = new Intl.DateTimeFormat('sr-Latn-BA', {
+    timeZone: DATE_TIME_ZONE,
+    day: 'numeric',
+    month: 'numeric',
+  }).format(date).replace(/\s/g, '');
+  const time = new Intl.DateTimeFormat('sr-Latn-BA', {
+    timeZone: DATE_TIME_ZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}, ${datePart} · ${time}`;
+}

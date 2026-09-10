@@ -1,11 +1,12 @@
 'use client';
+import { trackEvent } from '@/lib/analytics';
 
 import React, { useState, useEffect } from 'react';
 import { AdminHeader } from '@/components/admin/AdminLayout';
-import { 
-  Clock, 
+import {
+  Clock,
   Calendar,
-  CheckCircle2, 
+  CheckCircle2,
   XCircle,
   User,
   UserX,
@@ -72,7 +73,7 @@ export default function AdminReservations() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status })
       });
-      if (res.ok) fetchReservations();
+      if (res.ok) { if (status === 'CONFIRMED') trackEvent('reservation_confirmed', { source: 'admin_panel' }, `confirmed:${id}`); fetchReservations(); }
     } catch {}
   };
 
@@ -97,7 +98,7 @@ export default function AdminReservations() {
     <>
       <AdminHeader title="Rezervacije" />
       <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
-        
+
         {/* STATS */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
            {[
@@ -119,15 +120,15 @@ export default function AdminReservations() {
               <div className="flex items-center gap-4 flex-wrap w-full sm:w-auto">
                  <div className="relative w-full sm:w-auto">
                     <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-                    <input 
-                       type="text" 
-                       placeholder="Pretraži ime ili broj..." 
+                    <input
+                       type="text"
+                       placeholder="Pretraži ime ili broj..."
                        className="pl-10 pr-6 py-2.5 bg-background border border-white/10 rounded-xl text-[10px] font-bold text-white focus:outline-none focus:border-primary transition-all w-full sm:w-64"
                        value={search}
                        onChange={e => setSearch(e.target.value)}
                     />
                  </div>
-                 <select 
+                 <select
                    className="px-4 py-2.5 bg-background border border-white/10 rounded-xl text-[10px] font-black text-white focus:outline-none focus:border-primary transition-all uppercase tracking-widest cursor-pointer"
                    value={filter}
                    onChange={e => setFilter(e.target.value)}
@@ -148,7 +149,7 @@ export default function AdminReservations() {
                     </div>
                  )}
               </div>
-              
+
               <button onClick={fetchReservations} className="p-2.5 hover:bg-white/5 rounded-xl transition-all text-muted hover:text-white">
                  <RefreshCcw size={18} />
               </button>
@@ -330,7 +331,7 @@ export default function AdminReservations() {
                                 </p>
                             </div>
                         </div>
-                        <button 
+                        <button
                             onClick={() => setAssigningRes(null)}
                             className="px-4 md:px-8 py-3 bg-white/5 hover:bg-red-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-white/5 shrink-0"
                         >
@@ -339,10 +340,10 @@ export default function AdminReservations() {
                     </div>
 
                     <div className="flex-grow min-h-0 bg-background/50 rounded-3xl md:rounded-3xl border border-white/5 overflow-y-auto shadow-2xl relative">
-                        <FloorPlanEditor 
-                            venueSlug={assigningRes.venue.slug} 
-                            eventSlug={assigningRes.event.slug} 
-                            mode="EVENT" 
+                        <FloorPlanEditor
+                            venueSlug={assigningRes.venue.slug}
+                            eventSlug={assigningRes.event.slug}
+                            mode="EVENT"
                             assigningReservationId={assigningRes.id}
                             onAssignmentComplete={() => {
                                 setAssigningRes(null);

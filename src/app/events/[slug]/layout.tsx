@@ -28,14 +28,16 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   const desc =
     (event.description || '').slice(0, 155) ||
-    `${event.title} u ${event.venue?.name || 'lokalu'}, ${event.venue?.city || ''} — ${formatSerbianDate(event.startDateTime)} Datum, cijena i rezervacije na Gdje Večeras.`;
+    `${event.title} u ${event.venue?.name || 'lokalu'}, ${event.venue?.city || ''} — ${formatSerbianDate(event.startDateTime)} Detalji, cijena i rezervacije na Gdje Večeras.`;
 
   return {
     title: `${event.title} — ${event.venue?.name || ''}`,
     description: desc,
+    alternates: { canonical: `/events/${event.slug}` },
     openGraph: {
       title: `${event.title} — ${event.venue?.name || ''}`,
       description: desc,
+      url: `/events/${event.slug}`,
       images: event.imageUrl ? [{ url: event.imageUrl }] : undefined,
     },
   };
@@ -74,7 +76,7 @@ export default async function EventSlugLayout({
   };
   if (event.description) jsonLd.description = event.description;
   if (event.imageUrl) jsonLd.image = event.imageUrl;
-  if (event.price != null) {
+  if (event.price != null && event.price > 0) {
     jsonLd.offers = {
       '@type': 'Offer',
       price: event.price,

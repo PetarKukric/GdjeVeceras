@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { notFound, useParams } from 'next/navigation';
-import { 
-  Globe, 
+import {
+  Globe,
   Phone,
   MapPin,
   Loader2,
@@ -51,6 +51,7 @@ import { getVenueStatus } from '@/lib/venue-utils';
 import Link from 'next/link';
 import { ShareModal } from '@/components/share/ShareModal';
 import { useToast } from '@/components/ui/Toast';
+import { trackEvent } from '@/lib/analytics';
 
 const TAG_ICONS: Record<string, any> = {
   'Parking': Car,
@@ -96,6 +97,7 @@ export default function VenuePage() {
       if (venueRes.ok) {
         const venueData = await venueRes.json();
         setVenue(venueData);
+        trackEvent('view_venue', { venue_id: venueData.id }, `view-venue:${venueData.id}`);
         if (venueData.openingHours) {
            setVenueStatus(getVenueStatus(venueData.openingHours));
         }
@@ -168,7 +170,7 @@ export default function VenuePage() {
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
       <main className="flex-grow pb-28 md:pb-24 animate-fade-up">
-        
+
         {/* BREADCRUMB */}
         <nav className="max-w-[1440px] mx-auto px-4 py-4 flex items-center gap-2 text-[10px] font-bold text-muted uppercase tracking-widest">
            <Link href="/" className="hover:text-primary transition-colors">Početna</Link>
@@ -179,10 +181,10 @@ export default function VenuePage() {
         </nav>
 
         <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
-          
+
           {/* LEFT COLUMN */}
           <div className="lg:col-span-8 space-y-8">
-            
+
             {/* HERO SECTION */}
             <section className="relative w-full rounded-3xl overflow-hidden bg-card border border-white/5 shadow-2xl group flex flex-col min-h-[360px] sm:min-h-[420px]">
 
@@ -264,7 +266,7 @@ export default function VenuePage() {
                  { id: 'komentari', label: 'Komentari' },
                  { id: 'informacije', label: 'Informacije' },
                ].map((tab) => (
-                 <button 
+                 <button
                    key={tab.id}
                    onClick={() => scrollToSection(tab.id)}
                    className={`text-[10px] font-black uppercase tracking-[0.2em] pb-4 transition-all relative shrink-0 ${activeTab === tab.id ? 'text-primary' : 'text-muted hover:text-white'}`}
@@ -277,7 +279,7 @@ export default function VenuePage() {
 
             {/* MAIN CONTENT AREA */}
             <div className="space-y-12 py-4">
-              
+
               {/* O LOKALU SECTION */}
               <section id="pregled" className="space-y-8 text-left bg-card/30 border border-white/5 p-10 rounded-3xl shadow-xl">
                 <div className="flex items-center justify-between">
@@ -296,7 +298,7 @@ export default function VenuePage() {
                   <p className="text-muted leading-relaxed font-medium text-lg">
                     {venue.description || 'Nema opisa za ovaj lokal.'}
                   </p>
-                  
+
                   {venue.tags && venue.tags.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-4 border-t border-white/5 pt-8">
                       {venue.tags.map((tag: any) => {
@@ -324,7 +326,7 @@ export default function VenuePage() {
                      <div className="w-8 h-px bg-primary" /> GALERIJA
                   </h2>
                   {venue.images && venue.images.length > 8 && (
-                    <button 
+                    <button
                       onClick={() => setShowAllGallery(!showAllGallery)}
                       className="text-[10px] font-black text-muted uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2 group"
                     >
@@ -332,12 +334,12 @@ export default function VenuePage() {
                     </button>
                   )}
                 </div>
-                
-                <VenueGallery 
-                  venueId={venue.id} 
-                  ownerId={venue.ownerId} 
-                  images={venue.images || []} 
-                  currentUser={user} 
+
+                <VenueGallery
+                  venueId={venue.id}
+                  ownerId={venue.ownerId}
+                  images={venue.images || []}
+                  currentUser={user}
                   onRefresh={fetchData}
                   hideHeader={true}
                   limit={showAllGallery ? undefined : 8}
@@ -351,7 +353,7 @@ export default function VenuePage() {
                      <div className="w-8 h-px bg-primary" /> NADOLAZEĆI DOGAĐAJI
                   </h2>
                   {upcomingEvents.length > 4 ? (
-                    <button 
+                    <button
                       onClick={() => setShowAllEvents(!showAllEvents)}
                       className="text-[10px] font-black text-muted uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2 group"
                     >
@@ -399,11 +401,11 @@ export default function VenuePage() {
 
           {/* RIGHT SIDEBAR */}
           <aside className="lg:col-span-4 space-y-8">
-            
+
             {/* STATUS CARD */}
             <div id="informacije" className="bg-card border border-white/5 rounded-3xl p-8 shadow-2xl space-y-8 relative overflow-hidden group">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
-               
+
                <div className="space-y-6">
                   <div className="flex items-center justify-between">
                      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted">STATUS</h3>
@@ -413,7 +415,7 @@ export default function VenuePage() {
                        </div>
                      )}
                   </div>
-                  
+
                   {venueStatus && (
                     <div className="flex gap-4">
                        <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
@@ -518,20 +520,20 @@ export default function VenuePage() {
                   </div>
                   <h3 className="text-xl font-black uppercase tracking-tight text-white">LOKACIJA</h3>
                </div>
-               
+
                <div className="space-y-6">
                   <div>
                     <p className="text-sm font-bold text-white uppercase tracking-tight">{venue.address}</p>
                     <p className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">{venue.city}, BiH</p>
                   </div>
-                  
+
                   <div className="aspect-square rounded-3xl overflow-hidden border border-white/5 shadow-inner">
                      <div className="h-full w-full filter brightness-75 grayscale-[0.3] contrast-125">
                         <VenueLocation venue={venue} hideHeader={true} />
                      </div>
                   </div>
-                  
-                  <a 
+
+                  <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${venue.latitude},${venue.longitude}`}
                     target="_blank"
                     className="w-full py-4 bg-surface border border-white/5 text-white font-black rounded-2xl hover:bg-white/5 transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px] shadow-lg group/nav"
@@ -550,7 +552,7 @@ export default function VenuePage() {
                     </div>
                     <h3 className="text-xl font-black uppercase tracking-tight text-white">POGODNOSTI</h3>
                  </div>
-                 
+
                  <div className="flex flex-wrap gap-2">
                     {venue.tags.map((tag: any) => (
                       <div key={tag.id} className="px-3 py-1.5 bg-surface border border-white/5 rounded-lg text-[10px] font-black text-muted uppercase tracking-widest hover:border-primary/50 transition-all cursor-default">
@@ -560,13 +562,13 @@ export default function VenuePage() {
                  </div>
               </div>
             )}
-            
+
           </aside>
         </div>
-        <ShareModal 
-          isOpen={isShareModalOpen} 
-          onClose={() => setIsShareModalOpen(false)} 
-          type="venue" 
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          type="venue"
           data={{
             id: venue.id,
             title: venue.name,

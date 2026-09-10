@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { EventsResponse, UseEventsProps } from '@/types';
 
-export function useEvents({ 
-  date = 'today', 
-  category = 'ALL', 
-  search = '', 
+export function useEvents({
+  date = 'today',
+  category = 'ALL',
+  search = '',
   venue = '',
   city = '',
   minPrice,
@@ -12,13 +12,17 @@ export function useEvents({
   sort = 'startTime',
   limit = 20,
   lat,
-  lng
+  lng,
+  reservations = '',
+  initialData,
 }: UseEventsProps = {}) {
-  const [data, setData] = useState<EventsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const sequence = useRef(0);
+  const [data, setData] = useState<EventsResponse | null>(initialData || null);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
 
   const fetchEvents = useCallback(async () => {
+    const request = ++sequence.current;
     setLoading(true);
     setError(null);
     try {
@@ -35,23 +39,24 @@ export function useEvents({
       if (maxPrice !== undefined) params.append('maxPrice', maxPrice.toString());
       if (lat !== undefined && lat !== null) params.append('lat', lat.toString());
       if (lng !== undefined && lng !== null) params.append('lng', lng.toString());
+      if (reservations === 'available') params.append('reservations', reservations);
 
       const response = await fetch(`/api/events?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch events');
-      
+
       const result = await response.json();
-      setData(result);
+      if (request === sequence.current) setData(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      if (request === sequence.current) setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setLoading(false);
+      if (request === sequence.current) setLoading(false);
     }
-  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng]);
+  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng, reservations]);
 
   useEffect(() => {
     fetchEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, category, search, venue, city, minPrice, maxPrice, sort, lat, lng]);
+  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng, reservations]);
 
   return { data, loading, error, refetch: fetchEvents };
 }

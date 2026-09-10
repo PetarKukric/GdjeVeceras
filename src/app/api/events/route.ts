@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Category, Status } from '@prisma/client';
+import { Category } from '@prisma/client';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 import { getSarajevoNow, sarajevoStartOfDay } from '@/lib/bosnia-time';
 import { expandRecurringEvents, toExceptionMap, validateRecurrenceInput } from '@/lib/recurrence';
 import { getSession } from '@/lib/auth';
 import { requireVerifiedEmail } from '@/lib/verification';
+import { revalidatePath } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
 
 // Ograničenje ekspanzije ponavljajućih događaja za otvorenije opsege (upcoming/all)
 const EXPANSION_WINDOW_MS = 60 * 24 * 60 * 60 * 1000; // 60 dana
@@ -13,7 +16,7 @@ const EXPANSION_WINDOW_MS = 60 * 24 * 60 * 60 * 1000; // 60 dana
 export async function GET(_request: NextRequest) {
   try {
     const { searchParams } = new URL(_request.url);
-    
+
     // Pagination
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -27,7 +30,7 @@ export async function GET(_request: NextRequest) {
     const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
     const search = searchParams.get('search');
-    const status = (searchParams.get('status') as Status) || Status.PUBLISHED;
+    const reservations = searchParams.get('reservations');
 
     // Grad — rezolucija na kanonski naziv (gradovi dolaze iz centralne liste)
     const city = getCityBySlug(cityParam) || getCityByName(cityParam);
@@ -38,7 +41,7 @@ export async function GET(_request: NextRequest) {
     const userLng = searchParams.get('lng') ? parseFloat(searchParams.get('lng')!) : null;
 
     const where: any = {
-      status: status,
+      status: 'PUBLISHED',
       isRecurring: false, // ponavljajući se dodaju kao izračunati termini (ispod)
     };
 
@@ -51,6 +54,10 @@ export async function GET(_request: NextRequest) {
       if (venueSlug) venueWhere.slug = venueSlug;
       if (city) venueWhere.city = city.name;
       where.venue = venueWhere;
+    }
+
+    if (reservations === 'available') {
+      where.venue = { ...(where.venue || {}), reservationsEnabled: true };
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -266,7 +273,7 @@ export async function POST(_request: NextRequest) {
     if (verificationError) return verificationError;
 
     const body = await _request.json();
-    
+
     // Basic validation (should use zod in production)
     if (!body.title || !body.venueId || !body.startDateTime || !body.category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -333,6 +340,9 @@ export async function POST(_request: NextRequest) {
         ...recurrence.data,
       },
     });
+
+    revalidatePath('/');
+    revalidatePath('/events');
 
     return NextResponse.json(event, { status: 201 });
   } catch (_unused) {

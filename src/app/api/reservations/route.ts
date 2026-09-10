@@ -59,7 +59,9 @@ export async function GET(request: NextRequest) {
 
     // ADMIN vidi sve, OWNER samo rezervacije svojih lokala,
     // a obični korisnik samo rezervacije koje je lično napravio.
-    if (session.user.role === 'OWNER') {
+    if (searchParams.get('mine') === 'true') {
+        where.userId = session.user.id;
+    } else if (session.user.role === 'OWNER') {
         where.venue = { ownerId: session.user.id };
     } else if (session.user.role !== 'ADMIN') {
         where.userId = session.user.id;
@@ -68,8 +70,8 @@ export async function GET(request: NextRequest) {
     const reservations = await prisma.reservation.findMany({
       where,
       include: {
-        event: { select: { title: true, slug: true, startDateTime: true, endDateTime: true } },
-        venue: { select: { name: true, slug: true } },
+        event: { select: { title: true, slug: true, startDateTime: true, endDateTime: true, imageUrl: true } },
+        venue: { select: { name: true, slug: true, city: true, imageUrl: true } },
         assignedItems: true,
         assignedGroups: true
       },
@@ -92,7 +94,7 @@ export async function POST(request: NextRequest) {
     const verificationError = await requireVerifiedEmail(session.user.id);
     if (verificationError) return verificationError;
     const body = await request.json();
-    
+
     // Check if event exists
     const event = await prisma.event.findUnique({
         where: { id: body.eventId }

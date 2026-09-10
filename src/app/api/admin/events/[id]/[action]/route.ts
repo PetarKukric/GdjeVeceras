@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Status } from '@prisma/client';
 import { getSession } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(
   _request: NextRequest,
@@ -14,9 +15,9 @@ export async function POST(
     }
 
     const { id, action } = await params;
-    
+
     let newStatus: Status;
-    
+
     switch (action) {
       case 'approve':
         newStatus = Status.PUBLISHED;
@@ -35,6 +36,10 @@ export async function POST(
       where: { id },
       data: { status: newStatus },
     });
+
+    revalidatePath('/');
+    revalidatePath('/events');
+    revalidatePath(`/events/${event.slug}`);
 
     return NextResponse.json(event);
   } catch (_unused) {

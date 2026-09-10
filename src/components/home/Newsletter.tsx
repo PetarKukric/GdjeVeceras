@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Loader2, CheckCircle2 } from 'lucide-react';
+import { SUPPORTED_CITIES } from '@/lib/cities';
 
 /**
  * Newsletter CTA bar (po referenci).
@@ -10,6 +11,7 @@ import { Mail, Loader2, CheckCircle2 } from 'lucide-react';
  */
 export function Newsletter() {
   const [email, setEmail] = useState('');
+  const [city, setCity] = useState('');
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
 
   const submit = async (e: React.FormEvent) => {
@@ -27,7 +29,7 @@ export function Newsletter() {
           name: 'Newsletter prijava',
           email,
           subject: 'NEWSLETTER PRETPLATA',
-          message: `Novi newsletter pretplatnik: ${email}`,
+          message: `Novi newsletter pretplatnik. Grad: ${SUPPORTED_CITIES.find((item) => item.slug === city)?.name || 'Svi gradovi'}`,
         }),
       });
       setState(res.ok ? 'done' : 'error');
@@ -38,7 +40,7 @@ export function Newsletter() {
   };
 
   return (
-    <div className="bg-elevated border border-border rounded-3xl p-8 md:p-10 flex flex-col lg:flex-row items-center gap-8">
+    <div className="bg-elevated border border-border rounded-3xl p-4 md:p-6 flex flex-col lg:flex-row items-center gap-4">
       <div className="flex items-start gap-5 flex-grow">
         <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0" aria-hidden="true">
           <Mail size={24} />
@@ -48,7 +50,7 @@ export function Newsletter() {
             Budi u toku sa najboljim događajima!
           </h3>
           <p className="text-muted text-sm leading-relaxed">
-            Najnoviji događaji i lokali u tvom gradu — direktno u inbox.
+            Ostavi email i izaberi grad. Prijava stiže našem timu; poruke se šalju kada imamo relevantne novosti.
           </p>
         </div>
       </div>
@@ -58,7 +60,7 @@ export function Newsletter() {
           <CheckCircle2 size={18} className="text-primary" /> Prijavljeni ste!
         </p>
       ) : (
-        <form onSubmit={submit} className="flex w-full lg:w-auto gap-3 shrink-0" aria-label="Newsletter prijava">
+        <form onSubmit={submit} className="grid w-full gap-3 sm:grid-cols-[1fr_160px_auto] lg:w-auto shrink-0" aria-label="Newsletter prijava">
           <label htmlFor="newsletter-email" className="sr-only">Email adresa</label>
           <input
             id="newsletter-email"
@@ -67,8 +69,18 @@ export function Newsletter() {
             placeholder="ime@gmail.com"
             value={email}
             onChange={(e) => { setEmail(e.target.value); setState('idle'); }}
-            className="h-12 flex-grow lg:w-64 bg-surface border border-border rounded-xl px-4 text-sm font-medium text-white placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
+            className="min-w-0 h-12 flex-grow lg:w-64 bg-surface border border-border rounded-xl px-4 text-sm font-medium text-white placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
           />
+          <label htmlFor="newsletter-city" className="sr-only">Grad</label>
+          <select
+            id="newsletter-city"
+            value={city}
+            onChange={(event) => setCity(event.target.value)}
+            className="h-12 bg-surface border border-border rounded-xl px-4 text-sm font-medium text-white focus:outline-none focus:border-primary"
+          >
+            <option value="">Svi gradovi</option>
+            {SUPPORTED_CITIES.map((item) => <option key={item.slug} value={item.slug}>{item.name}</option>)}
+          </select>
           <button
             type="submit"
             disabled={state === 'loading'}

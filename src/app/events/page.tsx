@@ -13,6 +13,7 @@ import dynamic from 'next/dynamic';
 import { Map as MapIcon, LayoutGrid, Search } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getCityBySlug } from '@/lib/cities';
+import { readSavedCity, saveCity } from '@/lib/city-preference';
 
 interface FilterState {
   search: string;
@@ -22,10 +23,11 @@ interface FilterState {
   venue: string;
   city: string;
   sort: string;
+  reservations: 'available' | '';
 }
 
 // Dynamic import for the Map to avoid SSR issues with Leaflet
-const EventMap = dynamic(() => import('@/components/map/EventMap'), { 
+const EventMap = dynamic(() => import('@/components/map/EventMap'), {
   ssr: false,
   loading: () => <div className="w-full h-[500px] bg-card border border-border rounded-3xl animate-pulse flex items-center justify-center">Učitavanje mape...</div>
 });
@@ -33,7 +35,9 @@ const EventMap = dynamic(() => import('@/components/map/EventMap'), {
 function EventsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>(searchParams.get('view') === 'map' ? 'map' : 'grid');
+  useEffect(() => { setViewMode(searchParams.get('view') === 'map' ? 'map' : 'grid'); }, [searchParams]);
+  const changeView = (view:'grid'|'map') => { setViewMode(view); const params = new URLSearchParams(searchParams.toString()); params.set('view',view); router.replace('/events?'+params.toString(), {scroll:false}); };
   const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null);
   const [favoriteEventIds, setFavoriteEventIds] = useState<string[]>([]);
 
@@ -66,7 +70,22 @@ function EventsContent() {
     venue: searchParams.get('venue') || '',
     city: searchParams.get('city') || '',
     sort: searchParams.get('sort') || 'startTime',
+    reservations: searchParams.get('reservations') === 'available' ? 'available' : '',
   }), [searchParams]);
+
+  useEffect(() => {
+    const explicitCity = searchParams.get('city');
+    if (searchParams.has('city')) {
+      saveCity(explicitCity || '');
+      return;
+    }
+    const savedCity = readSavedCity();
+    if (savedCity) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('city', savedCity);
+      router.replace(`/events?${params.toString()}`, { scroll: false });
+    }
+  }, [router, searchParams]);
 
   // Handle geolocation when distance sort is selected
   useEffect(() => {
@@ -107,6 +126,7 @@ function EventsContent() {
     sort: currentFilters.sort,
     lat: currentFilters.sort === 'distance' ? coords?.lat : undefined,
     lng: currentFilters.sort === 'distance' ? coords?.lng : undefined,
+    reservations: currentFilters.reservations,
     limit: 50
   });
 
@@ -114,47 +134,46 @@ function EventsContent() {
 
   const handleFilterChange = (newFilters: FilterState) => {
     const params = new URLSearchParams();
+    params.set('view', viewMode);
+    params.set('city', newFilters.city);
     Object.entries(newFilters).forEach(([key, value]) => {
-      if (value && value !== 'ALL' && value !== 'today' && value !== 'startTime') {
-        params.append(key, value as string);
-      } else if (key === 'date' && value !== 'today') {
-         params.append(key, value as string);
-      } else if (key === 'category' && value !== 'ALL') {
-         params.append(key, value as string);
-      }
+      if (!value || value === 'ALL' || value === 'startTime' || value === 'all') return;
+      params.set(key, value as string);
     });
+    saveCity(newFilters.city);
     router.push(`/events?${params.toString()}`);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 animate-fade-up">
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      <h1 className="text-[32px] font-bold mb-4">Događaji</h1>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
         <div className="flex-grow w-full md:w-auto">
-          <EventFilters 
-            initialFilters={currentFilters} 
+          <EventFilters
+            initialFilters={currentFilters}
             onFilterChange={handleFilterChange}
             venues={venues}
           />
         </div>
-        
+
         <div className="flex bg-card border border-border rounded-xl p-1 shrink-0">
-          <button 
-            onClick={() => setViewMode('grid')}
+          <button
+            onClick={() => changeView('grid')}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${viewMode === 'grid' ? 'bg-primary text-text shadow-lg' : 'text-muted hover:text-text'}`}
           >
-            <LayoutGrid size={16} /> GRID
+            <LayoutGrid size={16} /> Lista
           </button>
-          <button 
-            onClick={() => setViewMode('map')}
+          <button
+            onClick={() => changeView('map')}
             className={`px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${viewMode === 'map' ? 'bg-primary text-text shadow-lg' : 'text-muted hover:text-text'}`}
           >
-            <MapIcon size={16} /> MAPA
+            <MapIcon size={16} /> Mapa
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2">
           {[1, 2, 3, 4, 5, 6].map(i => <EventCardSkeleton key={i} />)}
         </div>
       ) : error ? (
@@ -163,9 +182,9 @@ function EventsContent() {
           <button onClick={() => window.location.reload()} className="px-6 py-2 bg-primary text-text font-bold rounded-full">Pokušaj ponovo</button>
         </div>
       ) : data?.events.length === 0 ? (
-        <EmptyState 
-          icon={Search} 
-          title="Nema rezultata" 
+        <EmptyState
+          icon={Search}
+          title="Nema rezultata"
           description="Nismo pronašli nijedan događaj koji odgovara vašim filterima. Pokušajte sa drugim datumom ili kategorijom."
           actionHref="/events"
           actionLabel="PONIŠTI SVE FILTERE"
@@ -173,11 +192,11 @@ function EventsContent() {
       ) : (
         <>
           {viewMode === 'grid' ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2">
               {data?.events.map(event => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
+                <EventCard
+                  key={event.id}
+                  event={event}
                   isFavoritedInitial={favoriteEventIds.includes(event.id)}
                 />
               ))}

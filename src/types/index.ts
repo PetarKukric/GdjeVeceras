@@ -110,6 +110,8 @@ export interface UseEventsProps {
   limit?: number;
   lat?: number;
   lng?: number;
+  reservations?: 'available' | '';
+  initialData?: EventsResponse;
 }
 
 export interface EventDetailsResponse {

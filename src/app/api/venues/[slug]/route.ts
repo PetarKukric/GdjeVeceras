@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const slug = (await params).slug;
-    
+
     // Background archive check
     await checkAndArchiveFinishedEvents();
 
@@ -92,7 +92,7 @@ export async function PUT(
   try {
     const session = await getSession();
     const slug = (await params).slug;
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -111,7 +111,7 @@ export async function PUT(
     }
 
     const body = await _request.json();
-    
+
     // Update venue and its related hours/tags
     const venue = await prisma.$transaction(async (tx) => {
       // Delete old hours and tags if they are provided in body
@@ -160,12 +160,8 @@ export async function PUT(
     });
 
     if (session.user.role === 'ADMIN' && body.ownerId) {
-      // ADMIN može biti vlasnik lokala, ali mora zadržati ADMIN ulogu.
       await prisma.user.updateMany({
-        where: {
-          id: body.ownerId,
-          role: { not: 'ADMIN' }
-        },
+        where: { id: body.ownerId, role: { not: 'ADMIN' } },
         data: { role: 'OWNER' }
       });
     }
@@ -182,14 +178,19 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Morate biti prijavljeni.' }, { status: 401 });
     const slug = (await params).slug;
-    
-    const venue = await prisma.venue.findUnique({ 
+
+    const venue = await prisma.venue.findUnique({
         where: { slug },
-        include: { events: true } 
+        include: { events: true }
     });
     if (!venue) {
       return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
+    }
+    if (session.user.role !== 'ADMIN' && venue.ownerId !== session.user.id) {
+      return NextResponse.json({ error: 'Nemate dozvolu za brisanje ovog lokala.' }, { status: 403 });
     }
 
     const eventIds = venue.events.map(e => e.id);
@@ -205,7 +206,7 @@ export async function DELETE(
         prisma.eventFloorItem.deleteMany({ where: { eventId: { in: eventIds } } }),
         prisma.eventTableGroup.deleteMany({ where: { eventId: { in: eventIds } } }),
         prisma.reservation.deleteMany({ where: { eventId: { in: eventIds } } }),
-        
+
         // Cleanup for venue itself
         prisma.venueFavorite.deleteMany({ where: { venueId: venue.id } }),
         prisma.venueOpeningHour.deleteMany({ where: { venueId: venue.id } }),

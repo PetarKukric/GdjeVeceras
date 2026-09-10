@@ -62,7 +62,7 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
               Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return (R * c).toFixed(1);
@@ -77,10 +77,10 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
       )}
 
       {/* key=centerKey: mapa se re-mountuje SAMO pri promjeni grada (bez snap-back tokom korištenja) */}
-      <MapContainer 
+      <MapContainer
         key={centerKey}
-        center={mapCenter} 
-        zoom={zoom} 
+        center={mapCenter}
+        zoom={zoom}
         style={{ height: '100%', width: '100%', background: '#050505' }}
         scrollWheelZoom={true}
         dragging={true}
@@ -133,9 +133,9 @@ export default function EventMap({ events, userLocation, center, centerKey = 'de
                       )}
                       <h4 className="font-black text-sm text-white uppercase tracking-tight mb-2 leading-tight">{event.title}</h4>
                       <p className="text-[10px] text-muted font-bold uppercase tracking-widest mb-3">
-                        {new Date(event.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit' })} • {event.price === 0 ? 'Besplatno' : `${event.price} KM`}
+                        {new Date(event.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })} • {typeof event.price === 'number' && event.price > 0 ? `${event.price} ${event.currency || 'KM'}` : 'Cijena nije navedena'}
                       </p>
-                      <Link 
+                      <Link
                         href={`/events/${event.slug}`}
                         className="inline-flex w-full py-2.5 bg-primary text-white text-[10px] font-black justify-center rounded-xl uppercase tracking-[0.2em] hover:bg-primary-hover transition-all shadow-lg shadow-primary/20"
                       >

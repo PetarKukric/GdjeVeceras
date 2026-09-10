@@ -4,6 +4,8 @@ import { getSession } from '@/lib/auth';
 import { requireVerifiedEmail } from '@/lib/verification';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(_request: NextRequest) {
   try {
     const { searchParams } = new URL(_request.url);
@@ -20,9 +22,22 @@ export async function GET(_request: NextRequest) {
 
     const cityParam = searchParams.get('city');
     const city = getCityBySlug(cityParam) || getCityByName(cityParam);
+    const type = searchParams.get('type');
+
+    const typeNames = type === 'clubs'
+      ? ['Klub', 'Nightclub', 'Noćni klub']
+      : type === 'bars'
+        ? ['Bar', 'Pub', 'Kafić', 'Caffe bar', 'Lounge bar']
+        : [];
+
+    const where: any = {};
+    if (city) where.city = city.name;
+    if (typeNames.length > 0) {
+      where.tags = { some: { OR: typeNames.map((name) => ({ name: { contains: name } })) } };
+    }
 
     const venues = await prisma.venue.findMany({
-      where: city ? { city: city.name } : undefined,
+      where,
       include: {
         openingHours: true,
         tags: true,
@@ -50,7 +65,7 @@ export async function POST(_request: NextRequest) {
     if (verificationError) return verificationError;
 
     const body = await _request.json();
-    
+
     if (!body.name || !body.address || !body.city) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -93,12 +108,8 @@ export async function POST(_request: NextRequest) {
     });
 
     if (session.user.role === 'ADMIN' && body.ownerId) {
-      // Dodjela lokala ne smije administratoru ukloniti ADMIN ovlaštenja.
       await prisma.user.updateMany({
-        where: {
-          id: body.ownerId,
-          role: { not: 'ADMIN' }
-        },
+        where: { id: body.ownerId, role: { not: 'ADMIN' } },
         data: { role: 'OWNER' }
       });
     }

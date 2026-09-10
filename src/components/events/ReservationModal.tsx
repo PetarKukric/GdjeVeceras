@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  X, 
-  Users, 
-  Clock, 
-  Phone, 
-  User, 
+import {
+  X,
+  Users,
+  Clock,
+  Phone,
+  User,
   Mail,
   Loader2,
   CheckCircle,
@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { isValidBosnianPhone } from '@/lib/validation';
 import { toISOFromLocalInput, toLocalDatetimeValue } from '@/lib/bosnia-time';
+import { trackEvent } from '@/lib/analytics';
 
 interface ReservationModalProps {
   isOpen: boolean;
@@ -68,6 +69,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
 
       if (res.ok) {
         setSuccess(true);
+        trackEvent('reservation_request_submitted', { event_id: event.id, venue_id: event.venueId });
         showToast('Zahtjev za rezervaciju poslat');
       } else {
         const data = await res.json();
@@ -81,12 +83,12 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="bg-card border border-white/10 rounded-3xl sm:rounded-3xl w-full max-w-lg max-h-[calc(100dvh-32px)] overflow-y-auto scrollbar-hide shadow-2xl animate-in zoom-in-95 duration-300">
-        
+
         {/* HEADER */}
         <div className="p-5 sm:p-8 border-b border-white/5 bg-surface/50 flex items-center justify-between">
            <div>
@@ -110,7 +112,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                        Vlasnik lokala će pregledati Vašu rezervaciju i potvrditi je uskoro.
                     </p>
                  </div>
-                 <button 
+                 <button
                    onClick={onClose}
                    className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
                  >
@@ -119,6 +121,9 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
               </div>
            ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                 <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-xs font-medium leading-relaxed text-muted">
+                   Ovo je zahtjev za rezervaciju, ne trenutna potvrda. Lokal će ga pregledati, a status možeš pratiti u odjeljku „Moje rezervacije”.
+                 </div>
                  {error && (
                     <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500 text-xs font-bold animate-pulse">
                        <AlertCircle size={18} /> {error}
@@ -130,9 +135,9 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Broj osoba</label>
                        <div className="relative">
                           <Users size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-                          <input 
-                            type="number" 
-                            min="1" 
+                          <input
+                            type="number"
+                            min="1"
                             max="50"
                             required
                             className="w-full pl-12 pr-6 py-4 bg-surface border border-white/5 rounded-2xl focus:outline-none focus:border-primary text-sm font-bold text-white transition-all"
@@ -145,8 +150,8 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Vrijeme dolaska</label>
                        <div className="relative">
                           <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-                          <input 
-                            type="datetime-local" 
+                          <input
+                            type="datetime-local"
                             required
                             className="w-full pl-12 pr-4 py-4 bg-surface border border-white/5 rounded-2xl focus:outline-none focus:border-primary text-sm font-bold text-white transition-all"
                             value={formData.startTime}
@@ -161,8 +166,8 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                        <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ime i Prezime</label>
                        <div className="relative">
                           <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             placeholder="Kako se zovete?"
                             className="w-full pl-12 pr-6 py-4 bg-surface border border-white/5 rounded-2xl focus:outline-none focus:border-primary text-sm font-bold text-white transition-all"
@@ -176,8 +181,8 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                            <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Kontakt telefon</label>
                            <div className="relative">
                               <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-                              <input 
-                                type="tel" 
+                              <input
+                                type="tel"
                                 required
                                 placeholder="065..."
                                 className="w-full pl-12 pr-6 py-4 bg-surface border border-white/5 rounded-2xl focus:outline-none focus:border-primary text-sm font-bold text-white transition-all"
@@ -190,8 +195,8 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                            <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">E-mail (opciono)</label>
                            <div className="relative">
                               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-                              <input 
-                                type="email" 
+                              <input
+                                type="email"
                                 placeholder="vase@ime.com"
                                 className="w-full pl-12 pr-6 py-4 bg-surface border border-white/5 rounded-2xl focus:outline-none focus:border-primary text-sm font-bold text-white transition-all"
                                 value={formData.email}
@@ -204,7 +209,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
 
                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Napomena / Posebne želje</label>
-                    <textarea 
+                    <textarea
                        className="w-full px-6 py-4 bg-surface border border-white/5 rounded-2xl focus:outline-none focus:border-primary text-sm font-medium text-white transition-all min-h-[100px]"
                        placeholder="Želimo sto pored bine, slavimo rođendan..."
                        value={formData.notes}
@@ -212,7 +217,7 @@ export function ReservationModal({ isOpen, onClose, event, user }: ReservationMo
                     />
                  </div>
 
-                 <button 
+                 <button
                    type="submit"
                    disabled={loading}
                    className="w-full py-5 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50"

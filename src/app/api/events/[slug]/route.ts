@@ -38,6 +38,9 @@ export async function GET(
     if (!event) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
+    if (event.status !== 'PUBLISHED' && (!session || (session.user.role !== 'ADMIN' && event.venue.ownerId !== session.user.id))) {
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
+    }
 
     // ===== PONAVLJAJUĆI DOGAĐAJ: riješi konkretan termin iz ?date=YYYY-MM-DD =====
     // Vraća termine-specifične startDateTime/endDateTime/title + occurrenceDate/isOccurrence.
@@ -103,10 +106,10 @@ export async function GET(
         if (catFreq[e.category]) score += catFreq[e.category] * 10;
         if (venueFreq[e.venueId]) score += venueFreq[e.venueId] * 5;
         score += (e._count.favorites || 0);
-        
+
         let reason = '';
         if (catFreq[e.category] >= 2) reason = 'Slično događajima koje voliš';
-        
+
         return { ...e, personalizationScore: score, recommendationReason: reason };
       })
       .sort((a: any, b: any) => b.personalizationScore - a.personalizationScore)
@@ -133,15 +136,35 @@ export async function PUT(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Morate biti prijavljeni.' }, { status: 401 });
     const slug = (await params).slug;
     const body = await _request.json();
-    
+    const existing = await prisma.event.findUnique({ where: { slug }, include: { venue: true } });
+    if (!existing) return NextResponse.json({ error: 'Događaj nije pronađen.' }, { status: 404 });
+    if (session.user.role !== 'ADMIN' && existing.venue.ownerId !== session.user.id) {
+      return NextResponse.json({ error: 'Nemate dozvolu za ovu izmjenu.' }, { status: 403 });
+    }
+
     const event = await prisma.event.update({
       where: { slug },
       data: {
-        ...body,
+        title: body.title,
+        description: body.description,
+        category: body.category,
         startDateTime: body.startDateTime ? new Date(body.startDateTime) : undefined,
         endDateTime: body.endDateTime ? new Date(body.endDateTime) : undefined,
+        price: body.price,
+        currency: body.currency,
+        performers: body.performers,
+        imageUrl: body.imageUrl,
+        ticketUrl: body.ticketUrl,
+        instagramUrl: body.instagramUrl,
+        facebookUrl: body.facebookUrl,
+        minimumAge: body.minimumAge,
+        dressCodeType: body.dressCodeType,
+        dressCodeName: body.dressCodeName,
+        dressCodeDescription: body.dressCodeDescription,
       },
     });
 
@@ -157,8 +180,15 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: 'Morate biti prijavljeni.' }, { status: 401 });
     const slug = (await params).slug;
-    
+    const existing = await prisma.event.findUnique({ where: { slug }, include: { venue: true } });
+    if (!existing) return NextResponse.json({ error: 'Događaj nije pronađen.' }, { status: 404 });
+    if (session.user.role !== 'ADMIN' && existing.venue.ownerId !== session.user.id) {
+      return NextResponse.json({ error: 'Nemate dozvolu za brisanje.' }, { status: 403 });
+    }
+
     await prisma.event.delete({
       where: { slug },
     });

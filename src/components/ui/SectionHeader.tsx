@@ -17,23 +17,23 @@ interface SectionHeaderProps {
 export function SectionHeader({ icon: Icon, title, highlight, subtitle, actionLabel, onAction, actionHref }: SectionHeaderProps) {
   const action = actionLabel && (actionHref || onAction);
   return (
-    <div className="flex justify-between items-end gap-4 mb-8 md:mb-10">
+    <div className="flex justify-between items-end gap-3 mb-4">
       <div className="min-w-0">
-        <h2 className="text-h2 font-black text-white uppercase tracking-tight leading-none flex items-center gap-3">
-          {Icon && <Icon size={28} className="text-primary shrink-0" aria-hidden="true" />}
-          {title} {highlight && <span className="text-primary">{highlight}</span>}
+        <h2 className="text-[22px] md:text-2xl font-bold text-text leading-tight flex items-center gap-3">
+          {Icon && <Icon size={20} className="text-primary shrink-0" aria-hidden="true" />}
+          {title.charAt(0) + title.slice(1).toLocaleLowerCase('sr-Latn')} {highlight && <span className="text-primary">{highlight}</span>}
         </h2>
         {subtitle && (
-          <p className="text-muted text-sm font-medium mt-3 leading-relaxed">{subtitle}</p>
+          <p className="text-muted text-sm font-medium mt-1 leading-relaxed">{subtitle}</p>
         )}
       </div>
       {action && (
         actionHref ? (
-          <a href={actionHref} className="shrink-0 text-primary text-[10px] font-black uppercase tracking-[0.2em] hover:text-white transition-colors hidden sm:block">
+          <a href={actionHref} className="shrink-0 text-primary text-xs font-semibold hover:text-white transition-colors block">
             {actionLabel} →
           </a>
         ) : (
-          <button onClick={onAction} className="shrink-0 text-primary text-[10px] font-black uppercase tracking-[0.2em] hover:text-white transition-colors hidden sm:block">
+          <button onClick={onAction} className="shrink-0 text-primary text-xs font-semibold hover:text-white transition-colors block">
             {actionLabel} →
           </button>
         )
