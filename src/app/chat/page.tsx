@@ -47,6 +47,8 @@ export default function ChatPage() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const nearBottomRef = useRef(true);
   const previousMessageCount = useRef(0);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+  const messageRequestRef = useRef(0);
 
   // 1. Check Session
   useEffect(() => {
@@ -77,18 +79,22 @@ export default function ChatPage() {
   useEffect(() => {
     if (user) {
       fetchConversations();
-      const interval = setInterval(fetchConversations, 10000); // Poll every 10s
-      return () => clearInterval(interval);
+      const refresh = () => { if (document.visibilityState === 'visible') fetchConversations(); };
+      const interval = setInterval(refresh, 15000);
+      document.addEventListener('visibilitychange', refresh);
+      return () => { clearInterval(interval); document.removeEventListener('visibilitychange', refresh); };
     }
   }, [user, fetchConversations]);
 
   // 3. Load Messages
   const fetchMessages = useCallback(async (id: string) => {
+    const requestId = ++messageRequestRef.current;
     try {
       const endpoint = id === 'global' ? '/api/chat/global' : `/api/chat/${id}/messages`;
       const res = await fetch(endpoint);
       if (res.ok) {
         const data = await res.json();
+        if (requestId !== messageRequestRef.current) return;
         setMessages(data);
         if (data.length > previousMessageCount.current && !nearBottomRef.current) setHasNewMessages(true);
         previousMessageCount.current = data.length;
@@ -115,10 +121,38 @@ export default function ChatPage() {
   useEffect(() => {
     if (activeConvId) {
       fetchMessages(activeConvId);
-      const interval = setInterval(() => fetchMessages(activeConvId), 3000); // Poll every 3s
-      return () => clearInterval(interval);
+      const refresh = () => { if (document.visibilityState === 'visible') fetchMessages(activeConvId); };
+      const interval = setInterval(refresh, 5000);
+      document.addEventListener('visibilitychange', refresh);
+      return () => { clearInterval(interval); document.removeEventListener('visibilitychange', refresh); };
     }
   }, [activeConvId, fetchMessages]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    const updateHeight = () => root.style.setProperty('--chat-viewport-height', `${viewport?.height || window.innerHeight}px`);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    updateHeight();
+    viewport?.addEventListener('resize', updateHeight);
+    viewport?.addEventListener('scroll', updateHeight);
+    window.addEventListener('orientationchange', updateHeight);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      root.style.removeProperty('--chat-viewport-height');
+      viewport?.removeEventListener('resize', updateHeight);
+      viewport?.removeEventListener('scroll', updateHeight);
+      window.removeEventListener('orientationchange', updateHeight);
+    };
+  }, []);
+
+  useEffect(() => {
+    const textarea = composerRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 128)}px`;
+  }, [newMessage]);
 
   // 4. Send Message
   const handleSend = async (e?: React.FormEvent) => {
@@ -140,7 +174,7 @@ export default function ChatPage() {
 
       if (res.ok) {
         const data = await res.json();
-        setMessages(prev => [...prev, data]);
+        setMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data]);
         if (activeConvId !== 'global') fetchConversations(); // Update last message in sidebar
       } else {
         const err = await res.json();
@@ -287,11 +321,11 @@ export default function ChatPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col max-h-screen overflow-hidden">
-      <div className="flex-grow flex overflow-hidden">
+    <div className="chat-shell h-[var(--chat-viewport-height,100dvh)] min-h-0 bg-background text-text flex flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 flex overflow-hidden">
         
         {/* --- Sidebar (Chat List) --- */}
-        <aside className={`${view === 'chat' ? 'hidden' : 'flex'} md:flex flex-col w-full md:w-96 border-r border-border/50 bg-surface/30 backdrop-blur-xl animate-fade-up`}>
+        <aside className={`${view === 'chat' ? 'hidden' : 'flex'} min-h-0 md:flex flex-col w-full md:w-96 border-r border-border/50 bg-surface/30 backdrop-blur-xl animate-fade-up`}>
           <div className="p-4 md:p-5 border-b border-border/50">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-2xl font-bold text-white">Razgovori</h1>
@@ -409,7 +443,7 @@ export default function ChatPage() {
         </aside>
 
         {/* --- Chat Window --- */}
-        <main className={`${view === 'list' ? 'hidden' : 'flex'} md:flex flex-col flex-grow bg-background relative animate-in fade-in duration-500`}>
+        <main className={`${view === 'list' ? 'hidden' : 'flex'} min-h-0 md:flex flex-col flex-1 bg-background relative animate-in fade-in duration-200`}>
           {activeConvId ? (
             <>
               {/* Chat Header */}
@@ -442,7 +476,7 @@ export default function ChatPage() {
               </div>
 
               {/* Messages Area */}
-              <div ref={messagesRef} onScroll={e => { const el=e.currentTarget; nearBottomRef.current=el.scrollHeight-el.scrollTop-el.clientHeight<120; if(nearBottomRef.current) setHasNewMessages(false); }} className="chat-messages flex-grow overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-hide">
+              <div ref={messagesRef} onScroll={e => { const el=e.currentTarget; nearBottomRef.current=el.scrollHeight-el.scrollTop-el.clientHeight<120; if(nearBottomRef.current) setHasNewMessages(false); }} className="chat-messages min-h-0 flex-1 overscroll-contain overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-hide">
                 {messages.length === 0 ? (
                   <div className="h-full flex items-center justify-center text-center opacity-50">
                     <div className="bg-surface/50 border border-border/50 p-10 rounded-3xl max-w-xs">
@@ -536,12 +570,13 @@ export default function ChatPage() {
 
               {/* Message Input */}
               {hasNewMessages && <button onClick={() => scrollToLatest()} className="absolute bottom-24 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/40 bg-card px-4 py-2 text-xs font-semibold text-primary shadow-xl"><ChevronDown size={15} className="inline mr-1"/>Nove poruke</button>}
-              <div className="chat-composer p-3 md:p-4 border-t border-border bg-card">
+              <div className="chat-composer shrink-0 p-3 md:p-4 border-t border-border bg-card">
                 <form 
                   onSubmit={handleSend}
                   className="flex gap-4 items-center bg-card border border-border/50 p-2 rounded-3xl shadow-2xl focus-within:border-primary/50 transition-all"
                 >
                   <textarea
+                    ref={composerRef}
                     placeholder="Napiši poruku..."
                     rows={1}
                     className="flex-grow min-h-12 max-h-32 resize-none overflow-y-auto bg-transparent border-none focus:ring-0 text-sm font-medium px-4 py-3 text-white placeholder:text-muted/60"

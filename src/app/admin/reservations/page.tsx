@@ -1,7 +1,8 @@
 'use client';
 import { trackEvent } from '@/lib/analytics';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { AdminHeader } from '@/components/admin/AdminLayout';
 import {
   Clock,
@@ -16,32 +17,39 @@ import {
   CheckCircle,
   RefreshCcw
 } from 'lucide-react';
-import {} from '@/components/ui/ClientOnly';
-import { FloorPlanEditor } from '@/components/admin/FloorPlanEditor';
+const FloorPlanEditor = dynamic(() => import('@/components/admin/FloorPlanEditor').then(module => module.FloorPlanEditor), {
+  ssr: false,
+  loading: () => <div className="grid min-h-64 place-items-center text-sm text-muted">Učitavanje rasporeda…</div>,
+});
 
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<any[]>([]);
   const [filter, setFilter] = useState('ALL');
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [processingId, setProcessingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [assigningRes, setAssigningRes] = useState<any>(null);
   const [eventFilter, setEventFilter] = useState<{ id: string, title: string } | null>(null);
   const [eventFilterReady, setEventFilterReady] = useState(false);
+  const [venueFilter, setVenueFilter] = useState('ALL');
 
-  const fetchReservations = async () => {
+  const fetchReservations = useCallback(async () => {
+    setLoading(true);
+    setError('');
     try {
-      const url = eventFilter ? `/api/reservations?eventId=${encodeURIComponent(eventFilter.id)}` : '/api/reservations';
-      const res = await fetch(url);
+      const res = await fetch('/api/reservations', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setReservations(data);
-      }
+      } else setError('Rezervacije trenutno nije moguće učitati.');
     } catch (err) {
       console.error(err);
+      setError('Nema veze sa serverom. Pokušaj ponovo.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Dohvati ?event= iz URL-a (dolazak sa stranice događaja)
@@ -51,37 +59,46 @@ export default function AdminReservations() {
       setEventFilterReady(true);
       return;
     }
-    fetch(`/api/events?limit=100`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        const all = data?.events || [];
-        const found = all.find((e: any) => e.id === eventId);
-        setEventFilter(found ? { id: found.id, title: found.title } : null);
-        setEventFilterReady(true);
-      })
-      .catch(() => setEventFilterReady(true));
+    // Ne učitavaj cijelu kolekciju događaja samo radi naziva filtera.
+    setEventFilter({ id: eventId, title: 'Izabrani događaj' });
+    setEventFilterReady(true);
   }, []);
 
   useEffect(() => {
     if (eventFilterReady) fetchReservations();
-  }, [eventFilterReady, eventFilter]);
+  }, [eventFilterReady, fetchReservations]);
 
   const updateStatus = async (id: string, status: string) => {
+    if (processingId) return;
+    setProcessingId(id);
+    setError('');
     try {
       const res = await fetch('/api/reservations', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status })
       });
-      if (res.ok) { if (status === 'CONFIRMED') trackEvent('reservation_confirmed', { source: 'admin_panel' }, `confirmed:${id}`); fetchReservations(); }
-    } catch {}
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        if (status === 'CONFIRMED') trackEvent('reservation_confirmed', { source: 'admin_panel' }, `confirmed:${id}`);
+        setReservations(current => current.map(item => item.id === id ? { ...item, ...data, status } : item));
+      } else {
+        if (data?.current) setReservations(current => current.map(item => item.id === id ? { ...item, ...data.current } : item));
+        setError(data?.error || 'Status nije promijenjen. Osvježi podatke i pokušaj ponovo.');
+      }
+    } catch { setError('Nema veze sa serverom. Pokušaj ponovo.'); }
+    finally { setProcessingId(null); }
   };
 
-  const filtered = reservations.filter(r => {
+  const venues = useMemo(() => Array.from(new Map(reservations.map(r => [r.venue.id || r.venue.slug, r.venue])).values()), [reservations]);
+  const events = useMemo(() => Array.from(new Map(reservations.map(r => [r.event.id || r.event.slug, r.event])).values()), [reservations]);
+  const filtered = useMemo(() => reservations.filter(r => {
     if (filter !== 'ALL' && r.status !== filter) return false;
+    if (venueFilter !== 'ALL' && (r.venue.id || r.venue.slug) !== venueFilter) return false;
+    if (eventFilter && (r.event.id || r.event.slug) !== eventFilter.id) return false;
     if (search && !r.name.toLowerCase().includes(search.toLowerCase()) && !r.phone.includes(search)) return false;
     return true;
-  });
+  }), [reservations, filter, venueFilter, search]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,36 +110,37 @@ export default function AdminReservations() {
       default: return 'text-muted bg-white/5 border-white/10';
     }
   };
+  const sarajevoDay = (value: string | Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Sarajevo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
 
   return (
     <>
       <AdminHeader title="Rezervacije" />
-      <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+      <main className="p-4 md:p-8 max-w-7xl mx-auto space-y-4 md:space-y-6">
 
         {/* STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
            {[
              { label: 'Ukupno', value: reservations.length, color: 'text-white' },
              { label: 'Na čekanju', value: reservations.filter(r => r.status === 'PENDING').length, color: 'text-yellow-500' },
              { label: 'Potvrđeno', value: reservations.filter(r => r.status === 'CONFIRMED').length, color: 'text-green-500' },
-             { label: 'Danas', value: reservations.filter(r => new Date(r.startTime).toDateString() === new Date().toDateString()).length, color: 'text-primary' },
+             { label: 'Danas', value: reservations.filter(r => sarajevoDay(r.startTime) === sarajevoDay(new Date())).length, color: 'text-primary' },
            ].map(stat => (
-             <div key={stat.label} className="bg-card border border-white/5 p-6 rounded-3xl space-y-2">
-                <p className="text-[10px] font-black text-muted uppercase tracking-widest">{stat.label}</p>
-                <p className={`text-3xl font-black ${stat.color}`}>{stat.value}</p>
+             <div key={stat.label} className="min-h-20 bg-card border border-border p-4 rounded-2xl flex flex-col justify-between">
+                <p className="text-xs font-semibold text-muted">{stat.label}{stat.label === 'Danas' ? ' (događaj)' : ''}</p>
+                <p className={`text-2xl font-black leading-none ${stat.color}`}>{stat.value}</p>
              </div>
            ))}
         </div>
 
         <div className="bg-card border border-white/5 rounded-3xl overflow-hidden">
            {/* FILTER BAR */}
-           <div className="p-6 border-b border-white/5 bg-surface/50 flex items-center justify-between flex-wrap gap-4">
+           <div className="p-3 md:p-4 border-b border-white/5 bg-surface/50 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-4 flex-wrap w-full sm:w-auto">
                  <div className="relative w-full sm:w-auto">
                     <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                     <input
                        type="text"
-                       placeholder="Pretraži ime ili broj..."
+                       placeholder="Ime ili telefon..."
                        className="pl-10 pr-6 py-2.5 bg-background border border-white/10 rounded-xl text-[10px] font-bold text-white focus:outline-none focus:border-primary transition-all w-full sm:w-64"
                        value={search}
                        onChange={e => setSearch(e.target.value)}
@@ -139,6 +157,14 @@ export default function AdminReservations() {
                     <option value="CANCELLED">OTKAZANO</option>
                     <option value="NO_SHOW">NEDOLAZAK</option>
                  </select>
+                 <select className="px-4 py-2.5 bg-background border border-white/10 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-primary cursor-pointer" value={venueFilter} onChange={e => setVenueFilter(e.target.value)}>
+                    <option value="ALL">Svi lokali</option>
+                    {venues.map((venue: any) => <option key={venue.id || venue.slug} value={venue.id || venue.slug}>{venue.name}</option>)}
+                 </select>
+                 <select className="px-4 py-2.5 bg-background border border-white/10 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-primary cursor-pointer" value={eventFilter?.id || 'ALL'} onChange={e => { const selected = events.find((event: any) => (event.id || event.slug) === e.target.value) as any; setEventFilter(selected ? { id: selected.id || selected.slug, title: selected.title } : null); }}>
+                    <option value="ALL">Svi događaji</option>
+                    {events.map((event: any) => <option key={event.id || event.slug} value={event.id || event.slug}>{event.title}</option>)}
+                 </select>
                  {eventFilter && (
                     <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 border border-primary/20 rounded-xl">
                        <Calendar className="w-3.5 h-3.5 text-primary" />
@@ -150,10 +176,11 @@ export default function AdminReservations() {
                  )}
               </div>
 
-              <button onClick={fetchReservations} className="p-2.5 hover:bg-white/5 rounded-xl transition-all text-muted hover:text-white">
-                 <RefreshCcw size={18} />
+              <button onClick={fetchReservations} disabled={loading} className="inline-flex min-h-10 items-center gap-2 px-3 hover:bg-white/5 rounded-xl transition-all text-xs text-muted hover:text-white disabled:opacity-50">
+                 <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} /> Osvježi
               </button>
            </div>
+           {error && <div role="alert" className="border-b border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>}
 
            {/* MOBILE CARDS — akcije su stalno vidljive (telefon nema hover) */}
            <div className="md:hidden divide-y divide-white/5">
@@ -167,10 +194,8 @@ export default function AdminReservations() {
                     <article key={r.id} className="p-4 space-y-4 bg-card">
                        <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                             <p className="text-sm font-black text-white uppercase truncate">{r.name}</p>
-                             <p className="mt-1 text-[11px] font-bold text-muted flex items-center gap-1.5">
-                                <Phone size={12} /> {r.phone}
-                             </p>
+                             <p className="text-sm font-bold text-white truncate">{r.name}</p>
+                             <a href={`tel:${r.phone}`} className="mt-1 text-xs font-medium text-muted flex items-center gap-1.5 hover:text-primary"><Phone size={12} /> {r.phone}</a>
                           </div>
                           <div className={`shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getStatusColor(r.status)}`}>
                              <span className={`w-1.5 h-1.5 rounded-full ${r.status === 'PENDING' ? 'bg-yellow-500 animate-pulse' : r.status === 'CONFIRMED' ? 'bg-green-500' : 'bg-current'}`} />
@@ -180,7 +205,8 @@ export default function AdminReservations() {
 
                        <div className="grid grid-cols-[1fr_auto] gap-3 p-3 rounded-xl bg-background/60 border border-white/5">
                           <div className="min-w-0">
-                             <p className="text-xs font-bold text-white uppercase truncate">{r.event.title}</p>
+                             <p className="text-xs font-bold text-white truncate">{r.event.title}</p>
+                             <p className="mt-1 truncate text-[11px] text-muted">{r.venue.name} · {r.venue.city}</p>
                              <p className="mt-1 text-[10px] font-bold text-muted flex items-center gap-1">
                                 <Clock size={11} /> {new Date(r.startTime).toLocaleTimeString('bs', {hour:'2-digit', minute:'2-digit'})}
                              </p>
@@ -190,20 +216,29 @@ export default function AdminReservations() {
                           </span>
                        </div>
 
+                       {((r.assignedItems?.length || 0) > 0 || (r.assignedGroups?.length || 0) > 0 || r.notes) && (
+                         <details className="rounded-xl border border-border bg-background/40 px-3 py-2 text-xs">
+                           <summary className="cursor-pointer font-semibold text-muted">Detalji rezervacije</summary>
+                           {(r.assignedItems?.length || 0) > 0 && <p className="mt-2 text-white">Stolovi: {r.assignedItems.map((item: any) => item.name).filter(Boolean).join(', ')}</p>}
+                           {(r.assignedGroups?.length || 0) > 0 && <p className="mt-1 text-white">Grupe: {r.assignedGroups.map((group: any) => group.name).filter(Boolean).join(', ')}</p>}
+                           {r.notes && <p className="mt-2 break-words text-muted">Napomena: {r.notes}</p>}
+                         </details>
+                       )}
+
                        <div className="grid grid-cols-2 gap-2">
                           {(r.status === 'PENDING' || (r.status === 'CONFIRMED' && hasAssignedTable)) && (
-                             <button onClick={() => setAssigningRes(r)} className="col-span-2 min-h-11 px-4 py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                {hasAssignedTable ? 'Promijeni sto' : 'Dodijeli sto'}
+                             <button onClick={() => setAssigningRes(r)} className="col-span-2 min-h-11 px-4 py-3 bg-primary text-white rounded-xl text-xs font-bold active:scale-[.98]">
+                                {hasAssignedTable ? 'Prikaži / promijeni sto' : 'Dodijeli sto'}
                              </button>
                           )}
                           {r.status === 'PENDING' && (
-                             <button onClick={() => updateStatus(r.id, 'CONFIRMED')} className="min-h-11 px-3 py-3 bg-green-500/15 text-green-400 border border-green-500/25 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                             <button disabled={processingId === r.id} onClick={() => updateStatus(r.id, 'CONFIRMED')} className="min-h-11 px-3 py-3 bg-green-500/15 text-green-400 border border-green-500/25 rounded-xl text-xs font-bold disabled:opacity-50 active:scale-[.98]">
                                 Potvrdi
                              </button>
                           )}
                           {r.status !== 'CANCELLED' && r.status !== 'NO_SHOW' && r.status !== 'COMPLETED' && (
-                             <button onClick={() => updateStatus(r.id, 'CANCELLED')} className="min-h-11 px-3 py-3 bg-red-500/15 text-red-400 border border-red-500/25 rounded-xl text-[10px] font-black uppercase tracking-wider">
-                                Otkaži
+                             <button disabled={processingId === r.id} onClick={() => updateStatus(r.id, 'CANCELLED')} className="min-h-11 px-3 py-3 bg-red-500/15 text-red-400 border border-red-500/25 rounded-xl text-xs font-bold disabled:opacity-50 active:scale-[.98]">
+                                {r.status === 'PENDING' ? 'Odbij' : 'Otkaži'}
                              </button>
                           )}
                           {(r.status === 'PENDING' || r.status === 'CONFIRMED') && (

@@ -37,8 +37,10 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
         } catch {}
       };
       fetchChatUnread();
-      const interval = setInterval(fetchChatUnread, 30000);
-      return () => clearInterval(interval);
+      const refreshWhenVisible = () => { if (document.visibilityState === 'visible') fetchChatUnread(); };
+      const interval = setInterval(refreshWhenVisible, 30000);
+      document.addEventListener('visibilitychange', refreshWhenVisible);
+      return () => { clearInterval(interval); document.removeEventListener('visibilitychange', refreshWhenVisible); };
     }
   }, [user]);
 
@@ -70,7 +72,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
   ];
 
   // Robust check to hide public header on admin pages
-  if (!pathname || pathname.startsWith('/admin')) return null;
+  if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/chat')) return null;
 
   return (
     <>

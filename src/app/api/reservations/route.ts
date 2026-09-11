@@ -70,8 +70,8 @@ export async function GET(request: NextRequest) {
     const reservations = await prisma.reservation.findMany({
       where,
       include: {
-        event: { select: { title: true, slug: true, startDateTime: true, endDateTime: true, imageUrl: true } },
-        venue: { select: { name: true, slug: true, city: true, imageUrl: true } },
+        event: { select: { id: true, title: true, slug: true, startDateTime: true, endDateTime: true, imageUrl: true } },
+        venue: { select: { id: true, name: true, slug: true, city: true, imageUrl: true } },
         assignedItems: true,
         assignedGroups: true
       },
@@ -200,10 +200,21 @@ export async function PATCH(request: NextRequest) {
             }
         }
 
-        const updated = await prisma.reservation.update({
-            where: { id },
+        const allowedStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'NO_SHOW', 'COMPLETED'];
+        if (!allowedStatuses.includes(status)) {
+            return NextResponse.json({ error: 'Nepoznat status rezervacije.' }, { status: 400 });
+        }
+
+        // Uslovni update sprečava da dva administratora pregaze izmjenu jedan drugome.
+        const result = await prisma.reservation.updateMany({
+            where: { id, status: reservation.status },
             data: { status }
         });
+        if (result.count !== 1) {
+            const current = await prisma.reservation.findUnique({ where: { id } });
+            return NextResponse.json({ error: 'Rezervaciju je u međuvremenu izmijenio drugi korisnik.', current }, { status: 409 });
+        }
+        const updated = { ...reservation, status };
 
         // If cancelled or no-show, free up tables
         if (status === 'CANCELLED' || status === 'NO_SHOW') {

@@ -234,7 +234,7 @@ body {
 .reservation-dock > div { box-shadow:none; border:0; padding:0; }
 .reservation-dock button { text-transform:none; letter-spacing:normal; font-size:16px; }
 .reservation-dock p { text-align:center; font-size:12px; color:#A5A5B2; margin-top:8px; }
-@media(max-width:767px) { body { padding-bottom:calc(72px + env(safe-area-inset-bottom)); } body:has(.admin-shell) { padding-bottom:0; } .event-detail { padding-bottom:190px!important; } }
+@media(max-width:767px) { body { padding-bottom:calc(72px + env(safe-area-inset-bottom)); } body:has(.admin-shell), body:has(.chat-shell) { padding-bottom:0; } .event-detail { padding-bottom:190px!important; } }
 @media(min-width:768px) { .mobile-nav { display:none; } .discovery-results { grid-template-columns:repeat(2,minmax(0,1fr)); } .discovery-results .event-card--featured { grid-row:span 2; } .event-card { grid-template-columns:104px minmax(0,1fr); } }
 @media(min-width:1200px) { .discovery-results { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }
@@ -274,6 +274,10 @@ input, select, textarea { max-width:100%; }
 .chat-messages { background:#09090D; overscroll-behavior:contain; }
 .chat-bubble { max-width:min(78vw,560px); overflow-wrap:anywhere; }
 .chat-bubble--mine { background:#8f1649; border:1px solid #bc2868; }
+.chat-bubble { animation:message-enter 160ms ease-out; }
+button:not(:disabled), a { transition-duration:160ms; }
+button:not(:disabled):active { transform:scale(.98); }
+@keyframes message-enter { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
 .chat-date-divider { display:flex; align-items:center; gap:12px; color:#A5A5B2; font-size:12px; }
 .chat-date-divider::before,.chat-date-divider::after { content:""; height:1px; flex:1; background:#272730; }
 .chat-composer { padding-bottom:max(.75rem,env(safe-area-inset-bottom)); }

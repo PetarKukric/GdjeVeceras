@@ -66,6 +66,8 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   const [query, setQuery] = useState('');
   const boardRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const gestureRef = useRef<{ distance: number; startZoom: number; contentX: number; contentY: number } | null>(null);
+  const panRef = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
   const { showToast } = useToast();
   const GRID_SIZE = 20;
 
@@ -247,8 +249,8 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
   };
 
   const handleTouchStart = (e: React.TouchEvent, item: FloorItem) => {
+    if (!canDrag) return; // pregled/dodjela: gest obrađuje površina plana
     e.stopPropagation();
-    if (isAssignMode) return; // Handled by onClick for toggle consistency
 
     if (!canDrag) return;
     const touch = e.touches[0];
@@ -446,6 +448,56 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
     }, 50);
   };
 
+  const handleBoardTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container || canDrag) return;
+    if (event.touches.length === 2) {
+      const [a, b] = [event.touches[0], event.touches[1]];
+      const distance = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      const middleX = (a.clientX + b.clientX) / 2;
+      const middleY = (a.clientY + b.clientY) / 2;
+      const rect = container.getBoundingClientRect();
+      gestureRef.current = {
+        distance,
+        startZoom: zoom,
+        contentX: (container.scrollLeft + middleX - rect.left) / zoom,
+        contentY: (container.scrollTop + middleY - rect.top) / zoom,
+      };
+      panRef.current = null;
+    } else if (event.touches.length === 1) {
+      const touch = event.touches[0];
+      panRef.current = { x: touch.clientX, y: touch.clientY, left: container.scrollLeft, top: container.scrollTop };
+    }
+  };
+
+  const handleBoardTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container || canDrag) { handleTouchMove(event); return; }
+    if (event.touches.length === 2 && gestureRef.current) {
+      event.preventDefault();
+      const [a, b] = [event.touches[0], event.touches[1]];
+      const distance = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      const middleX = (a.clientX + b.clientX) / 2;
+      const middleY = (a.clientY + b.clientY) / 2;
+      const rect = container.getBoundingClientRect();
+      const nextZoom = Math.max(0.3, Math.min(2, gestureRef.current.startZoom * distance / gestureRef.current.distance));
+      setZoom(nextZoom);
+      container.scrollLeft = gestureRef.current.contentX * nextZoom - (middleX - rect.left);
+      container.scrollTop = gestureRef.current.contentY * nextZoom - (middleY - rect.top);
+    } else if (event.touches.length === 1 && panRef.current) {
+      event.preventDefault();
+      const touch = event.touches[0];
+      container.scrollLeft = panRef.current.left - (touch.clientX - panRef.current.x);
+      container.scrollTop = panRef.current.top - (touch.clientY - panRef.current.y);
+    }
+  };
+
+  const handleBoardTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length < 2) gestureRef.current = null;
+    if (event.touches.length === 0) panRef.current = null;
+    handleTouchEnd();
+  };
+
   // Pozicija malog prozora sa svojstvima — pored izabranog stola/separea
   const POPUP_W = 280;
   let popupPos: { left: number; top: number } | null = null;
@@ -561,8 +613,10 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: canDrag ? 'none' : 'none' }}
+            onTouchStart={handleBoardTouchStart}
+            onTouchMove={handleBoardTouchMove}
+            onTouchEnd={handleBoardTouchEnd}
             onClick={(e) => {
                 if (e.target === e.currentTarget) {
                     setSelectedIds([]);
@@ -690,9 +744,9 @@ export function FloorPlanEditor({ venueSlug, eventSlug, mode, assigningReservati
 
         {/* ASSIGN BAR — rezime dodjele */}
         {isAssignMode && selectedIds.length > 0 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-md rounded-2xl bg-surface/95 backdrop-blur-xl border border-white/10 shadow-2xl p-4 space-y-3">
+          <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-md rounded-2xl bg-surface/95 backdrop-blur-xl border border-white/10 shadow-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-black text-muted uppercase tracking-widest truncate">{reservation?.name || 'Rezervacija'} · {guestCount} mjesta</span>
+              <span className="min-w-0 text-sm font-bold text-white break-words leading-snug">{reservation?.name || 'Rezervacija'} <span className="text-xs font-medium text-muted">· {guestCount} mjesta</span></span>
               <span className={`text-[10px] font-black uppercase whitespace-nowrap ${isCapacitySufficient ? 'text-green-500' : 'text-primary'}`}>{selectedCapacity} / {guestCount} MJ</span>
             </div>
             <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
