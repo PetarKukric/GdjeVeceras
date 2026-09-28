@@ -659,7 +659,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
                   {related.similarEvents.length > 0 ? related.similarEvents.slice(0, 3).map((e: any) => (
                     <Link key={e.id} href={`/events/${e.slug}`} className="bg-card/40 backdrop-blur-sm border border-white/5 p-4 rounded-3xl flex items-center gap-4 hover:border-primary/30 transition-all group shadow-xl">
                        <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 relative">
-                          <img src={e.imageUrl || e.venue?.imageUrl || '/logo-final.png'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
+                          <img src={e.imageUrl || e.venue?.imageUrl || '/logo.svg'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
                           <div className="absolute inset-0 bg-black/20" />
                           <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[7px] font-black text-white uppercase">
                              {formatSerbianDate(e.startDateTime)}

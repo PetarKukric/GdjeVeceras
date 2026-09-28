@@ -2,7 +2,7 @@
 // Siguran pristup: API pozivi, auth i admin stranice NIKAD se ne keširaju.
 // Keširaju se samo statički resursi (ikone, slike, _next/static) za brže učitavanje.
 
-const CACHE_NAME = 'gdjeveceras-v1';
+const CACHE_NAME = 'gdjeveceras-v2';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

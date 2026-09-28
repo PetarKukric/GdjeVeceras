@@ -73,7 +73,7 @@ export default async function RootLayout({
         '@id': `${baseUrl}/#organization`,
         name: 'Gdje Večeras',
         url: baseUrl,
-        logo: `${baseUrl}/logo-final.png`,
+        logo: `${baseUrl}/logo.svg`,
         sameAs: [
           'https://www.instagram.com/gdjeveceras',
           'https://www.tiktok.com/@gdjeveceras2',

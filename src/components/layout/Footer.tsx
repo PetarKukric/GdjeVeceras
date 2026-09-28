@@ -25,7 +25,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-4">
           <div className="space-y-5">
             <Link href="/" aria-label="Gdje Večeras — početna">
-              <img src="/logo-final.png" alt="Gdje Večeras" className="h-12 w-auto object-contain" />
+              <img src="/logo.svg" alt="Gdje Večeras" className="h-12 w-auto object-contain" />
             </Link>
             <p className="text-white text-sm font-black uppercase tracking-widest">
               Pronađi. <span className="text-primary">Izaberi.</span> Izađi.

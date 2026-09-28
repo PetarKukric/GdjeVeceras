@@ -92,7 +92,7 @@ export function AdminSidebar() {
       <div className="p-4 mb-2 border-b border-white/5">
         <div className="flex items-center justify-between lg:block">
             <Link href="/" className="flex items-center gap-3 group">
-              <img src="/logo-final.png" alt="Gdje Večeras" className="h-12 w-auto object-contain transition-transform group-hover:scale-110" />
+              <img src="/logo.svg" alt="Gdje Večeras" className="h-12 w-auto object-contain transition-transform group-hover:scale-110" />
               <div className="flex flex-col leading-none">
                  <span className="text-[10px] font-black text-white uppercase tracking-widest pt-1">PANEL</span>
                  <span className="text-[7px] font-black text-primary uppercase tracking-[0.3em]">GDJE VEČERAS</span>

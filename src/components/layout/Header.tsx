@@ -78,7 +78,7 @@ export function Header({ initialUser = null }: { initialUser?: any }) {
     <>
     <header className="sticky top-0 z-[500] h-16 bg-background border-b border-border">
       <div className="max-w-7xl mx-auto px-4 h-full flex justify-between items-center gap-3">
-        <Link href="/" aria-label="GdjeVečeras početna"><img src="/logo-final.png" alt="GdjeVečeras" className="h-11 w-auto max-w-36 object-contain"/></Link>
+        <Link href="/" aria-label="GdjeVečeras početna"><img src="/logo.svg" alt="GdjeVečeras" className="h-11 w-auto max-w-36 object-contain"/></Link>
         <nav className="hidden lg:flex gap-5 text-sm" aria-label="Glavna navigacija">{navLinks.map(item=><Link key={item.href} href={item.href} className={pathname === item.href ? 'text-primary' : 'text-muted'}>{item.name}</Link>)}</nav>
         <div className="flex items-center gap-2">
           <ClientOnly><NotificationBell user={user}/></ClientOnly>
