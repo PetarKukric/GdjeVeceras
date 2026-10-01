@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, MapPin, Flag, Users, LogOut, Globe, MessageSquare, AlertTriangle,
-  X, Upload, Menu, QrCode, Gift, ExternalLink,
+  X, Upload, Menu, QrCode, Gift, Receipt, ExternalLink,
 } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { Avatar } from '@/components/ui/Avatar';
@@ -23,8 +23,9 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: 'Večeras Score',
     items: [
-      { name: 'Check-in / QR', href: '/admin/checkin', icon: QrCode, roles: ['ADMIN', 'OWNER'] },
+      { name: 'Check-in, QR, boost', href: '/admin/checkin', icon: QrCode, roles: ['ADMIN', 'OWNER'] },
       { name: 'Nagrade i kodovi', href: '/admin/rewards', icon: Gift, roles: ['ADMIN', 'OWNER'] },
+      { name: 'Računi za bonus', href: '/admin/receipts', icon: Receipt, roles: ['ADMIN', 'OWNER'] },
     ],
   },
   {

@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { getSarajevoOffsetMs } from '@/lib/bosnia-time';
 import { getCityBySlug } from '@/lib/cities';
-import { CHECKIN_RULES, distanceMeters, tierInfo, weekStart } from '@/lib/score';
+import { CHECKIN_RULES, countWeekendStreak, distanceMeters, isBoosted, latestWeekendKey, monthKey, streakMultiplier, tierInfo, weekStart, weekendKey } from '@/lib/score';
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -29,26 +30,25 @@ export function checkInUrl(venue: { id: string; slug: string; checkInVersion: nu
   return `${base}/checkin?v=${encodeURIComponent(venue.slug)}&k=${checkInCodeFor(venue.id, venue.checkInVersion)}`;
 }
 
-/** Broj uzastopnih sedmica sa check-inom PRIJE tekuće sedmice */
-async function priorStreakWeeks(userId: string): Promise<number> {
-  const since = new Date(weekStart().getTime() - 16 * WEEK_MS);
+/** Ključevi vikenda (pet/sub/ned) u kojima je korisnik imao check-in, zadnjih ~2 godine */
+async function weekendKeys(userId: string): Promise<Set<number>> {
+  const since = new Date(Date.now() - 104 * WEEK_MS);
   const rows = await prisma.checkIn.findMany({ where: { userId, createdAt: { gte: since } }, select: { createdAt: true } });
-  const weeks = new Set(rows.map((r) => weekStart(r.createdAt).getTime()));
-  let streak = 0;
-  for (let w = weekStart().getTime() - WEEK_MS; weeks.has(w); w -= WEEK_MS) streak++;
-  return streak;
+  const keys = new Set<number>();
+  rows.forEach((r) => { const k = weekendKey(r.createdAt); if (k !== null) keys.add(k); });
+  return keys;
 }
 
-/** Trenutni niz (uključuje tekuću sedmicu ako već ima check-in) — za prikaz na profilu */
+/** Trenutni niz vikenda zaredom (tekući vikend se računa ako već ima izlazak) — za profil i prikaz */
 export async function currentStreakWeeks(userId: string): Promise<number> {
-  const prior = await priorStreakWeeks(userId);
-  const thisWeek = await prisma.checkIn.count({ where: { userId, createdAt: { gte: weekStart() } } });
-  return thisWeek > 0 ? prior + 1 : prior;
+  const keys = await weekendKeys(userId);
+  const latest = latestWeekendKey();
+  // Ako tekući vikend još nema izlazak, niz i dalje "živi" od prošlog vikenda
+  return keys.has(latest) ? countWeekendStreak(keys, latest) : countWeekendStreak(keys, latest - 7);
 }
 
 export type CheckInErrorCode =
-  | 'notPartner' | 'invalidCode' | 'tooFar' | 'noLocation' | 'noVenueLocation'
-  | 'cooldown' | 'dailyLimit';
+  | 'invalidCode' | 'tooFar' | 'noLocation' | 'noVenueLocation' | 'cooldown';
 
 export class CheckInError extends Error {
   constructor(public code: CheckInErrorCode, public extra: Record<string, unknown> = {}) {
@@ -56,9 +56,14 @@ export class CheckInError extends Error {
   }
 }
 
+interface CheckInVenue {
+  id: string; name: string; slug: string; latitude: number | null; longitude: number | null;
+  isPartner: boolean; boostedUntil: Date | null; receiptBoostEnabled: boolean; receiptMinAmount: number; receiptBonusPoints: number;
+}
+
 interface CheckInInput {
   userId: string;
-  venue: { id: string; name: string; slug: string; latitude: number | null; longitude: number | null; checkInPoints: number; isPartner: boolean };
+  venue: CheckInVenue;
   method: 'QR' | 'PHOTO';
   lat?: number | null;
   lng?: number | null;
@@ -69,7 +74,6 @@ interface CheckInInput {
 /** Provjere prije upisa (poziva se i prije uploada fotke, da ne čuvamo fotke za odbijene check-ine) */
 export async function assertCanCheckIn(input: Omit<CheckInInput, 'photoUrl'>): Promise<number | null> {
   const { userId, venue, method, lat, lng, accuracy } = input;
-  if (!venue.isPartner) throw new CheckInError('notPartner');
 
   const hasUserLocation = typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng);
   const hasVenueLocation = typeof venue.latitude === 'number' && typeof venue.longitude === 'number';
@@ -85,63 +89,55 @@ export async function assertCanCheckIn(input: Omit<CheckInInput, 'photoUrl'>): P
     throw new CheckInError('tooFar', { distance });
   }
 
-  const now = Date.now();
-  const recentSameVenue = await prisma.checkIn.findFirst({
-    where: { userId, venueId: venue.id, createdAt: { gte: new Date(now - CHECKIN_RULES.cooldownHours * 3600_000) } },
+  // Jedan check-in u 12h — bilo koji lokal
+  const recent = await prisma.checkIn.findFirst({
+    where: { userId, createdAt: { gte: new Date(Date.now() - CHECKIN_RULES.cooldownHours * 3600_000) } },
     orderBy: { createdAt: 'desc' },
     select: { createdAt: true },
   });
-  if (recentSameVenue) {
-    throw new CheckInError('cooldown', { nextAt: new Date(recentSameVenue.createdAt.getTime() + CHECKIN_RULES.cooldownHours * 3600_000).toISOString() });
+  if (recent) {
+    throw new CheckInError('cooldown', { nextAt: new Date(recent.createdAt.getTime() + CHECKIN_RULES.cooldownHours * 3600_000).toISOString() });
   }
-
-  const today = await prisma.checkIn.count({ where: { userId, createdAt: { gte: new Date(now - 24 * 3600_000) } } });
-  if (today >= CHECKIN_RULES.dailyLimit) throw new CheckInError('dailyLimit');
 
   return distance;
 }
+
+export type BonusType = 'partner' | 'boost' | 'streak';
 
 export async function performCheckIn(input: CheckInInput) {
   const { userId, venue, method, lat, lng, photoUrl } = input;
   const distance = await assertCanCheckIn(input);
   const now = new Date();
 
-  const [user, liveEvent, following, prior] = await Promise.all([
+  const [user, liveEvent, keys] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, select: { totalPoints: true } }),
     prisma.event.findFirst({
       where: { venueId: venue.id, status: 'PUBLISHED', startDateTime: { lte: now }, endDateTime: { gte: now } },
       select: { id: true, title: true },
     }),
-    prisma.follow.findMany({ where: { followerId: userId }, select: { followingId: true } }),
-    priorStreakWeeks(userId),
+    weekendKeys(userId),
   ]);
 
-  const bonuses: { type: 'live' | 'squad' | 'streak'; amount: number }[] = [];
-  const base = Math.max(0, venue.checkInPoints);
-  if (prior + 1 >= CHECKIN_RULES.streakWeeks) {
-    bonuses.push({ type: 'streak', amount: Math.round(base * (CHECKIN_RULES.streakMultiplier - 1)) });
-  }
-  if (liveEvent) bonuses.push({ type: 'live', amount: CHECKIN_RULES.liveBonus });
-  if (following.length) {
-    const squad = await prisma.checkIn.findFirst({
-      where: {
-        venueId: venue.id,
-        userId: { in: following.map((f) => f.followingId) },
-        createdAt: { gte: new Date(now.getTime() - CHECKIN_RULES.squadWindowHours * 3600_000) },
-      },
-      select: { id: true },
-    });
-    if (squad) bonuses.push({ type: 'squad', amount: CHECKIN_RULES.squadBonus });
-  }
+  // Niz uključuje ovaj izlazak ako je danas vikend
+  const thisWeekend = weekendKey(now);
+  if (thisWeekend !== null) keys.add(thisWeekend);
+  const latest = latestWeekendKey(now);
+  const streak = keys.has(latest) ? countWeekendStreak(keys, latest) : countWeekendStreak(keys, latest - 7);
+  const multiplier = streakMultiplier(streak);
 
-  const bonus = bonuses.reduce((sum, b) => sum + b.amount, 0);
-  const points = base + bonus;
+  const r = CHECKIN_RULES;
+  const bonuses: { type: BonusType; amount: number }[] = [];
+  if (venue.isPartner) bonuses.push({ type: 'partner', amount: r.partnerBonus });
+  if (isBoosted(venue, now.getTime())) bonuses.push({ type: 'boost', amount: r.boostBonus });
+  const subtotal = r.basePoints + bonuses.reduce((s, b) => s + b.amount, 0);
+  const points = Math.round(subtotal * multiplier);
+  if (multiplier > 1) bonuses.push({ type: 'streak', amount: points - subtotal });
   const totalBefore = user?.totalPoints || 0;
 
   const [checkIn, updated] = await prisma.$transaction([
     prisma.checkIn.create({
       data: {
-        userId, venueId: venue.id, eventId: liveEvent?.id, method, points, bonus,
+        userId, venueId: venue.id, eventId: liveEvent?.id, method, points, bonus: points - r.basePoints,
         photoUrl: photoUrl || null,
         latitude: typeof lat === 'number' ? lat : null,
         longitude: typeof lng === 'number' ? lng : null,
@@ -155,11 +151,10 @@ export async function performCheckIn(input: CheckInInput) {
     }),
   ]);
 
-  // Zaštita od dvostrukog check-ina (dva istovremena zahtjeva prođu provjeru prije upisa):
-  // ako u cooldown prozoru postoji raniji check-in za isti lokal, ovaj se poništava.
-  const window = new Date(now.getTime() - CHECKIN_RULES.cooldownHours * 3600_000);
+  // Zaštita od dvostrukog check-ina (dva istovremena zahtjeva prođu provjeru prije upisa)
+  const window = new Date(now.getTime() - r.cooldownHours * 3600_000);
   const first = await prisma.checkIn.findFirst({
-    where: { userId, venueId: venue.id, createdAt: { gte: window } },
+    where: { userId, createdAt: { gte: window } },
     orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     select: { id: true, createdAt: true },
   });
@@ -168,24 +163,27 @@ export async function performCheckIn(input: CheckInInput) {
       prisma.checkIn.delete({ where: { id: checkIn.id } }),
       prisma.user.update({ where: { id: userId }, data: { points: { decrement: points }, totalPoints: { decrement: points } } }),
     ]);
-    throw new CheckInError('cooldown', { nextAt: new Date(first.createdAt.getTime() + CHECKIN_RULES.cooldownHours * 3600_000).toISOString() });
+    throw new CheckInError('cooldown', { nextAt: new Date(first.createdAt.getTime() + r.cooldownHours * 3600_000).toISOString() });
   }
 
   return {
     id: checkIn.id,
     points,
-    base,
+    base: r.basePoints,
     bonuses,
+    streak,
+    multiplier,
     balance: updated.points,
     total: updated.totalPoints,
     tierBefore: tierInfo(totalBefore).index,
     tierAfter: tierInfo(updated.totalPoints).index,
     venue: { name: venue.name, slug: venue.slug },
     event: liveEvent,
+    receipt: venue.receiptBoostEnabled ? { minAmount: venue.receiptMinAmount, bonus: venue.receiptBonusPoints } : null,
   };
 }
 
-export type LeaderboardPeriod = 'week' | 'all';
+export type LeaderboardPeriod = 'week' | 'month' | 'all';
 export type LeaderboardScope = 'city' | 'friends';
 
 export interface LeaderboardRow {
@@ -204,6 +202,7 @@ export async function getLeaderboard(opts: { period: LeaderboardPeriod; scope: L
   const { period, scope, viewerId, take = 50 } = opts;
   const where: Prisma.CheckInWhereInput = { user: { restricted: false } };
   if (period === 'week') where.createdAt = { gte: weekStart() };
+  if (period === 'month') { const [from, to] = monthRange(monthKey()); where.createdAt = { gte: from, lt: to }; }
   const city = getCityBySlug(opts.city);
   if (city) where.venue = { city: city.name };
   if (scope === 'friends') {
@@ -279,4 +278,14 @@ export function generateRedemptionCode(): string {
   const bytes = crypto.randomBytes(8);
   const chars = Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
   return `GV-${chars.slice(0, 4)}-${chars.slice(4)}`;
+}
+
+/** Početak i kraj mjeseca "YYYY-MM" po sarajevskom vremenu, kao UTC trenuci */
+export function monthRange(key: string): [Date, Date] {
+  const [y, m] = key.split('-').map(Number);
+  const at = (yy: number, mm: number) => {
+    const guess = new Date(Date.UTC(yy, mm - 1, 1));
+    return new Date(guess.getTime() - getSarajevoOffsetMs(guess));
+  };
+  return [at(y, m), m === 12 ? at(y + 1, 1) : at(y, m + 1)];
 }

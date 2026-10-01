@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
   const reward = typeof rewardId === 'string'
     ? await prisma.reward.findUnique({ where: { id: rewardId } })
     : null;
-  if (!reward || !reward.active) return NextResponse.json({ error: 'notFound' }, { status: 404 });
+  // Top-5 mjesečne nagrade se ne kupuju bodovima — dodjeljuju se automatski
+  if (!reward || !reward.active || reward.type !== 'REDEEM') return NextResponse.json({ error: 'notFound' }, { status: 404 });
   if (reward.stock !== null && reward.stock <= 0) return NextResponse.json({ error: 'soldOut' }, { status: 409 });
 
   // Atomično skidanje bodova — uspijeva samo ako korisnik ima dovoljno

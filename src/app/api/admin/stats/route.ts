@@ -37,7 +37,7 @@ export async function GET() {
     const [checkIns7d, partners, activeRewards, activeCodes, recentCheckIns] = await Promise.all([
       prisma.checkIn.count({ where: { createdAt: { gte: weekAgo } } }),
       prisma.venue.count({ where: { isPartner: true } }),
-      prisma.reward.count({ where: { active: true } }),
+      prisma.reward.count({ where: { active: true, type: 'REDEEM' } }),
       prisma.redemption.count({ where: { status: 'ACTIVE' } }),
       prisma.checkIn.findMany({
         take: 6,

@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Flame, Gift, Martini, QrCode, Shirt, Ticket, Zap } from 'lucide-react';
+import { Flame, Gift, Martini, QrCode, Receipt, Rocket, Shirt, Star, Ticket, Zap } from 'lucide-react';
 import { useLang } from '@/components/i18n/LangProvider';
-import { TIERS, tierInfo } from '@/lib/score';
+import { CHECKIN_RULES, TIERS, tierInfo } from '@/lib/score';
 import type { LeaderboardRow } from '@/lib/score-service';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -91,5 +91,25 @@ export function Board({ rows, me, emptyText }: { rows: LeaderboardRow[]; me?: Le
       {rows.map((r, i) => <Row key={r.userId} r={r} i={i} />)}
       {showMe && <>{rows.length > 0 && <li className="board__gap" aria-hidden="true">···</li>}<Row r={me!} i={rows.length} /></>}
     </ol>
+  );
+}
+
+/** Pravila bodovanja (jedini izvor istine je CHECKIN_RULES) — koristi se na početnoj i "Kako radi" */
+export function PointsRules() {
+  const { t } = useLang();
+  const r = CHECKIN_RULES;
+  const rows = [
+    { Icon: QrCode, title: t('rules.any'), text: t('rules.anyText', { h: r.cooldownHours }), pts: `+${r.basePoints}` },
+    { Icon: Star, title: t('rules.partner'), text: t('rules.partnerText'), pts: `+${r.basePoints + r.partnerBonus}` },
+    { Icon: Rocket, title: t('rules.boost'), text: t('rules.boostText'), pts: `+${r.basePoints + r.boostBonus}` },
+    { Icon: Flame, title: t('rules.streak'), text: t('rules.streakText', { n: r.streakStartWeekends, x: r.streakStartMultiplier, step: r.streakStep, every: r.streakStepWeekends }), pts: `×${r.streakStartMultiplier}+` },
+    { Icon: Receipt, title: t('rules.receipt'), text: t('rules.receiptText'), pts: t('rules.receiptPts') },
+  ];
+  return (
+    <>
+      {rows.map(({ Icon, title, text, pts }) => (
+        <li key={title}><span className="how__ic"><Icon className="ic" aria-hidden="true" /></span><div><b>{title}</b><p>{text}</p></div><span className="how__pts">{pts}</span></li>
+      ))}
+    </>
   );
 }

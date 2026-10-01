@@ -2,25 +2,29 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertCircle, Loader2, Zap } from 'lucide-react';
+import { AlertCircle, Crown, Loader2, Zap } from 'lucide-react';
 import { useLang } from '@/components/i18n/LangProvider';
 import { SCORE_EVENT } from '@/components/layout/Header';
 import { RewardKindIcon } from '@/components/score/ScoreParts';
 import { PosterArt } from '@/components/ui/PosterArt';
+import { Avatar } from '@/components/ui/Avatar';
+import { rewardIssuer } from '@/lib/reward-labels';
 
 export interface RewardItem {
   id: string; title: string; titleEn: string | null; description: string | null; descriptionEn: string | null;
   kind: string; cost: number; imageUrl: string | null; stock: number | null;
+  type: string; topRank: number | null; provider: string | null;
   venue: { name: string; slug: string; city: string } | null;
 }
+export interface Standing { rank: number; userId: string; points: number; name: string; avatarUrl: string | null }
 export interface MyCode {
   id: string; code: string; status: string; createdAt: string; usedAt: string | null;
-  reward: { title: string; titleEn: string | null; venue: { name: string } | null };
+  reward: { title: string; titleEn: string | null; provider?: string | null; type?: string; venue: { name: string } | null };
 }
 
 const FILTERS = ['ALL', 'MERCH', 'DRINK', 'ENTRY'] as const;
 
-export function RewardsClient({ rewards, codes: initialCodes, initialBalance, loggedIn }: { rewards: RewardItem[]; codes: MyCode[]; initialBalance: number | null; loggedIn: boolean }) {
+export function RewardsClient({ rewards: allRewards, codes: initialCodes, initialBalance, loggedIn, standings, meId }: { rewards: RewardItem[]; codes: MyCode[]; initialBalance: number | null; loggedIn: boolean; standings: Standing[]; meId: string | null }) {
   const { t, fmt, lang } = useLang();
   const [balance, setBalance] = useState(initialBalance ?? 0);
   const [codes, setCodes] = useState(initialCodes);
@@ -29,6 +33,8 @@ export function RewardsClient({ rewards, codes: initialCodes, initialBalance, lo
   const [error, setError] = useState('');
   const [fresh, setFresh] = useState<string | null>(null);
 
+  const rewards = useMemo(() => allRewards.filter((r) => r.type === 'REDEEM'), [allRewards]);
+  const topPrizes = useMemo(() => allRewards.filter((r) => r.type === 'TOP').sort((a, b) => (a.topRank || 0) - (b.topRank || 0)), [allRewards]);
   const visible = useMemo(() => rewards.filter((r) => filter === 'ALL' || r.kind === filter || (filter === 'DRINK' && r.kind === 'OTHER')), [rewards, filter]);
   const title = (r: { title: string; titleEn: string | null }) => (lang === 'en' && r.titleEn ? r.titleEn : r.title);
 
@@ -52,7 +58,7 @@ export function RewardsClient({ rewards, codes: initialCodes, initialBalance, lo
       window.dispatchEvent(new CustomEvent(SCORE_EVENT, { detail: { balance: data.balance } }));
       setCodes((prev) => [{
         id: data.id, code: data.code, status: 'ACTIVE', createdAt: data.createdAt, usedAt: null,
-        reward: { title: reward.title, titleEn: reward.titleEn, venue: reward.venue ? { name: reward.venue.name } : null },
+        reward: { title: reward.title, titleEn: reward.titleEn, provider: reward.provider, venue: reward.venue ? { name: reward.venue.name } : null },
       }, ...prev]);
       setFresh(data.code);
       document.getElementById('my-codes')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -73,6 +79,35 @@ export function RewardsClient({ rewards, codes: initialCodes, initialBalance, lo
         </div>
       )}
 
+      <section className="top5" aria-labelledby="top5-title">
+        <div className="top5__head">
+          <div>
+            <p className="kicker"><Crown size={13} aria-hidden="true" style={{ display: 'inline', verticalAlign: -2, marginRight: 6 }} />{t('rewards.topKicker')}</p>
+            <h2 className="h3" id="top5-title">{t('rewards.topTitle')}</h2>
+            <p className="ci-note" style={{ textAlign: 'left', margin: '6px 0 0' }}>{t('rewards.topLead')}</p>
+          </div>
+        </div>
+        <ol className="top5__list">
+          {[1, 2, 3, 4, 5].map((rank) => {
+            const prize = topPrizes.find((p) => p.topRank === rank);
+            const who = standings.find((s) => s.rank === rank);
+            return (
+              <li key={rank} className={`top5__row${rank === 1 ? ' is-first' : ''}${who?.userId === meId ? ' is-me' : ''}`}>
+                <span className="top5__rank">{rank}</span>
+                <span className="top5__prize">
+                  <b>{prize ? title(prize) : t('rewards.topNoPrize')}</b>
+                  <small>{prize ? rewardIssuer(prize) : '—'}</small>
+                </span>
+                <span className="top5__who">
+                  {who ? <><Avatar name={who.name} url={who.avatarUrl} className="row__av" /><span><b>{who.name}{who.userId === meId ? ` · ${t('board.you')}` : ''}</b><small>{fmt(who.points)} {t('score.ptsAbbr')}</small></span></> : <small>{t('rewards.topOpen')}</small>}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      <h2 className="h3" style={{ margin: '36px 0 14px' }}>{t('rewards.redeemTitle')}</h2>
       <div className="chips" role="group" aria-label={t('rewards.filterAria')}>
         {FILTERS.map((f) => (
           <button key={f} type="button" className="chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>{t(`rewards.filters.${f}`)}</button>
@@ -94,7 +129,7 @@ export function RewardsClient({ rewards, codes: initialCodes, initialBalance, lo
                 </div>
                 <RewardKindIcon kind={r.kind} />
                 <b>{title(r)}</b>
-                <span>{r.venue ? `${r.venue.name} · ${r.venue.city}` : t('rewards.merch')}</span>
+                <span>{r.venue ? `${r.venue.name} · ${r.venue.city}` : rewardIssuer(r)}</span>
                 {desc && <p>{desc}</p>}
                 <div className="rcard__foot">
                   <div>
@@ -127,7 +162,7 @@ export function RewardsClient({ rewards, codes: initialCodes, initialBalance, lo
                 <div key={c.id} className={`code${c.status !== 'ACTIVE' ? ' code--used' : ''}`}>
                   <div>
                     <b>{title(c.reward)}</b>
-                    <small> · {c.reward.venue?.name || t('rewards.merch')} · {t(`rewards.status.${c.status}`)}</small>
+                    <small> · {rewardIssuer(c.reward)}{c.reward.type === 'TOP' ? ` · ${t('rewards.topBadge')}` : ''} · {t(`rewards.status.${c.status}`)}</small>
                   </div>
                   <span className="code__value">{c.code}</span>
                 </div>

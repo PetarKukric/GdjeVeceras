@@ -2,14 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { AdminHeader } from '@/components/admin/AdminLayout';
-import { Download, QrCode, RefreshCw, AlertTriangle, Printer } from 'lucide-react';
+import { Download, QrCode, RefreshCw, AlertTriangle, Printer, Rocket, Star, Receipt, Search } from 'lucide-react';
 
 interface CheckInVenue {
   id: string; name: string; slug: string; city: string;
   latitude: number | null; longitude: number | null;
-  isPartner: boolean; checkInPoints: number; checkInVersion: number;
-  checkIns30d: number; checkInUrl: string | null;
+  isPartner: boolean; boostedUntil: string | null; checkInVersion: number;
+  receiptBoostEnabled: boolean; receiptMinAmount: number; receiptBonusPoints: number;
+  points: number; checkIns30d: number; checkInUrl: string;
 }
+
+const fmtUntil = (iso: string) => new Date(iso).toLocaleString('sr-Latn-BA', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default function AdminCheckIn() {
   const [venues, setVenues] = useState<CheckInVenue[]>([]);
@@ -17,14 +20,17 @@ export default function AdminCheckIn() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [open, setOpen] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const isAdmin = role === 'ADMIN';
 
-  const load = async () => {
-    const [venuesRes, sessionRes] = await Promise.all([fetch('/api/admin/checkin'), fetch('/api/auth/session')]);
-    if (venuesRes.ok) setVenues(await venuesRes.json());
-    if (sessionRes.ok) setRole((await sessionRes.json()).user.role);
-    setLoading(false);
-  };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    (async () => {
+      const [venuesRes, sessionRes] = await Promise.all([fetch('/api/admin/checkin'), fetch('/api/auth/session')]);
+      if (venuesRes.ok) setVenues(await venuesRes.json());
+      if (sessionRes.ok) setRole((await sessionRes.json()).user.role);
+      setLoading(false);
+    })();
+  }, []);
 
   const patch = async (venueId: string, body: Record<string, unknown>) => {
     setMessage('');
@@ -39,78 +45,102 @@ export default function AdminCheckIn() {
     patch(venue.id, { regenerate: true });
   };
 
+  const boosted = (v: CheckInVenue) => Boolean(v.boostedUntil && new Date(v.boostedUntil).getTime() > Date.now());
+  const list = venues.filter((v) => `${v.name} ${v.city}`.toLowerCase().includes(query.trim().toLowerCase()));
+
   return (
     <>
-      <AdminHeader title="Check-in i QR kodovi" />
+      <AdminHeader title="Check-in, QR i boost" />
       <main className="adm-main">
-        <div className="bg-card border border-border rounded-2xl p-5 text-sm text-muted leading-relaxed">
-          <p className="text-white font-bold mb-1">Kako radi</p>
-          Partner lokali daju bodove za check-in. Odštampaj QR kod i postavi ga na ulaz ili šank — gosti ga skeniraju kamerom telefona
-          (otvara se <b className="text-white">/checkin</b>) ili iz aplikacije. Drugi način je fotka + lokacija: gost mora biti do ~150 m od lokala,
-          zato lokal mora imati unesene koordinate. Isti gost može se čekirati u isti lokal jednom u 12h.
+        <div className="adm-card adm-card--pad">
+          <div className="adm-rules">
+            <div><b>+10</b><span>svaki lokal</span></div>
+            <div><b>+30</b><span>partner lokal</span></div>
+            <div><b>+30</b><span>boost za vikend</span></div>
+            <div><b>×1.5 → ×2…</b><span>niz vikenda (3+, +0.5 na svaka 2)</span></div>
+            <div><b>+bonus</b><span>račun iznad iznosa (po lokalu)</span></div>
+          </div>
+          <p className="adm-hint" style={{ margin: '14px 0 0' }}>
+            Svaki lokal ima svoj QR kod — odštampaj ga i stavi na ulaz ili šank. Gost se može čekirati jednom u 12h.
+            Check-in fotkom radi samo kad lokal ima unesene koordinate.
+          </p>
         </div>
-        {message && <div className="rounded-xl border border-red-500/30 bg-red-500/10 text-red-200 p-3 text-sm">{message}</div>}
+        {message && <div className="alert alert--error">{message}</div>}
+
+        <div className="adm-row">
+          <div className="field__box" style={{ flex: '1 1 260px', maxWidth: 420 }}>
+            <Search className="ic" aria-hidden="true" />
+            <input className="input" placeholder="Traži lokal…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Traži lokal" />
+          </div>
+        </div>
 
         {loading ? (
-          <div className="h-40 bg-card border border-border rounded-2xl animate-pulse" />
-        ) : venues.length === 0 ? (
-          <p className="text-muted">Nema lokala.</p>
+          <div className="skel" style={{ minHeight: 200 }} />
+        ) : list.length === 0 ? (
+          <p className="adm-hint">Nema lokala.</p>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {venues.map((v) => (
-              <article key={v.id} className="bg-card border border-border rounded-2xl p-5 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="text-lg font-bold break-words" style={{ fontFamily: 'var(--font-body)', letterSpacing: 0 }}>{v.name}</h2>
-                    <p className="text-sm text-muted">{v.city} · {v.checkIns30d} check-ina (30 dana)</p>
+          <div className="adm-venues">
+            {list.map((v) => (
+              <article key={v.id} className={`adm-venue${v.isPartner ? ' is-partner' : ''}${boosted(v) ? ' is-boosted' : ''}`}>
+                <div className="adm-venue__head">
+                  <div style={{ minWidth: 0 }}>
+                    <h2>{v.name}</h2>
+                    <p>{v.city} · {v.checkIns30d} check-ina (30 dana)</p>
                   </div>
-                  {role === 'ADMIN' ? (
-                    <label className="toggle shrink-0">
-                      <input type="checkbox" checked={v.isPartner} onChange={(e) => patch(v.id, { isPartner: e.target.checked })} />
-                      <span className="toggle__track"><span className="toggle__thumb" /></span>
-                      <span className="toggle__text">Partner</span>
-                    </label>
-                  ) : (
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${v.isPartner ? 'bg-primary text-white' : 'bg-surface text-muted'}`}>{v.isPartner ? 'Partner' : 'Nije partner'}</span>
+                  <span className="adm-venue__pts">+{v.points}</span>
+                </div>
+
+                <div className="adm-venue__toggles">
+                  <label className={`toggle${isAdmin ? '' : ' is-disabled'}`}>
+                    <input type="checkbox" checked={v.isPartner} disabled={!isAdmin} onChange={(e) => patch(v.id, { isPartner: e.target.checked })} />
+                    <span className="toggle__track"><span className="toggle__thumb" /></span>
+                    <span className="toggle__text"><Star size={15} aria-hidden="true" />Partner (+30)</span>
+                  </label>
+                  {isAdmin ? (
+                    boosted(v)
+                      ? <button className="btn btn--pink btn--sm" onClick={() => patch(v.id, { boost: null })}><Rocket className="ic" aria-hidden="true" />Boost do {fmtUntil(v.boostedUntil!)} · ukloni</button>
+                      : <button className="btn btn--ghost btn--sm" onClick={() => patch(v.id, { boost: 'weekend' })}><Rocket className="ic" aria-hidden="true" />Boostuj za vikend</button>
+                  ) : boosted(v) ? <span className="adm-pill adm-pill--ok">Boost do {fmtUntil(v.boostedUntil!)}</span> : null}
+                </div>
+
+                <div className="adm-venue__receipt">
+                  <label className={`toggle${isAdmin ? '' : ' is-disabled'}`}>
+                    <input type="checkbox" checked={v.receiptBoostEnabled} disabled={!isAdmin} onChange={(e) => patch(v.id, { receiptBoostEnabled: e.target.checked })} />
+                    <span className="toggle__track"><span className="toggle__thumb" /></span>
+                    <span className="toggle__text"><Receipt size={15} aria-hidden="true" />Bonus za račun</span>
+                  </label>
+                  {v.receiptBoostEnabled && (
+                    <div className="adm-row" style={{ alignItems: 'center' }}>
+                      <label className="adm-inline">Račun od
+                        <input className="input" type="number" min={1} step="0.01" defaultValue={v.receiptMinAmount} disabled={!isAdmin}
+                          onBlur={(e) => { const n = Number(e.target.value); if (n !== v.receiptMinAmount) patch(v.id, { receiptMinAmount: n }); }} />
+                        KM
+                      </label>
+                      <label className="adm-inline">donosi +
+                        <input className="input" type="number" min={1} max={1000} defaultValue={v.receiptBonusPoints} disabled={!isAdmin}
+                          onBlur={(e) => { const n = Number(e.target.value); if (n !== v.receiptBonusPoints) patch(v.id, { receiptBonusPoints: n }); }} />
+                        bod.
+                      </label>
+                    </div>
                   )}
                 </div>
 
-                {v.isPartner && (
-                  <>
-                    {(v.latitude === null || v.longitude === null) && (
-                      <p className="flex gap-2 text-xs text-amber-200 bg-amber-400/10 border border-amber-400/20 rounded-xl p-3">
-                        <AlertTriangle size={16} className="shrink-0" /> Lokal nema koordinate — radi samo QR check-in, ne i fotka + lokacija. Dodaj koordinate u uređivanju lokala.
-                      </p>
-                    )}
-                    <label className="flex items-center gap-3 text-sm">
-                      <span className="text-muted">Bodovi po check-inu</span>
-                      <input
-                        type="number" min={10} max={1000} step={10} defaultValue={v.checkInPoints}
-                        className="w-24 bg-surface border border-border rounded-xl px-3 py-2 focus:outline-none focus:border-primary"
-                        onBlur={(e) => { const n = Number(e.target.value); if (n !== v.checkInPoints) patch(v.id, { checkInPoints: n }); }}
-                      />
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      <button onClick={() => setOpen(open === v.id ? null : v.id)} className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-bold rounded-xl text-sm">
-                        <QrCode size={16} /> {open === v.id ? 'Sakrij QR' : 'Prikaži QR'}
-                      </button>
-                      <a href={`/api/admin/checkin/qr?venueId=${v.id}&download=1`} className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl text-sm font-bold">
-                        <Download size={16} /> Preuzmi SVG
-                      </a>
-                      <button onClick={() => regenerate(v)} className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl text-sm font-bold text-muted hover:text-white">
-                        <RefreshCw size={16} /> Novi kod
-                      </button>
-                    </div>
-                    {open === v.id && (
-                      <div className="rounded-2xl bg-white p-5 text-center text-black">
-                        <img src={`/api/admin/checkin/qr?venueId=${v.id}&v=${v.checkInVersion}`} alt={`QR kod za ${v.name}`} className="mx-auto w-56 h-56" />
-                        <p className="mt-3 font-black text-lg">Skeniraj i skupljaj bodove</p>
-                        <p className="text-sm">GdjeVečeras · {v.name} · +{v.checkInPoints}</p>
-                        <button onClick={() => window.print()} className="mt-3 inline-flex items-center gap-2 text-sm font-bold underline print:hidden"><Printer size={14} /> Štampaj</button>
-                        <p className="mt-2 text-[11px] text-neutral-500 break-all print:hidden">{v.checkInUrl}</p>
-                      </div>
-                    )}
-                  </>
+                {(v.latitude === null || v.longitude === null) && (
+                  <p className="adm-warn"><AlertTriangle size={15} aria-hidden="true" /> Nema koordinata — radi samo QR check-in, ne i fotka + lokacija.</p>
+                )}
+
+                <div className="adm-row">
+                  <button onClick={() => setOpen(open === v.id ? null : v.id)} className="btn btn--ghost btn--sm"><QrCode className="ic" aria-hidden="true" />{open === v.id ? 'Sakrij QR' : 'Prikaži QR'}</button>
+                  <a href={`/api/admin/checkin/qr?venueId=${v.id}&download=1`} className="btn btn--ghost btn--sm"><Download className="ic" aria-hidden="true" />SVG</a>
+                  <button onClick={() => regenerate(v)} className="btn btn--ghost btn--sm"><RefreshCw className="ic" aria-hidden="true" />Novi kod</button>
+                </div>
+                {open === v.id && (
+                  <div className="adm-qr">
+                    <img src={`/api/admin/checkin/qr?venueId=${v.id}&v=${v.checkInVersion}`} alt={`QR kod za ${v.name}`} />
+                    <b>Skeniraj i skupljaj bodove</b>
+                    <span>GdjeVečeras · {v.name}</span>
+                    <button onClick={() => window.print()} className="adm-qr__print"><Printer size={14} aria-hidden="true" /> Štampaj</button>
+                  </div>
                 )}
               </article>
             ))}

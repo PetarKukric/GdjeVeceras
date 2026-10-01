@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AdminHeader } from '@/components/admin/AdminLayout';
-import { 
-  ArrowLeft, 
-  Save, 
+import {
   Image as ImageIcon,
   MapPin,
   Phone,
@@ -12,7 +10,10 @@ import {
   Clock,
   Tag,
   Plus,
-  X
+  X,
+  UserRound,
+  LocateFixed,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -20,18 +21,19 @@ import { useToast } from '@/components/ui/Toast';
 import { isValidBosnianPhone } from '@/lib/validation';
 import { SUPPORTED_CITIES } from '@/lib/cities';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { FormSection, Field, Switch, FormIntro, SubmitBar } from '@/components/admin/FormKit';
 
 const PREDEFINED_TAGS = [
-  'Parking', 'Bingo', 'Wi-Fi', 'Terasa', 'Bašta', 'Hrana', 
-  'Kokteli', 'Bilijar', 'Pikado', 'TV', 'Sportski prenosi', 
-  'Pristup za osobe sa invaliditetom', 'Garderoba', 'VIP', 
+  'Parking', 'Bingo', 'Wi-Fi', 'Terasa', 'Bašta', 'Hrana',
+  'Kokteli', 'Bilijar', 'Pikado', 'TV', 'Sportski prenosi',
+  'Pristup za osobe sa invaliditetom', 'Garderoba', 'VIP',
   'Live muzika', 'Plesni podij', 'Klima'
 ];
 
 type OpeningHourForm = { dayGroup: string; openTime: string; closeTime: string; isClosed: boolean };
 const INDIVIDUAL_WEEKDAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY'];
 const HOUR_LABELS: Record<string, string> = {
-  WEEKDAYS: 'Radni dani (Pon-Čet)', MONDAY: 'Ponedjeljak', TUESDAY: 'Utorak',
+  WEEKDAYS: 'Pon – Čet', MONDAY: 'Ponedjeljak', TUESDAY: 'Utorak',
   WEDNESDAY: 'Srijeda', THURSDAY: 'Četvrtak', FRIDAY: 'Petak',
   SATURDAY: 'Subota', SUNDAY: 'Nedjelja'
 };
@@ -41,8 +43,10 @@ export default function NewVenue() {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<{ id: string, name: string, email: string }[]>([]);
   const [customTag, setCustomTag] = useState('');
+  const [locating, setLocating] = useState(false);
+  const [error, setError] = useState('');
   const { showToast } = useToast();
-  
+
   const [sameWeekdayHours, setSameWeekdayHours] = useState(true);
   const [openingHours, setOpeningHours] = useState<OpeningHourForm[]>([
     { dayGroup: 'WEEKDAYS', openTime: '08:00', closeTime: '23:00', isClosed: false },
@@ -53,21 +57,7 @@ export default function NewVenue() {
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const [formData, setFormData] = useState<{
-    name: string;
-    description: string;
-    address: string;
-    city: string;
-    latitude: string;
-    longitude: string;
-    phone: string;
-    website: string;
-    instagramUrl: string;
-    facebookUrl: string;
-    tiktokUrl: string;
-    imageUrl: string;
-    ownerId: string;
-  }>({
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
     address: '',
@@ -82,23 +72,22 @@ export default function NewVenue() {
     imageUrl: '',
     ownerId: '',
   });
+  const set = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
   const toggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
-    }
+    setSelectedTags((tags) => tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag]);
   };
 
   const addCustomTag = () => {
-    if (customTag.trim() && !selectedTags.includes(customTag.trim())) {
-      setSelectedTags([...selectedTags, customTag.trim()]);
+    const tag = customTag.trim();
+    if (tag && !selectedTags.includes(tag)) {
+      setSelectedTags([...selectedTags, tag]);
       setCustomTag('');
     }
   };
 
-  const handleHourChange = (index: number, field: string, value: any) => {
+  const handleHourChange = (index: number, field: keyof OpeningHourForm, value: string | boolean) => {
     const newHours = [...openingHours];
     newHours[index] = { ...newHours[index], [field]: value };
     setOpeningHours(newHours);
@@ -122,6 +111,26 @@ export default function NewVenue() {
     });
   };
 
+  // Lijepljenje "45.14, 17.25" (Google Maps) u polje širine popuni oba polja
+  const onLatitude = (value: string) => {
+    const m = value.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (m) setFormData((prev) => ({ ...prev, latitude: m[1], longitude: m[2] }));
+    else setFormData((prev) => ({ ...prev, latitude: value }));
+  };
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData((prev) => ({ ...prev, latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) }));
+        setLocating(false);
+      },
+      () => { setLocating(false); showToast('Lokacija nije dostupna', 'error'); },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
   useEffect(() => {
     async function fetchUsers() {
       const res = await fetch('/api/admin/users');
@@ -133,20 +142,25 @@ export default function NewVenue() {
     fetchUsers();
   }, []);
 
+  const missing = [
+    !formData.name && 'naziv',
+    !formData.city && 'grad',
+    !formData.address && 'adresa',
+  ].filter(Boolean) as string[];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    if (missing.length) {
+      setError('Popunite obavezna polja: ' + missing.join(', ') + '.');
+      return;
+    }
+    if (formData.phone && !isValidBosnianPhone(formData.phone)) {
+      setError('Unesite ispravan broj telefona (npr. +387 66 123 456 ili 066 123 456).');
+      return;
+    }
     setLoading(true);
     try {
-      if (!formData.name || !formData.address || !formData.city) {
-        alert('Molimo popunite obavezna polja (Naziv, Adresa, Grad).');
-        return;
-      }
-      if (formData.phone && !isValidBosnianPhone(formData.phone)) {
-        alert('Unesite ispravan broj telefona (npr. +387 66 123 456 ili 066 123 456).');
-        setLoading(false);
-        return;
-      }
-
       const res = await fetch('/api/venues', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,333 +177,202 @@ export default function NewVenue() {
         showToast('Lokal uspješno kreiran');
         router.push('/admin/venues');
       } else {
-        const error = await res.json();
-        alert('Greška: ' + error.error);
+        const data = await res.json().catch(() => ({}));
+        setError('Greška: ' + (data.error || res.statusText));
       }
     } catch (err) {
       console.error(err);
-      alert('Došlo je do greške pri čuvanju.');
+      setError('Došlo je do greške pri čuvanju.');
     } finally {
       setLoading(false);
     }
   };
 
+  const hasCoords = formData.latitude !== '' && formData.longitude !== '';
+
   return (
     <>
       <AdminHeader title="Novi lokal" />
-      <main className="p-4 md:p-8 max-w-5xl mx-auto">
-        <Link href="/admin/venues" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
-          <ArrowLeft size={16} /> Nazad na listu
-        </Link>
+      <main className="fk-page">
+        <FormIntro
+          back="/admin/venues"
+          backLabel="Svi lokali"
+          kicker="Lokali"
+          title="Dodaj novi lokal"
+          lead="Klub, bar ili pab koji će se prikazivati na sajtu i na mapi. Polja sa * su obavezna."
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Info */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Info size={18} /> Osnovne informacije
-                 </h3>
-                 <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Naziv lokala *</label>
-                      <input 
-                        type="text" 
-                        required
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="Npr. Club Cristal"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Opis</label>
-                      <textarea 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm min-h-[120px]"
-                        placeholder="Kratak opis lokala, ponuda, atmosfera..."
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Grad *</label>
-                          <select 
-                            required
-                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm cursor-pointer"
-                            value={formData.city}
-                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                          >
-                            <option value="" disabled>Odaberi grad</option>
-                            {SUPPORTED_CITIES.map(c => (
-                              <option key={c.slug} value={c.name}>{c.name}</option>
-                            ))}
-                            {formData.city && !SUPPORTED_CITIES.some(c => c.name === formData.city) && (
-                              <option value={formData.city}>{formData.city}</option>
-                            )}
-                          </select>
-                       </div>
-                       <div>
-                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Adresa *</label>
-                          <input 
-                            type="text" 
-                            required
-                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                            placeholder="Ulica i broj"
-                            value={formData.address}
-                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          />
-                       </div>
-                    </div>
-                 </div>
+        <form onSubmit={handleSubmit} className="fk-layout" noValidate>
+          <div className="fk-main">
+            <FormSection icon={Info} title="Osnovno" hint="Kako se lokal zove i gdje se nalazi.">
+              <div className="fk-grid">
+                <Field label="Naziv lokala" required wide>
+                  <input className="input" type="text" required maxLength={120} placeholder="Npr. Club Cristal" value={formData.name} onChange={set('name')} />
+                </Field>
+                <Field label="Grad" required>
+                  <select className="input" required value={formData.city} onChange={set('city')}>
+                    <option value="" disabled>Odaberi grad</option>
+                    {SUPPORTED_CITIES.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}
+                  </select>
+                </Field>
+                <Field label="Adresa" required>
+                  <input className="input" type="text" required placeholder="Ulica i broj" value={formData.address} onChange={set('address')} />
+                </Field>
+                <Field label="Opis" wide hint="Atmosfera, muzika, ponuda — ovo gosti čitaju na profilu lokala.">
+                  <textarea className="input" placeholder="Kratak opis lokala…" value={formData.description} onChange={set('description')} />
+                </Field>
               </div>
+            </FormSection>
 
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <MapPin size={18} /> Koordinate (opciono)
-                 </h3>
-                 <p className="text-xs text-muted">Potrebno za precizan prikaz na mapi.</p>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Latitude</label>
-                      <input 
-                        type="number" 
-                        step="any"
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="45.1465"
-                        value={formData.latitude}
-                        onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Longitude</label>
-                      <input 
-                        type="number" 
-                        step="any"
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="17.2536"
-                        value={formData.longitude}
-                        onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                      />
-                    </div>
-                 </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Phone size={18} /> Kontakt i Linkovi
-                 </h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Telefon</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="+387 6X XXX XXX"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Website</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="https://..."
-                        value={formData.website}
-                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Instagram URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        value={formData.instagramUrl}
-                        onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Facebook URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        value={formData.facebookUrl}
-                        onChange={(e) => setFormData({ ...formData, facebookUrl: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">TikTok URL</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        value={formData.tiktokUrl}
-                        onChange={(e) => setFormData({ ...formData, tiktokUrl: e.target.value })}
-                      />
-                    </div>
-                 </div>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Clock size={18} /> Radno vrijeme
-                 </h3>
-                 <div className="space-y-6">
-                    <label className="flex items-start gap-3 p-4 bg-surface/50 rounded-xl border border-border/50 cursor-pointer">
-                       <input
-                          type="checkbox"
-                          className="mt-0.5 w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
-                          checked={sameWeekdayHours}
-                          onChange={(e) => toggleSameWeekdayHours(e.target.checked)}
-                       />
-                       <span>
-                          <span className="block text-xs font-black uppercase tracking-widest">Isto radno vrijeme od ponedjeljka do četvrtka</span>
-                          <span className="block mt-1 text-[11px] text-muted">Isključite ako neki radni dan ima drugačije vrijeme.</span>
-                       </span>
-                    </label>
-                    {openingHours.map((group, index) => (
-                       <div key={group.dayGroup} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-surface/50 rounded-xl border border-border/50">
-                          <div className="min-w-[140px]">
-                             <p className="text-xs font-black uppercase tracking-widest">
-                                {HOUR_LABELS[group.dayGroup]}
-                             </p>
-                          </div>
-                          
-                          <div className="flex flex-wrap items-center gap-4">
-                             <label className="flex items-center gap-2 cursor-pointer group">
-                                <input 
-                                   type="checkbox" 
-                                   className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
-                                   checked={group.isClosed}
-                                   onChange={(e) => handleHourChange(index, 'isClosed', e.target.checked)}
-                                />
-                                <span className="text-[10px] font-bold uppercase tracking-widest group-hover:text-primary transition-colors">Zatvoreno</span>
-                             </label>
-
-                             {!group.isClosed && (
-                                <div className="flex items-center gap-2">
-                                   <input 
-                                      type="time" 
-                                      className="px-3 py-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary"
-                                      value={group.openTime || ''}
-                                      onChange={(e) => handleHourChange(index, 'openTime', e.target.value)}
-                                   />
-                                   <span className="text-muted">→</span>
-                                   <input 
-                                      type="time" 
-                                      className="px-3 py-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary"
-                                      value={group.closeTime || ''}
-                                      onChange={(e) => handleHourChange(index, 'closeTime', e.target.value)}
-                                   />
-                                </div>
-                             )}
-                          </div>
-                       </div>
-                    ))}
-                 </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Tag size={18} /> Pogodnosti / Tagovi
-                 </h3>
-                 <div className="space-y-6">
-                    <div className="flex flex-wrap gap-2">
-                       {PREDEFINED_TAGS.map(tag => (
-                          <button
-                             key={tag}
-                             type="button"
-                             onClick={() => toggleTag(tag)}
-                             className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                selectedTags.includes(tag) 
-                                ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
-                                : 'bg-surface border-border text-muted hover:border-primary/50'
-                             }`}
-                          >
-                             {tag}
-                          </button>
-                       ))}
-                       {selectedTags.filter(t => !PREDEFINED_TAGS.includes(t)).map(tag => (
-                          <button
-                             key={tag}
-                             type="button"
-                             onClick={() => toggleTag(tag)}
-                             className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border bg-primary border-primary text-white shadow-lg shadow-primary/20 flex items-center gap-2"
-                          >
-                             {tag} <X size={12} />
-                          </button>
-                       ))}
-                    </div>
-
-                    <div className="flex gap-2">
-                       <input 
-                          type="text" 
-                          placeholder="Dodaj sopstveni tag..."
-                          className="flex-grow px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                          value={customTag}
-                          onChange={(e) => setCustomTag(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
-                       />
-                       <button 
-                          type="button"
-                          onClick={addCustomTag}
-                          className="px-6 py-3 bg-surface border border-border hover:border-primary text-primary rounded-xl transition-all"
-                       >
-                          <Plus size={20} />
-                       </button>
-                    </div>
-                 </div>
-              </div>
-            </div>
-
-            {/* Sidebar Form */}
-            <div className="space-y-6">
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Fotografija
-                 </h3>
-                 <ImageUploader
-                    label="Naslovna fotografija lokala"
-                    aspect="square"
-                    value={formData.imageUrl}
-                    onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-                 />
-              </div>
-
-
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Info size={18} /> Vlasnik (Gazda)
-                 </h3>
-                 <p className="text-xs text-muted">Izaberite korisnika koji može upravljati događajima za ovaj lokal.</p>
-                 <div>
-                    <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Izaberi korisnika</label>
-                    <select 
-                      className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                      value={formData.ownerId}
-                      onChange={(e) => setFormData({ ...formData, ownerId: e.target.value })}
-                    >
-                       <option value="">Bez vlasnika</option>
-                       {users.map(u => (
-                         <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                       ))}
-                    </select>
-                 </div>
-              </div>
-
-              <div className="sticky top-24 space-y-4">
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-primary text-text font-black rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest"
-                >
-                  <Save size={20} /> {loading ? 'ČUVANJE...' : 'SAČUVAJ LOKAL'}
+            <FormSection
+              icon={MapPin}
+              title="Lokacija na mapi"
+              hint="Potrebna za mapu i za check-in fotkom (gost mora biti u krugu ~150 m)."
+              aside={
+                <button type="button" className="btn btn--ghost btn--sm" onClick={useMyLocation} disabled={locating}>
+                  <LocateFixed className="ic" aria-hidden="true" />{locating ? 'Tražim…' : 'Moja lokacija'}
                 </button>
-                <Link href="/admin/venues" className="block w-full py-4 bg-surface border border-border text-muted font-bold rounded-2xl text-center hover:text-text transition-all text-sm uppercase tracking-widest">
-                  Otkaži
-                </Link>
+              }
+            >
+              <div className="fk-grid">
+                <Field label="Geografska širina (lat)" hint="Možeš zalijepiti „lat, lng“ iz Google Maps.">
+                  <input className="input" type="text" inputMode="decimal" placeholder="44.7722" value={formData.latitude} onChange={(e) => onLatitude(e.target.value)} />
+                </Field>
+                <Field label="Geografska dužina (lng)">
+                  <input className="input" type="text" inputMode="decimal" placeholder="17.1910" value={formData.longitude} onChange={set('longitude')} />
+                </Field>
+              </div>
+              {hasCoords ? (
+                <p className="fk-note">
+                  <MapPin className="ic" aria-hidden="true" />
+                  <span>Provjeri tačku: <a href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`} target="_blank" rel="noopener noreferrer">otvori u Google Maps</a></span>
+                </p>
+              ) : (
+                <p className="fk-note">
+                  <Info className="ic" aria-hidden="true" />
+                  <span>Bez koordinata lokal se ne vidi na mapi i radi samo check-in preko QR koda.</span>
+                </p>
+              )}
+            </FormSection>
+
+            <FormSection icon={Clock} title="Radno vrijeme" hint="Ako lokal radi iza ponoći, upiši vrijeme zatvaranja normalno (npr. 03:00).">
+              <Switch
+                checked={sameWeekdayHours}
+                onChange={toggleSameWeekdayHours}
+                label="Isto radno vrijeme od ponedjeljka do četvrtka"
+                hint="Isključi ako neki radni dan ima drugačije vrijeme."
+              />
+              <div className="fk-hours">
+                {openingHours.map((group, index) => (
+                  <div key={group.dayGroup} className={'fk-hour' + (group.isClosed ? ' is-closed' : '')}>
+                    <b>{HOUR_LABELS[group.dayGroup]}</b>
+                    <label className="toggle">
+                      <input type="checkbox" checked={!group.isClosed} onChange={(e) => handleHourChange(index, 'isClosed', !e.target.checked)} />
+                      <span className="toggle__track"><span className="toggle__thumb" /></span>
+                      <span className="toggle__text">{group.isClosed ? 'Zatvoreno' : 'Otvoreno'}</span>
+                    </label>
+                    {!group.isClosed && (
+                      <div className="fk-hour__times">
+                        <input className="input" type="time" aria-label="Otvara" value={group.openTime || ''} onChange={(e) => handleHourChange(index, 'openTime', e.target.value)} />
+                        <span aria-hidden="true">–</span>
+                        <input className="input" type="time" aria-label="Zatvara" value={group.closeTime || ''} onChange={(e) => handleHourChange(index, 'closeTime', e.target.value)} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </FormSection>
+
+            <FormSection icon={Tag} title="Pogodnosti" hint="Tagovi pomažu gostima da filtriraju lokale.">
+              <div className="fk-chips">
+                {PREDEFINED_TAGS.map(tag => (
+                  <button key={tag} type="button" className="chip" aria-pressed={selectedTags.includes(tag)} onClick={() => toggleTag(tag)}>
+                    {tag}
+                  </button>
+                ))}
+                {selectedTags.filter(t => !PREDEFINED_TAGS.includes(t)).map(tag => (
+                  <button key={tag} type="button" className="chip" aria-pressed="true" onClick={() => toggleTag(tag)}>
+                    {tag} <X className="ic" aria-label="Ukloni" />
+                  </button>
+                ))}
+              </div>
+              <div className="fk-add">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Dodaj svoj tag…"
+                  maxLength={40}
+                  value={customTag}
+                  onChange={(e) => setCustomTag(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
+                />
+                <button type="button" className="btn btn--ghost" onClick={addCustomTag} aria-label="Dodaj tag">
+                  <Plus className="ic" aria-hidden="true" />
+                </button>
+              </div>
+            </FormSection>
+
+            <FormSection icon={Phone} title="Kontakt i mreže">
+              <div className="fk-grid">
+                <Field label="Telefon">
+                  <input className="input" type="tel" placeholder="+387 6X XXX XXX" value={formData.phone} onChange={set('phone')} />
+                </Field>
+                <Field label="Web stranica">
+                  <input className="input" type="url" placeholder="https://…" value={formData.website} onChange={set('website')} />
+                </Field>
+                <Field label="Instagram">
+                  <input className="input" type="url" placeholder="https://instagram.com/…" value={formData.instagramUrl} onChange={set('instagramUrl')} />
+                </Field>
+                <Field label="Facebook">
+                  <input className="input" type="url" placeholder="https://facebook.com/…" value={formData.facebookUrl} onChange={set('facebookUrl')} />
+                </Field>
+                <Field label="TikTok">
+                  <input className="input" type="url" placeholder="https://tiktok.com/@…" value={formData.tiktokUrl} onChange={set('tiktokUrl')} />
+                </Field>
+              </div>
+            </FormSection>
+          </div>
+
+          <aside className="fk-side">
+            <div className="fk-preview" aria-hidden="true">
+              <div className="fk-preview__label">Pregled kartice</div>
+              <div className="fk-preview__img">
+                {formData.imageUrl
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={formData.imageUrl} alt="" />
+                  : <ImageIcon className="ic" />}
+                <span className="fk-preview__tag">+10</span>
+              </div>
+              <div className="fk-preview__body">
+                <b>{formData.name || 'Naziv lokala'}</b>
+                <small><MapPin className="ic" />{[formData.address, formData.city].filter(Boolean).join(', ') || 'Adresa, grad'}</small>
               </div>
             </div>
-          </div>
+
+            <FormSection icon={ImageIcon} title="Naslovna fotka">
+              <ImageUploader
+                label="Kvadratna fotka lokala"
+                aspect="square"
+                value={formData.imageUrl}
+                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+              />
+            </FormSection>
+
+            <FormSection icon={UserRound} title="Vlasnik" hint="Korisnik koji upravlja događajima ovog lokala.">
+              <select className="input" aria-label="Vlasnik" value={formData.ownerId} onChange={set('ownerId')}>
+                <option value="">Bez vlasnika</option>
+                {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.email})</option>)}
+              </select>
+            </FormSection>
+
+            <p className="fk-note">
+              <Sparkles className="ic" aria-hidden="true" />
+              <span>Partner status, boost za vikend i bonus za račun podešavaš nakon čuvanja u <Link href="/admin/checkin">Check-in, QR, boost</Link>.</span>
+            </p>
+
+            {error && <p className="fk-err" role="alert">{error}</p>}
+            <SubmitBar loading={loading} label="Sačuvaj lokal" loadingLabel="Čuvam…" cancelHref="/admin/venues" missing={missing} />
+          </aside>
         </form>
       </main>
     </>

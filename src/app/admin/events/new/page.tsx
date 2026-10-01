@@ -2,26 +2,38 @@
 
 import React, { useState, useEffect } from 'react';
 import { AdminHeader } from '@/components/admin/AdminLayout';
-import { 
-  ArrowLeft, 
-  Save, 
+import {
   Image as ImageIcon,
   Calendar,
   Tag,
   Shirt,
-  MapPin
+  MapPin,
+  Repeat,
+  Link2,
+  Clock,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Venue } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { toISOFromLocalInput } from '@/lib/bosnia-time';
 import { ImageUploader } from '@/components/admin/ImageUploader';
+import { FormSection, Field, Switch, FormIntro, SubmitBar } from '@/components/admin/FormKit';
+
+const CATEGORIES: [string, string][] = [['PARTY', 'Žurka'], ['LIVE_MUSIC', 'Muzika uživo'], ['CONCERT', 'Koncert']];
+const DAYS: [string, number][] = [['Pon', 1], ['Uto', 2], ['Sri', 3], ['Čet', 4], ['Pet', 5], ['Sub', 6], ['Ned', 0]];
+
+function formatPreviewDate(local: string) {
+  if (!local) return 'Datum i vrijeme';
+  const d = new Date(local);
+  if (Number.isNaN(d.getTime())) return local;
+  return d.toLocaleString('sr-Latn-BA', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
 
 export default function NewEvent() {
   const router = useRouter();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
@@ -41,6 +53,8 @@ export default function NewEvent() {
     instagramUrl: '',
     facebookUrl: '',
   });
+  const set = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   const [additionalVenueIds, setAdditionalVenueIds] = useState<string[]>([]);
   // ===== Ponavljajući događaj =====
   const [isRecurring, setIsRecurring] = useState(false);
@@ -69,17 +83,15 @@ export default function NewEvent() {
     return true;
   };
 
-
   useEffect(() => {
     async function fetchVenues() {
-      // Fetch user session to know their role/owned venues
+      // Vlasnik vidi samo svoje lokale
       const sessionRes = await fetch('/api/auth/session');
       const session = await sessionRes.json();
 
       const res = await fetch('/api/venues');
       let data = await res.json();
-      
-      // Filter if owner
+
       if (session.user.role === 'OWNER') {
         data = data.filter((v: Venue) => v.ownerId === session.user.id);
       }
@@ -90,21 +102,28 @@ export default function NewEvent() {
     fetchVenues();
   }, []);
 
+  const missing = [
+    !formData.title && 'naziv',
+    !formData.venueId && 'lokal',
+    !formData.startDateTime && 'početak',
+    formData.dressCodeType === 'SPECIAL' && !formData.dressCodeName && 'naziv dress code-a',
+  ].filter(Boolean) as string[];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    if (missing.length) {
+      setError('Popunite obavezna polja: ' + missing.join(', ') + '.');
+      return;
+    }
+    if (formData.endDateTime && formData.endDateTime <= formData.startDateTime) {
+      setError('Kraj mora biti poslije početka.');
+      return;
+    }
+    if (!validateRecurrence()) return;
+
     setLoading(true);
     try {
-      // Basic validation
-      if (!formData.title || !formData.venueId || !formData.startDateTime) {
-        alert('Molimo popunite obavezna polja (Naziv, Lokal, Vreme).');
-        return;
-      }
-
-      if (!validateRecurrence()) {
-        setLoading(false);
-        return;
-      }
-
       const res = await fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,9 +133,8 @@ export default function NewEvent() {
           startDateTime: toISOFromLocalInput(formData.startDateTime),
           endDateTime: formData.endDateTime ? toISOFromLocalInput(formData.endDateTime) : undefined,
           additionalVenueIds,
-          price: parseFloat(formData.price.toString()),
-          createdById: 'admin-id', // In real app, get from session
-          status: 'PUBLISHED', // Admin created events can be published immediately
+          price: Number(formData.price) || 0,
+          status: 'PUBLISHED',
           // Ponavljajući događaj — pravilo
           isRecurring,
           ...(isRecurring ? {
@@ -134,362 +152,217 @@ export default function NewEvent() {
         showToast('Događaj uspješno kreiran');
         router.push('/admin/events');
       } else {
-        const error = await res.json();
-        alert('Greška: ' + error.error);
+        const data = await res.json().catch(() => ({}));
+        setError('Greška: ' + (data.error || res.statusText));
       }
     } catch (err) {
       console.error(err);
+      setError('Došlo je do greške pri čuvanju.');
     } finally {
       setLoading(false);
     }
   };
 
+  const venue = venues.find(v => v.id === formData.venueId);
+  const category = CATEGORIES.find(([v]) => v === formData.category)?.[1];
+  const price = Number(formData.price) || 0;
+
   return (
     <>
       <AdminHeader title="Novi događaj" />
-      <main className="p-4 md:p-8 max-w-5xl mx-auto">
-        <Link href="/admin/events" className="inline-flex items-center gap-2 text-muted hover:text-text mb-8 text-sm font-bold transition-colors">
-          <ArrowLeft size={16} /> Nazad na listu
-        </Link>
+      <main className="fk-page">
+        <FormIntro
+          back="/admin/events"
+          backLabel="Svi događaji"
+          kicker="Događaji"
+          title="Dodaj žurku ili svirku"
+          lead="Događaj se objavljuje odmah i pojavljuje se na početnoj, u listi žurki i na profilu lokala."
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Info */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Tag size={18} /> Osnovne informacije
-                 </h3>
-                 <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Naziv događaja *</label>
-                      <input 
-                        type="text" 
-                        required
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="Npr. Techno Invasion"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Opis</label>
-                      <textarea 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm min-h-[120px]"
-                        placeholder="Detalji o događaju..."
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Kategorija</label>
-                          <select 
-                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                            value={formData.category}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                          >
-                             <option value="PARTY">Žurka</option>
-                             <option value="LIVE_MUSIC">Muzika uživo</option>
-                             <option value="CONCERT">Koncert</option>
-                          </select>
-                       </div>
-                       <div>
-                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Lokal (Venue) *</label>
-                          <select 
-                            required
-                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                            value={formData.venueId}
-                            onChange={(e) => {
-                              setFormData({ ...formData, venueId: e.target.value });
-                              setAdditionalVenueIds(prev => prev.filter(id => id !== e.target.value));
-                            }}
-                          >
-                             {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-                          </select>
-                          {(() => {
-                            const v = venues.find(v => v.id === formData.venueId);
-                            return v ? (
-                              <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-2 flex items-center gap-1.5">
-                                <MapPin size={12} /> Grad: {v.city || '—'}
-                              </p>
-                            ) : null;
-                          })()}
-                       </div>
-
-                       {venues.length > 1 && (
-                         <div>
-                            <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Zajednički događaj — dodatni lokali (opciono)</label>
-                            <div className="max-h-44 overflow-y-auto pr-1 space-y-1.5 border border-border rounded-xl p-3 bg-surface/50">
-                              {venues.filter(v => v.id !== formData.venueId).map(v => {
-                                const checked = additionalVenueIds.includes(v.id);
-                                return (
-                                  <label key={v.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all ${checked ? 'bg-primary/10 border border-primary/30' : 'border border-transparent hover:bg-white/5'}`}>
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={(e) => {
-                                        setAdditionalVenueIds(prev =>
-                                          e.target.checked ? [...prev, v.id] : prev.filter(id => id !== v.id)
-                                        );
-                                      }}
-                                      className="accent-pink-500 w-4 h-4 shrink-0"
-                                    />
-                                    <span className="text-xs font-bold text-white">{v.name}</span>
-                                    {v.city && <span className="text-[10px] text-muted font-bold uppercase tracking-widest">{v.city}</span>}
-                                  </label>
-                                );
-                              })}
-                            </div>
-                            <p className="text-[10px] text-muted font-medium mt-1.5">Ako se žurka održava u više lokala istovremeno (npr. Makao i Kamel) — označi sve. Tretiraće se kao jedan zajednički događaj.</p>
-                         </div>
-                       )}
-                    </div>
-                 </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Calendar size={18} /> Vrijeme i cijena
-                 </h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Početak *</label>
-                      <input 
-                        type="datetime-local" 
-                        required
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        value={formData.startDateTime}
-                        onChange={(e) => setFormData({ ...formData, startDateTime: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Kraj (opciono)</label>
-                      <input 
-                        type="datetime-local" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        value={formData.endDateTime}
-                        onChange={(e) => setFormData({ ...formData, endDateTime: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Cijena (KM)</label>
-                      <input 
-                        type="number" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="0.00"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-                      />
-                    </div>
-                 </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Dodatno
-                 </h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Izvođači</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="DJ, Bend..."
-                        value={formData.performers}
-                        onChange={(e) => setFormData({ ...formData, performers: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Minimum godina</label>
-                      <input 
-                        type="number" 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="18"
-                        value={formData.minimumAge}
-                        onChange={(e) => setFormData({ ...formData, minimumAge: e.target.value })}
-                      />
-                    </div>
-                 </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                 <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <Shirt size={18} /> Dress Code
-                 </h3>
-                 <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       <div>
-                          <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Tip Dress Code-a</label>
-                          <select 
-                            className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                            value={formData.dressCodeType}
-                            onChange={(e) => setFormData({ ...formData, dressCodeType: e.target.value })}
-                          >
-                             <option value="NONE">Nema Dress Code-a</option>
-                             <option value="CASUAL">Casual</option>
-                             <option value="ELEGANT">Elegantno</option>
-                             <option value="SPECIAL">Specijalni Dress Code</option>
-                          </select>
-                       </div>
-                       {formData.dressCodeType === 'SPECIAL' && (
-                          <div className="animate-in fade-in slide-in-from-top-2">
-                             <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Naziv Dress Code-a *</label>
-                             <input 
-                               type="text" 
-                               required
-                               className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                               placeholder="Npr. All White, Masquerade..."
-                               value={formData.dressCodeName}
-                               onChange={(e) => setFormData({ ...formData, dressCodeName: e.target.value })}
-                             />
-                          </div>
-                       )}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Opis Dress Code-a (opciono)</label>
-                      <textarea 
-                        className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm min-h-[80px]"
-                        placeholder="Detaljnije upute za goste..."
-                        value={formData.dressCodeDescription}
-                        onChange={(e) => setFormData({ ...formData, dressCodeDescription: e.target.value })}
-                      />
-                    </div>
-                 </div>
-              </div>
-            </div>
-
-              {/* ===== PONAVLJAJUĆI DOGAĐAJ (progressive disclosure) ===== */}
-              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm space-y-5">
-                <label className="flex items-center gap-3 cursor-pointer select-none" htmlFor="isRecurringCheck">
-                  <input
-                    id="isRecurringCheck"
-                    type="checkbox"
-                    checked={isRecurring}
-                    onChange={(e) => setIsRecurring(e.target.checked)}
-                    className="w-5 h-5 accent-primary cursor-pointer"
-                  />
-                  <span className="text-sm font-black uppercase tracking-widest text-white">Ponavljajući događaj</span>
-                </label>
-                {isRecurring && (
-                  <div className="space-y-5 pt-2 animate-fade-up">
-                    <div>
-                      <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Ponavljanje</p>
-                      <div className="flex flex-wrap gap-2">
-                        {[['WEEKLY', 'Svake sedmice'], ['DAILY', 'Svaki dan']].map(([val, label]) => (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => setRecurrenceType(val as 'WEEKLY' | 'DAILY')}
-                            className={"px-5 h-11 rounded-xl text-xs font-black uppercase tracking-widest border transition-all " + (recurrenceType === val ? 'bg-primary text-white border-primary' : 'bg-surface text-muted border-border hover:text-white')}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {recurrenceType === 'WEEKLY' && (
-                      <div>
-                        <p className="text-xs font-bold text-muted uppercase tracking-widest mb-2">Dani</p>
-                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                          {[['PON', 1], ['UT', 2], ['SRI', 3], ['ČET', 4], ['PET', 5], ['SUB', 6], ['NED', 0]].map(([label, val]) => (
-                            <button
-                              key={String(val)}
-                              type="button"
-                              onClick={() => toggleRecDay(val as number)}
-                              aria-pressed={recurrenceDays.includes(val as number)}
-                              className={"h-11 rounded-xl text-[11px] font-black border transition-all " + (recurrenceDays.includes(val as number) ? 'bg-primary text-white border-primary' : 'bg-surface text-muted border-border hover:text-white')}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Početak</label>
-                        <input
-                          type="date"
-                          value={recurrenceStart}
-                          onChange={(e) => setRecurrenceStart(e.target.value)}
-                          className="w-full h-11 px-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Završetak</label>
-                        <input
-                          type="date"
-                          value={recurrenceEnd}
-                          disabled={noRecurrenceEnd}
-                          onChange={(e) => setRecurrenceEnd(e.target.value)}
-                          className="w-full h-11 px-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm disabled:opacity-40"
-                        />
-                      </div>
-                    </div>
-                    <label className="flex items-center gap-3 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={noRecurrenceEnd}
-                        onChange={(e) => setNoRecurrenceEnd(e.target.checked)}
-                        className="w-4 h-4 accent-primary cursor-pointer"
-                      />
-                      <span className="text-xs font-bold text-muted uppercase tracking-widest">Bez datuma završetka</span>
-                    </label>
-                    {recError && <p className="text-xs font-bold text-red-400" role="alert">{recError}</p>}
+        <form onSubmit={handleSubmit} className="fk-layout" noValidate>
+          <div className="fk-main">
+            <FormSection icon={Tag} title="Osnovno">
+              <div className="fk-grid">
+                <Field label="Naziv događaja" required wide>
+                  <input className="input" type="text" required maxLength={140} placeholder="Npr. Techno Invasion" value={formData.title} onChange={set('title')} />
+                </Field>
+                <div className="field fk-field fk-wide">
+                  <span>Kategorija</span>
+                  <div className="fk-seg" role="group" aria-label="Kategorija">
+                    {CATEGORIES.map(([val, label]) => (
+                      <button key={val} type="button" aria-pressed={formData.category === val} onClick={() => setFormData({ ...formData, category: val })}>
+                        {label}
+                      </button>
+                    ))}
                   </div>
+                </div>
+                <Field label="Opis" wide>
+                  <textarea className="input" placeholder="Line-up, muzika, šta očekivati…" value={formData.description} onChange={set('description')} />
+                </Field>
+              </div>
+            </FormSection>
+
+            <FormSection icon={MapPin} title="Lokal" hint={venue ? `Grad: ${venue.city || '—'}` : undefined}>
+              <Field label="Glavni lokal" required>
+                <select
+                  className="input"
+                  required
+                  value={formData.venueId}
+                  onChange={(e) => {
+                    setFormData({ ...formData, venueId: e.target.value });
+                    setAdditionalVenueIds(prev => prev.filter(id => id !== e.target.value));
+                  }}
+                >
+                  {venues.length === 0 && <option value="">Nema lokala</option>}
+                  {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                </select>
+              </Field>
+              {venues.length > 1 && (
+                <div className="field fk-field">
+                  <span>Zajednički događaj — dodatni lokali (opciono)</span>
+                  <div className="fk-venues">
+                    {venues.filter(v => v.id !== formData.venueId).map(v => {
+                      const checked = additionalVenueIds.includes(v.id);
+                      return (
+                        <label key={v.id} className={'fk-venue' + (checked ? ' is-on' : '')}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => setAdditionalVenueIds(prev => e.target.checked ? [...prev, v.id] : prev.filter(id => id !== v.id))}
+                          />
+                          <span>{v.name}</span>
+                          {v.city && <small>{v.city}</small>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <small className="fk-hint">Ako se žurka održava u više lokala istovremeno — označi sve. Prikazuje se kao jedan zajednički događaj.</small>
+                </div>
+              )}
+            </FormSection>
+
+            <FormSection icon={Calendar} title="Vrijeme i ulaz">
+              <div className="fk-grid fk-grid--3">
+                <Field label="Početak" required>
+                  <input className="input" type="datetime-local" required value={formData.startDateTime} onChange={set('startDateTime')} />
+                </Field>
+                <Field label="Kraj" hint="Opciono">
+                  <input className="input" type="datetime-local" min={formData.startDateTime || undefined} value={formData.endDateTime} onChange={set('endDateTime')} />
+                </Field>
+                <Field label="Ulaz (KM)" hint="0 = besplatno">
+                  <input className="input" type="number" min={0} step="0.5" placeholder="0" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? 0 : parseFloat(e.target.value) })} />
+                </Field>
+              </div>
+            </FormSection>
+
+            <FormSection icon={Repeat} title="Ponavljanje" hint="Za žurke koje se dešavaju svake sedmice ili svaki dan.">
+              <Switch checked={isRecurring} onChange={setIsRecurring} label="Ponavljajući događaj" hint="Termini se automatski prikazuju za svaki odabrani dan." />
+              {isRecurring && (
+                <>
+                  <div className="fk-seg" role="group" aria-label="Ponavljanje">
+                    {([['WEEKLY', 'Svake sedmice'], ['DAILY', 'Svaki dan']] as const).map(([val, label]) => (
+                      <button key={val} type="button" aria-pressed={recurrenceType === val} onClick={() => setRecurrenceType(val)}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  {recurrenceType === 'WEEKLY' && (
+                    <div className="fk-days" role="group" aria-label="Dani">
+                      {DAYS.map(([label, val]) => (
+                        <button key={val} type="button" className="chip" aria-pressed={recurrenceDays.includes(val)} onClick={() => toggleRecDay(val)}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="fk-grid">
+                    <Field label="Od datuma" hint="Prazno = datum početka">
+                      <input className="input" type="date" value={recurrenceStart} onChange={(e) => setRecurrenceStart(e.target.value)} />
+                    </Field>
+                    <Field label="Do datuma">
+                      <input className="input" type="date" value={recurrenceEnd} disabled={noRecurrenceEnd} onChange={(e) => setRecurrenceEnd(e.target.value)} />
+                    </Field>
+                  </div>
+                  <Switch checked={noRecurrenceEnd} onChange={setNoRecurrenceEnd} label="Bez datuma završetka" />
+                  {recError && <p className="fk-err" role="alert">{recError}</p>}
+                </>
+              )}
+            </FormSection>
+
+            <FormSection icon={Shirt} title="Line-up, godine i dress code">
+              <div className="fk-grid">
+                <Field label="Izvođači">
+                  <input className="input" type="text" placeholder="DJ, bend…" value={formData.performers} onChange={set('performers')} />
+                </Field>
+                <Field label="Minimalno godina">
+                  <input className="input" type="number" min={0} max={99} placeholder="18" value={formData.minimumAge} onChange={set('minimumAge')} />
+                </Field>
+                <Field label="Dress code">
+                  <select className="input" value={formData.dressCodeType} onChange={set('dressCodeType')}>
+                    <option value="NONE">Nema</option>
+                    <option value="CASUAL">Casual</option>
+                    <option value="ELEGANT">Elegantno</option>
+                    <option value="SPECIAL">Tematski / specijalni</option>
+                  </select>
+                </Field>
+                {formData.dressCodeType === 'SPECIAL' && (
+                  <Field label="Naziv dress code-a" required>
+                    <input className="input" type="text" required placeholder="Npr. All White, Masquerade…" value={formData.dressCodeName} onChange={set('dressCodeName')} />
+                  </Field>
+                )}
+                {formData.dressCodeType !== 'NONE' && (
+                  <Field label="Napomena za goste" wide hint="Opciono">
+                    <textarea className="input" placeholder="Detaljnije upute…" value={formData.dressCodeDescription} onChange={set('dressCodeDescription')} />
+                  </Field>
                 )}
               </div>
+            </FormSection>
 
-            {/* Sidebar Form */}
-            <div className="space-y-6">
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
-                <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">
-                    <ImageIcon size={18} /> Slika i linkovi
-                 </h3>
-                 <div className="space-y-4 pt-4">
-                    <ImageUploader
-                      label="Naslovna slika događaja (opciono)"
-                      value={formData.imageUrl}
-                      onChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
-                      aspect="video"
-                    />
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Link za karte</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        placeholder="Gigstix link..."
-                        value={formData.ticketUrl}
-                        onChange={(e) => setFormData({ ...formData, ticketUrl: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Instagram link</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-4 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm"
-                        value={formData.instagramUrl}
-                        onChange={(e) => setFormData({ ...formData, instagramUrl: e.target.value })}
-                      />
-                    </div>
-                 </div>
+            <FormSection icon={Link2} title="Karte i linkovi">
+              <div className="fk-grid">
+                <Field label="Link za karte" wide>
+                  <input className="input" type="url" placeholder="https://gigstix…" value={formData.ticketUrl} onChange={set('ticketUrl')} />
+                </Field>
+                <Field label="Instagram objava">
+                  <input className="input" type="url" placeholder="https://instagram.com/…" value={formData.instagramUrl} onChange={set('instagramUrl')} />
+                </Field>
+                <Field label="Facebook događaj">
+                  <input className="input" type="url" placeholder="https://facebook.com/events/…" value={formData.facebookUrl} onChange={set('facebookUrl')} />
+                </Field>
               </div>
+            </FormSection>
+          </div>
 
-              <div className="sticky top-24 space-y-4">
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-primary text-text font-black rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest"
-                >
-                  <Save size={20} /> {loading ? 'ČUVANJE...' : 'OBJAVI DOGAĐAJ'}
-                </button>
-                <Link href="/admin/events" className="block w-full py-4 bg-surface border border-border text-muted font-bold rounded-2xl text-center hover:text-text transition-all text-sm uppercase tracking-widest">
-                  Otkaži
-                </Link>
+          <aside className="fk-side">
+            <div className="fk-preview" aria-hidden="true">
+              <div className="fk-preview__label">Pregled kartice</div>
+              <div className="fk-preview__img">
+                {formData.imageUrl
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={formData.imageUrl} alt="" />
+                  : <ImageIcon className="ic" />}
+                <span className="fk-preview__tag">{category}</span>
+              </div>
+              <div className="fk-preview__body">
+                <b>{formData.title || 'Naziv događaja'}</b>
+                <small><Clock className="ic" />{formatPreviewDate(formData.startDateTime)}</small>
+                <small><MapPin className="ic" />{venue ? venue.name : 'Lokal'}{additionalVenueIds.length > 0 && ` +${additionalVenueIds.length}`}</small>
+                <small><Tag className="ic" />{price > 0 ? `${price} KM` : 'Besplatan ulaz'}</small>
               </div>
             </div>
-          </div>
+
+            <FormSection icon={ImageIcon} title="Naslovna slika">
+              <ImageUploader
+                label="Plakat ili fotka (opciono)"
+                value={formData.imageUrl}
+                onChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                aspect="video"
+              />
+            </FormSection>
+
+            {error && <p className="fk-err" role="alert">{error}</p>}
+            <SubmitBar loading={loading} label="Objavi događaj" loadingLabel="Objavljujem…" cancelHref="/admin/events" missing={missing} />
+          </aside>
         </form>
       </main>
     </>

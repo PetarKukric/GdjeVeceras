@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
   const venueId = request.nextUrl.searchParams.get('venueId') || '';
   const venue = await prisma.venue.findUnique({
     where: { id: venueId },
-    select: { id: true, slug: true, ownerId: true, isPartner: true, checkInVersion: true },
+    select: { id: true, slug: true, ownerId: true, checkInVersion: true },
   });
-  if (!venue || !venue.isPartner) return NextResponse.json({ error: 'Lokal nije partner.' }, { status: 404 });
+  if (!venue) return NextResponse.json({ error: 'Lokal nije pronađen.' }, { status: 404 });
   if (session.user.role !== 'ADMIN' && venue.ownerId !== session.user.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }

@@ -34,7 +34,10 @@ export interface Venue {
   imageUrl?: string;
   ownerId?: string | null;
   isPartner?: boolean;
-  checkInPoints?: number;
+  boostedUntil?: string | null;
+  receiptBoostEnabled?: boolean;
+  receiptMinAmount?: number;
+  receiptBonusPoints?: number;
   openingHours?: OpeningHour[];
   tags?: VenueTag[];
   _count?: {

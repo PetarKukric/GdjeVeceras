@@ -36,11 +36,31 @@ export async function generateMetadata(): Promise<Metadata> {
     template: "%s | Gdje Večeras",
   },
   description: t('meta.description'),
+  keywords: t('meta.keywords').split(', '),
   manifest: "/manifest.webmanifest",
   applicationName: "Gdje Večeras",
+  category: 'entertainment',
+  creator: 'Gdje Večeras',
+  publisher: 'Gdje Večeras',
+  formatDetection: { telephone: false, email: false, address: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: t('meta.title'),
+    description: t('meta.ogDescription'),
+    images: ['/og.png'],
+  },
+  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
       { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-48.png", sizes: "48x48", type: "image/png" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
@@ -58,6 +78,7 @@ export async function generateMetadata(): Promise<Metadata> {
     locale: lang === 'en' ? "en_GB" : "sr_BA",
     siteName: "Gdje Večeras",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "Gdje Večeras" }],
+    url: '/',
   },
   };
 }
@@ -87,7 +108,8 @@ export default async function RootLayout({
         '@id': `${baseUrl}/#organization`,
         name: 'Gdje Večeras',
         url: baseUrl,
-        logo: `${baseUrl}/logo.svg`,
+        logo: `${baseUrl}/brand/logo-512.png`,
+        email: 'gdjevecerasbusiness@gmail.com',
         sameAs: [
           'https://www.instagram.com/gdjeveceras',
           'https://www.tiktok.com/@gdjeveceras2',
@@ -100,7 +122,13 @@ export default async function RootLayout({
         url: baseUrl,
         name: 'Gdje Večeras',
         inLanguage: htmlLang(lang),
+        description: t('meta.description'),
         publisher: { '@id': `${baseUrl}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: { '@type': 'EntryPoint', urlTemplate: `${baseUrl}/events?search={search_term_string}` },
+          'query-input': 'required name=search_term_string',
+        },
       },
     ],
   };

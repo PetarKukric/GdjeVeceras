@@ -1,11 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Clock, Heart, MapPin, Zap } from 'lucide-react';
+import { Clock, Heart, MapPin } from 'lucide-react';
 import { Event } from '@/types';
 import { useToast } from '@/components/ui/Toast';
 import { useLang } from '@/components/i18n/LangProvider';
 import { PosterArt, posterFor } from '@/components/ui/PosterArt';
+import { PointsBadge } from '@/components/score/PointsBadge';
 import { intlLocale } from '@/lib/i18n';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
 
@@ -43,7 +44,6 @@ export function EventCard({ event, variant = 'compact', isFavoritedInitial = fal
   const day = new Intl.DateTimeFormat(locale, { timeZone: TZ, day: 'numeric' }).format(start).replace('.', '');
   const time = new Intl.DateTimeFormat(locale, { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(start);
   const hot = (event._count?.favorites || 0) >= POPULARITY_THRESHOLD;
-  const partner = Boolean(event.venue?.isPartner);
   const genre = t(`categories.${event.category}`);
 
   async function toggleFavorite() {
@@ -93,9 +93,7 @@ export function EventCard({ event, variant = 'compact', isFavoritedInitial = fal
           <div className="event__going">
             {event._count?.favorites ? <span>{t('event.savedBy', { n: event._count.favorites })}</span> : null}
           </div>
-          {partner
-            ? <span className="pts" title={t('score.checkinHere')}><Zap className="ic" aria-hidden="true" />+{event.venue.checkInPoints ?? 100}</span>
-            : <span className="pts pts--none">{t('event.noPoints')}</span>}
+          <PointsBadge venue={event.venue} />
         </div>
       </div>
     </article>

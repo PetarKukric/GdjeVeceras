@@ -12,7 +12,7 @@ export interface LegalSection { id: string; title: string; body: (string | strin
 
 const privacySr: LegalSection[] = [
   { id: 'ko', title: 'Ko smo', body: [
-    'Gdje Večeras („mi", „Platforma") je aplikacija za pronalaženje izlazaka i skupljanje Večeras Score bodova u partner lokalima. Ova politika objašnjava koje podatke prikupljamo, zašto i šta možeš uraditi s njima.',
+    'Gdje Večeras („mi", „Platforma") je aplikacija za pronalaženje izlazaka i skupljanje Večeras Score bodova u lokalima. Ova politika objašnjava koje podatke prikupljamo, zašto i šta možeš uraditi s njima.',
   ] },
   { id: 'podaci', title: 'Koje podatke prikupljamo', body: [
     'Podatke koje nam sam daješ:',
@@ -69,7 +69,7 @@ const privacySr: LegalSection[] = [
 
 const privacyEn: LegalSection[] = [
   { id: 'ko', title: 'Who we are', body: [
-    'Gdje Večeras ("we", "the Platform") is an app for finding nights out and collecting Večeras Score points at partner venues. This policy explains what data we collect, why, and what you can do about it.',
+    'Gdje Večeras ("we", "the Platform") is an app for finding nights out and collecting Večeras Score points at venues. This policy explains what data we collect, why, and what you can do about it.',
   ] },
   { id: 'podaci', title: 'What we collect', body: [
     'Data you give us:',
@@ -126,7 +126,7 @@ const privacyEn: LegalSection[] = [
 
 const termsSr: LegalSection[] = [
   { id: 'opste', title: 'Opšte odredbe', body: [
-    'Gdje Večeras služi za pronalaženje događaja i lokala, check-in u partner lokale, skupljanje Večeras Score bodova i njihovu zamjenu za nagrade. Korišćenjem Platforme prihvataš ove uslove.',
+    'Gdje Večeras služi za pronalaženje događaja i lokala, check-in u lokale, skupljanje Večeras Score bodova i njihovu zamjenu za nagrade. Korišćenjem Platforme prihvataš ove uslove.',
   ] },
   { id: 'nalog', title: 'Nalog', body: [
     ['Moraš imati najmanje 16 godina. Za događaje sa starosnom granicom (npr. 18+) i nagrade koje uključuju alkohol važi zakonska granica — lokal te može tražiti ličnu kartu.',
@@ -134,8 +134,8 @@ const termsSr: LegalSection[] = [
      'Odgovoran si za sve što se dešava preko tvog naloga.'],
   ] },
   { id: 'bodovi', title: 'Check-in i Večeras Score bodovi', body: [
-    ['Bodove dobijaš za check-in u partner lokalu: skeniranjem QR koda na ulazu ili fotkom uz lokaciju dok si zaista u lokalu.',
-     'Isti lokal se može čekirati jednom u 12 sati, a najviše 3 check-ina u 24 sata.',
+    ['Bodove dobijaš za check-in u lokalu: skeniranjem QR koda na ulazu ili fotkom uz lokaciju dok si zaista u lokalu.',
+     'Možeš se čekirati jednom u 12 sati, u bilo kojem lokalu. Bonus za račun se odobrava tek nakon provjere računa, a jedan račun se može iskoristiti samo jednom.',
      'Zabranjeno je varati: skenirati fotku QR koda van lokala, lažirati lokaciju, praviti više naloga ili dijeliti nalog. Takve check-ine poništavamo, a nalog možemo ograničiti ili obrisati zajedno sa bodovima.',
      'Bodovi nemaju novčanu vrijednost, ne mogu se prodati ni prenijeti na drugi nalog. Pravila bodovanja i nivoa možemo mijenjati uz najavu na Platformi.'],
   ] },
@@ -165,7 +165,7 @@ const termsSr: LegalSection[] = [
 
 const termsEn: LegalSection[] = [
   { id: 'opste', title: 'General', body: [
-    'Gdje Večeras helps you find events and venues, check in at partner venues, collect Večeras Score points and redeem them for rewards. By using the Platform you accept these terms.',
+    'Gdje Večeras helps you find events and venues, check in at venues, collect Večeras Score points and redeem them for rewards. By using the Platform you accept these terms.',
   ] },
   { id: 'nalog', title: 'Your account', body: [
     ['You must be at least 16. For age-restricted events (e.g. 18+) and rewards that include alcohol the legal age applies — the venue may ask for ID.',
@@ -173,8 +173,8 @@ const termsEn: LegalSection[] = [
      'You are responsible for everything that happens through your account.'],
   ] },
   { id: 'bodovi', title: 'Check-ins and Večeras Score points', body: [
-    ['You earn points by checking in at a partner venue: by scanning the QR code at the entrance, or with a photo and your location while you are actually at the venue.',
-     'You can check in at the same venue once every 12 hours, and at most 3 times per 24 hours.',
+    ['You earn points by checking in at a venue: by scanning the QR code at the entrance, or with a photo and your location while you are actually at the venue.',
+     'You can check in once every 12 hours, at any venue. The receipt bonus is only granted after the receipt is reviewed, and each receipt can be used only once.',
      'Cheating is not allowed: scanning a photo of a QR code outside the venue, faking your location, making multiple accounts or sharing an account. We cancel such check-ins and may restrict or delete the account along with its points.',
      'Points have no cash value and cannot be sold or transferred. We may change the points and level rules with notice on the Platform.'],
   ] },
@@ -212,16 +212,16 @@ export interface FaqGroup { id: string; title: string; items: { q: string; a: st
 export const FAQ: Record<Lang, FaqGroup[]> = {
   sr: [
     { id: 'osnove', title: 'Osnove', items: [
-      { q: 'Šta je Gdje Večeras?', a: 'Aplikacija za izlaske: vidiš sve žurke, svirke, klubove i pabove u gradu, a za svaki dolazak u partner lokal skupljaš Večeras Score bodove koje mijenjaš za piće, ulaze i GdjeVečeras merch.' },
+      { q: 'Šta je Gdje Večeras?', a: 'Aplikacija za izlaske: vidiš sve žurke, svirke, klubove i pabove u gradu, a za svaki dolazak u lokal skupljaš Večeras Score bodove koje mijenjaš za piće, ulaze i GdjeVečeras merch.' },
       { q: 'Da li je besplatno?', a: 'Da, potpuno. Plaćaš samo ulaz na događaj ako ga lokal naplaćuje — cijena je uvijek napisana na stranici događaja.' },
       { q: 'U kojim gradovima radite?', a: 'Banja Luka, Gradiška, Prnjavor, Srbac, Doboj, Laktaši i Prijedor — i lista raste. Javi nam se ako želiš svoj grad.' },
       { q: 'Kako se prijavljujem?', a: 'Emailom i lozinkom ili jednim klikom preko Google naloga. Potvrdi email da bi mogao skupljati bodove i dodavati fotke.' },
     ] },
     { id: 'bodovi', title: 'Check-in i bodovi', items: [
-      { q: 'Kako se čekiram?', a: 'Dva načina: skeniraj GV QR kod na ulazu ili šanku partner lokala (običnom kamerom telefona ili na stranici Check-in), ili se čekiraj fotkom — uslikaš atmosferu i dozvoliš lokaciju, a mi provjerimo da si u lokalu.' },
-      { q: 'Koliko bodova dobijam?', a: 'Svaki partner lokal daje svoj broj bodova (najčešće 100–200). Bonusi: +50 ako je žurka uživo, +25 ako je u lokalu i neko koga pratiš, a nakon 3 sedmice zaredom sa izlaskom osnovni bodovi rastu ×1,5.' },
-      { q: 'Zašto mi check-in nije prošao?', a: 'Najčešće: već si se čekirao u tom lokalu u zadnjih 12 sati, dostigao si 3 check-ina za 24 sata, predaleko si od lokala ili lokal još nije partner. Poruka na ekranu kaže tačan razlog.' },
-      { q: 'Šta su nivoi?', a: 'Početnik, Stalni gost (1.000), Noćna ptica (5.000) i Legenda noći (15.000 ukupno zarađenih bodova). Trošenje bodova ne spušta nivo — on zavisi od ukupno zarađenog.' },
+      { q: 'Kako se čekiram?', a: 'Dva načina: skeniraj GV QR kod na ulazu ili šanku lokala (običnom kamerom telefona ili na stranici Check-in), ili se čekiraj fotkom — uslikaš atmosferu i dozvoliš lokaciju, a mi provjerimo da si u lokalu.' },
+      { q: 'Koliko bodova dobijam?', a: 'Svaki lokal daje +10 bodova, a partner lokali i lokali boostovani za vikend +30. Ako izlaziš 3 vikenda zaredom, bodovi se množe ×1,5, a za svaka još 2 vikenda množilac raste za 0,5 (5 vikenda = ×2). U nekim lokalima račun iznad zadatog iznosa (npr. 120 KM) donosi dodatni bonus kad ga lokal odobri.' },
+      { q: 'Zašto mi check-in nije prošao?', a: 'Najčešće: već si se čekirao negdje u zadnjih 12 sati, predaleko si od lokala ili lokal nema unesenu lokaciju. Poruka na ekranu kaže tačan razlog.' },
+      { q: 'Šta su nivoi?', a: 'Početnik, Stalni gost (100), Noćna ptica (500) i Legenda noći (1.500 ukupno zarađenih bodova). Trošenje bodova ne spušta nivo — on zavisi od ukupno zarađenog.' },
     ] },
     { id: 'nagrade', title: 'Nagrade', items: [
       { q: 'Kako uzimam nagradu?', a: 'Na stranici Nagrade izaberi nagradu i potvrdi. Dobijaš kod (npr. GV-AB12-CD34) koji pokažeš osoblju lokala; za merch se javi nama. Svaki kod važi jednom.' },
@@ -240,16 +240,16 @@ export const FAQ: Record<Lang, FaqGroup[]> = {
   ],
   en: [
     { id: 'osnove', title: 'Basics', items: [
-      { q: 'What is Gdje Večeras?', a: 'An app for nights out: see every party, gig, club and pub in town, and earn Večeras Score points for every visit to a partner venue — then trade them for drinks, entry and GdjeVečeras merch.' },
+      { q: 'What is Gdje Večeras?', a: 'An app for nights out: see every party, gig, club and pub in town, and earn Večeras Score points for every visit to a venue — then trade them for drinks, entry and GdjeVečeras merch.' },
       { q: 'Is it free?', a: 'Yes, completely. You only pay for event entry if the venue charges it — the price is always shown on the event page.' },
       { q: 'Which cities do you cover?', a: 'Banja Luka, Gradiška, Prnjavor, Srbac, Doboj, Laktaši and Prijedor — and growing. Let us know if you want your city.' },
       { q: 'How do I sign in?', a: 'With email and password, or one click with Google. Confirm your email to collect points and add photos.' },
     ] },
     { id: 'bodovi', title: 'Check-ins and points', items: [
-      { q: 'How do I check in?', a: 'Two ways: scan the GV QR code at the entrance or bar of a partner venue (with your regular phone camera or on the Check-in page), or check in with a photo — snap the vibe and allow location so we can confirm you are there.' },
-      { q: 'How many points do I get?', a: 'Each partner venue sets its own points (usually 100–200). Bonuses: +50 if a party is live, +25 if someone you follow is there, and after 3 weeks in a row with a night out your base points grow ×1.5.' },
-      { q: 'Why did my check-in fail?', a: 'Usually: you already checked in at that venue in the last 12 hours, you hit 3 check-ins in 24 hours, you are too far from the venue, or the venue is not a partner yet. The on-screen message tells you exactly why.' },
-      { q: 'What are levels?', a: 'Rookie, Regular (1,000), Night Owl (5,000) and Night Legend (15,000 points earned in total). Spending points never lowers your level — it depends on total points earned.' },
+      { q: 'How do I check in?', a: 'Two ways: scan the GV QR code at the entrance or bar of a venue (with your regular phone camera or on the Check-in page), or check in with a photo — snap the vibe and allow location so we can confirm you are there.' },
+      { q: 'How many points do I get?', a: 'Every venue gives +10 points, while partner venues and venues boosted for the weekend give +30. Go out 3 weekends in a row and your points are multiplied ×1.5, growing by 0.5 for every 2 more weekends (5 weekends = ×2). At some venues a receipt above a set amount (e.g. 120 KM) earns an extra bonus once the venue approves it.' },
+      { q: 'Why did my check-in fail?', a: 'Usually: you already checked in somewhere in the last 12 hours, you are too far from the venue, or the venue has no location set. The on-screen message tells you exactly why.' },
+      { q: 'What are levels?', a: 'Rookie, Regular (100), Night Owl (500) and Night Legend (1,500 points earned in total). Spending points never lowers your level — it depends on total points earned.' },
     ] },
     { id: 'nagrade', title: 'Rewards', items: [
       { q: 'How do I redeem a reward?', a: 'Pick a reward on the Rewards page and confirm. You get a code (e.g. GV-AB12-CD34) to show venue staff; for merch, contact us. Each code works once.' },

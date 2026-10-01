@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/admin/rewards/award", "schedule": "15 0 1 * *" }
+  ]
+}

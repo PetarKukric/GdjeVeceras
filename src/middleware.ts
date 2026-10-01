@@ -7,8 +7,8 @@ import { decrypt } from './lib/session-token';
  * Javne ostaju samo auth stranice, pravni tekstovi i kontakt. API rute same provjeravaju sesiju (vraćaju 401),
  * pa ih ovdje ne preusmjeravamo — inače bi fetch dobio HTML umjesto JSON-a.
  */
-// /contact je javan da bi vlasnici lokala mogli pisati i bez naloga
-const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email', '/terms', '/privacy', '/contact'];
+// /contact je javan da bi vlasnici lokala mogli pisati i bez naloga; /faq i /how-it-works su javni (i za Google)
+const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email', '/terms', '/privacy', '/contact', '/faq', '/how-it-works'];
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('bl_session')?.value;

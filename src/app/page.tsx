@@ -47,13 +47,14 @@ export default async function Home({ searchParams }: HomeProps) {
     getInitialPublicEvents(city, date),
     session ? loadScore(session.user.id) : Promise.resolve(null),
     prisma.venue.findMany({
-      where: { isPartner: true },
+      // Partneri i lokali boostovani za vikend
+      where: { OR: [{ isPartner: true }, { boostedUntil: { gt: new Date() } }] },
       orderBy: { checkIns: { _count: 'desc' } },
       take: 6,
-      select: { id: true, name: true, slug: true, city: true, imageUrl: true, checkInPoints: true, tags: { select: { name: true }, take: 2 } },
+      select: { id: true, name: true, slug: true, city: true, imageUrl: true, isPartner: true, boostedUntil: true, tags: { select: { name: true }, take: 2 } },
     }),
     prisma.reward.findMany({
-      where: { active: true },
+      where: { active: true, type: 'REDEEM' },
       orderBy: { cost: 'asc' },
       take: 4,
       select: { id: true, title: true, titleEn: true, cost: true, kind: true, venue: { select: { name: true } } },
@@ -65,7 +66,7 @@ export default async function Home({ searchParams }: HomeProps) {
   else console.error('Home SSR events error:', eventsResult.reason);
   if (scoreResult.status === 'fulfilled') score = scoreResult.value;
   if (partnersResult.status === 'fulfilled') {
-    partners = partnersResult.value.map(({ tags, ...venue }) => ({ ...venue, tags: tags.map((tag) => tag.name) }));
+    partners = partnersResult.value.map(({ tags, boostedUntil, ...venue }) => ({ ...venue, boostedUntil: boostedUntil ? boostedUntil.toISOString() : null, tags: tags.map((tag) => tag.name) }));
   }
   if (rewardsResult.status === 'fulfilled') rewards = rewardsResult.value;
   if (boardResult.status === 'fulfilled') board = boardResult.value.rows;

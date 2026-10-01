@@ -111,6 +111,14 @@ async function main() {
     'ALTER TABLE "User" ADD COLUMN "bio" TEXT',
     'ALTER TABLE "User" ADD COLUMN "showCheckIns" BOOLEAN NOT NULL DEFAULT true',
     'ALTER TABLE "User" ADD COLUMN "sessionVersion" INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE "Venue" ADD COLUMN "boostedUntil" DATETIME',
+    'ALTER TABLE "Venue" ADD COLUMN "receiptBoostEnabled" BOOLEAN NOT NULL DEFAULT false',
+    'ALTER TABLE "Venue" ADD COLUMN "receiptMinAmount" REAL NOT NULL DEFAULT 120',
+    'ALTER TABLE "Venue" ADD COLUMN "receiptBonusPoints" INTEGER NOT NULL DEFAULT 30',
+    'ALTER TABLE "Reward" ADD COLUMN "provider" TEXT',
+    `ALTER TABLE "Reward" ADD COLUMN "type" TEXT NOT NULL DEFAULT 'REDEEM'`,
+    'ALTER TABLE "Reward" ADD COLUMN "topRank" INTEGER',
+    'ALTER TABLE "Reward" ADD COLUMN "month" TEXT',
   ];
   for (const migration of additiveMigrations) {
     try {

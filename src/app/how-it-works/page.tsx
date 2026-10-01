@@ -1,15 +1,15 @@
 import Link from 'next/link';
-import { ArrowRight, Camera, Gift, QrCode, Search, Trophy, Users, Zap, Store, BarChart3, Ticket } from 'lucide-react';
+import { ArrowRight, Gift, QrCode, Search, Trophy, Zap, Store, BarChart3, Ticket } from 'lucide-react';
 import { getT } from '@/lib/i18n/server';
 import { CHECKIN_RULES } from '@/lib/score';
-import { TierLadder } from '@/components/score/ScoreParts';
+import { PointsRules, TierLadder } from '@/components/score/ScoreParts';
 
 export default async function HowItWorks() {
   const { t } = await getT();
   const steps = [
     { icon: Search, title: t('howPage.s1'), text: t('howPage.s1t') },
     { icon: QrCode, title: t('howPage.s2'), text: t('howPage.s2t') },
-    { icon: Zap, title: t('howPage.s3'), text: t('howPage.s3t', { live: CHECKIN_RULES.liveBonus, squad: CHECKIN_RULES.squadBonus }) },
+    { icon: Zap, title: t('howPage.s3'), text: t('howPage.s3t', { base: CHECKIN_RULES.basePoints, partner: CHECKIN_RULES.basePoints + CHECKIN_RULES.partnerBonus }) },
     { icon: Gift, title: t('howPage.s4'), text: t('howPage.s4t') },
   ];
   const venue = [
@@ -45,12 +45,10 @@ export default async function HowItWorks() {
             <div>
               <p className="kicker">{t('howPage.checkinKicker')}</p>
               <h2 className="h2">{t('howPage.checkinTitle')}</h2>
-              <p className="lead">{t('howPage.checkinLead', { h: CHECKIN_RULES.cooldownHours, n: CHECKIN_RULES.dailyLimit })}</p>
+              <p className="lead">{t('howPage.checkinLead', { h: CHECKIN_RULES.cooldownHours })}</p>
             </div>
             <ol className="how" style={{ marginTop: 0 }}>
-              <li><span className="how__ic"><QrCode className="ic" aria-hidden="true" /></span><div><b>{t('home.howQr')}</b><p>{t('home.howQrText')}</p></div><span className="how__pts">+50–200</span></li>
-              <li><span className="how__ic"><Camera className="ic" aria-hidden="true" /></span><div><b>{t('home.howPhoto')}</b><p>{t('howPage.photoText', { m: CHECKIN_RULES.photoRadiusM })}</p></div><span className="how__pts">+50–200</span></li>
-              <li><span className="how__ic"><Users className="ic" aria-hidden="true" /></span><div><b>{t('home.howSquad')}</b><p>{t('home.howSquadText')}</p></div><span className="how__pts">+{CHECKIN_RULES.squadBonus}</span></li>
+              <PointsRules />
             </ol>
           </div>
         </section>

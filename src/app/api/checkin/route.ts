@@ -10,7 +10,8 @@ import { CheckInError, assertCanCheckIn, performCheckIn, verifyCheckInCode } fro
 
 const venueSelect = {
   id: true, name: true, slug: true, latitude: true, longitude: true,
-  checkInPoints: true, isPartner: true, checkInVersion: true,
+  isPartner: true, boostedUntil: true, checkInVersion: true,
+  receiptBoostEnabled: true, receiptMinAmount: true, receiptBonusPoints: true,
 } as const;
 
 function num(value: unknown): number | null {
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     if (error instanceof CheckInError) {
-      const status = error.code === 'cooldown' || error.code === 'dailyLimit' ? 429 : 400;
+      const status = error.code === 'cooldown' ? 429 : 400;
       return NextResponse.json({ error: error.code, ...error.extra }, { status });
     }
     console.error('Check-in error:', error);

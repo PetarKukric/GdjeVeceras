@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/contact' },
   title: 'Kontakt',
   description: 'Pišite nam — odgovaramo u roku od 24 sata. Pitanja, sugestije i saradnja.',
 };

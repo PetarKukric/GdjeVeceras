@@ -6,12 +6,15 @@ import { Camera, Check, Loader2, LocateFixed, QrCode, AlertCircle, Zap } from 'l
 import { useLang } from '@/components/i18n/LangProvider';
 import { SCORE_EVENT } from '@/components/layout/Header';
 import { CHECKIN_RULES } from '@/lib/score';
+import { ReceiptClaim } from '@/components/score/ReceiptClaim';
 
 type Mode = 'qr' | 'photo';
 interface NearbyVenue { id: string; name: string; slug: string; city: string; distanceM: number; checkInPoints: number }
 interface CheckInResult {
-  points: number; base: number; balance: number; total: number;
-  bonuses: { type: 'live' | 'squad' | 'streak'; amount: number }[];
+  id: string; points: number; base: number; balance: number; total: number;
+  bonuses: { type: 'partner' | 'boost' | 'streak'; amount: number }[];
+  streak: number; multiplier: number;
+  receipt: { minAmount: number; bonus: number } | null;
   tierBefore: number; tierAfter: number;
   venue: { name: string; slug: string };
   event: { title: string } | null;
@@ -263,9 +266,10 @@ export function CheckInClient({ loggedIn, qrVenue, qrCode }: { loggedIn: boolean
           {result.bonuses.length > 0 && (
             <ul className="ci-bonus">
               <li>{t('checkin.bonus.base')} <b>+{result.base}</b></li>
-              {result.bonuses.map((b) => <li key={b.type}>{bonusLabel(b.type)} <b>+{b.amount}</b></li>)}
+              {result.bonuses.map((b) => <li key={b.type}>{b.type === 'streak' ? t('checkin.bonus.streakX', { n: result.streak, x: result.multiplier }) : bonusLabel(b.type)} <b>+{b.amount}</b></li>)}
             </ul>
           )}
+          {result.receipt && <div style={{ maxWidth: 420, margin: '22px auto 0', textAlign: 'left' }}><ReceiptClaim checkInId={result.id} minAmount={result.receipt.minAmount} bonus={result.receipt.bonus} /></div>}
           <p className="lead" style={{ marginInline: 'auto' }}>
             {result.tierAfter > result.tierBefore
               ? t('checkin.levelUp', { tier: t(`tiers.${['rookie', 'regular', 'nightOwl', 'legend'][result.tierAfter]}.name`) })
@@ -365,9 +369,9 @@ export function CheckInClient({ loggedIn, qrVenue, qrCode }: { loggedIn: boolean
           <p className="panel__title">{t('checkin.rulesTitle')}</p>
           <ul>
             <li>{t('checkin.rule1', { h: CHECKIN_RULES.cooldownHours })}</li>
-            <li>{t('checkin.rule2', { n: CHECKIN_RULES.dailyLimit })}</li>
-            <li>{t('checkin.rule3', { n: CHECKIN_RULES.liveBonus })}</li>
-            <li>{t('checkin.rule4', { n: CHECKIN_RULES.squadBonus })}</li>
+            <li>{t('checkin.rule2', { base: CHECKIN_RULES.basePoints, partner: CHECKIN_RULES.basePoints + CHECKIN_RULES.partnerBonus })}</li>
+            <li>{t('checkin.rule3', { n: CHECKIN_RULES.streakStartWeekends, x: CHECKIN_RULES.streakStartMultiplier })}</li>
+            <li>{t('checkin.rule4')}</li>
           </ul>
         </div>
       </div>

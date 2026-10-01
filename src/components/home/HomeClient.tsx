@@ -4,15 +4,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Check, Flame, Gift, MapPin, Camera, QrCode, Search, Trophy, Users, Zap, Radio, Download } from 'lucide-react';
+import { ArrowRight, Check, Flame, Gift, MapPin, Search, Trophy, Zap, Download } from 'lucide-react';
 import { EventCard } from '@/components/events/EventCard';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { useLang } from '@/components/i18n/LangProvider';
-import { Board, RewardKindIcon, ScoreCard, TierLadder, type ScoreSummary } from '@/components/score/ScoreParts';
+import { Board, PointsRules, RewardKindIcon, ScoreCard, TierLadder, type ScoreSummary } from '@/components/score/ScoreParts';
 import { useEvents } from '@/hooks/useEvents';
 import { SUPPORTED_CITIES, getCityBySlug } from '@/lib/cities';
 import { readSavedCity, saveCity } from '@/lib/city-preference';
-import { CHECKIN_RULES, initials, tierInfo } from '@/lib/score';
+import { CHECKIN_RULES, initials, isBoosted, tierInfo, venuePoints } from '@/lib/score';
 import type { Category, Event, EventsResponse } from '@/types';
 import type { LeaderboardRow } from '@/lib/score-service';
 
@@ -22,7 +22,7 @@ const EventMap = dynamic(() => import('@/components/map/EventMap'), {
 });
 
 export type HomeScore = ScoreSummary;
-export interface HomePartner { id: string; name: string; slug: string; city: string; imageUrl: string | null; checkInPoints: number; tags: string[] }
+export interface HomePartner { id: string; name: string; slug: string; city: string; imageUrl: string | null; isPartner: boolean; boostedUntil: string | null; tags: string[] }
 export interface HomeReward { id: string; title: string; titleEn: string | null; cost: number; kind: string; venue: { name: string } | null }
 
 interface HomeClientProps {
@@ -215,12 +215,12 @@ export function HomeClient({ initialCity, initialDate, initialEvents, explicitCi
                       <b>{e?.title || (i ? 'Warehouse Nights' : 'Pink Room Fridays')}</b>
                       <small>{e?.venue?.name || (i ? 'Silos 7' : 'Klub Neon')}</small>
                     </div>
-                    <span className="ph-card__pts">+{e?.venue?.checkInPoints ?? (i ? 200 : 150)}</span>
+                    <span className="ph-card__pts">+{e?.venue ? venuePoints(e.venue) : (i ? 30 : 10)}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="float-badge float-badge--a"><Check className="ic" /> Check-in · {partners[0]?.name || 'Klub Neon'} <b>+{partners[0]?.checkInPoints ?? 150}</b></div>
+            <div className="float-badge float-badge--a"><Check className="ic" /> Check-in · {partners[0]?.name || 'Klub Neon'} <b>+{partners[0] ? venuePoints(partners[0]) : 30}</b></div>
             <div className="float-badge float-badge--b"><Trophy className="ic" /> {t('home.floatRank')}</div>
           </div>
         </div>
@@ -306,9 +306,9 @@ export function HomeClient({ initialCity, initialDate, initialEvents, explicitCi
                 <div className="score__num"><Zap className="ic" aria-hidden="true" /><span>0</span></div>
                 <p className="score__sub">{t('home.guestScore')}</p>
                 <ul className="stats" style={{ marginTop: 24 }}>
-                  <li><b>+{CHECKIN_RULES.liveBonus}</b><span>{t('home.guestStatLive')}</span></li>
-                  <li><b>+{CHECKIN_RULES.squadBonus}</b><span>{t('home.guestStatSquad')}</span></li>
-                  <li><b>×{CHECKIN_RULES.streakMultiplier}</b><span>{t('home.guestStatStreak')}</span></li>
+                  <li><b>+{CHECKIN_RULES.basePoints}</b><span>{t('home.guestStatAny')}</span></li>
+                  <li><b>+{CHECKIN_RULES.basePoints + CHECKIN_RULES.partnerBonus}</b><span>{t('home.guestStatPartner')}</span></li>
+                  <li><b>×{CHECKIN_RULES.streakStartMultiplier}</b><span>{t('home.guestStatStreak')}</span></li>
                 </ul>
                 <Link href="/signup" className="btn btn--pink btn--block">{t('home.guestCta')}</Link>
               </div>
@@ -319,11 +319,7 @@ export function HomeClient({ initialCity, initialDate, initialEvents, explicitCi
               <h2 className="h2">{t('home.how1')} <span className="pink">{t('home.how2')}</span> {t('home.how3')}</h2>
               <p className="lead">{t('home.howLead')}</p>
               <ol className="how">
-                <li><span className="how__ic"><QrCode className="ic" aria-hidden="true" /></span><div><b>{t('home.howQr')}</b><p>{t('home.howQrText')}</p></div><span className="how__pts">+50–200</span></li>
-                <li><span className="how__ic"><Camera className="ic" aria-hidden="true" /></span><div><b>{t('home.howPhoto')}</b><p>{t('home.howPhotoText')}</p></div><span className="how__pts">+50–200</span></li>
-                <li><span className="how__ic"><Users className="ic" aria-hidden="true" /></span><div><b>{t('home.howSquad')}</b><p>{t('home.howSquadText')}</p></div><span className="how__pts">+{CHECKIN_RULES.squadBonus}</span></li>
-                <li><span className="how__ic"><Radio className="ic" aria-hidden="true" /></span><div><b>{t('home.howLive')}</b><p>{t('home.howLiveText')}</p></div><span className="how__pts">+{CHECKIN_RULES.liveBonus}</span></li>
-                <li><span className="how__ic"><Flame className="ic" aria-hidden="true" /></span><div><b>{t('home.howStreak')}</b><p>{t('home.howStreakText', { n: CHECKIN_RULES.streakWeeks })}</p></div><span className="how__pts">×{CHECKIN_RULES.streakMultiplier}</span></li>
+                <PointsRules />
               </ol>
             </div>
           </div>
@@ -383,7 +379,7 @@ export function HomeClient({ initialCity, initialDate, initialEvents, explicitCi
                 <Link key={p.id} href={`/venues/${p.slug}`} className="partner">
                   <div className="partner__mark">{p.imageUrl ? <img src={p.imageUrl} alt="" loading="lazy" /> : initials(p.name)}</div>
                   <div className="partner__body"><b>{p.name}</b><span>{[p.city, ...p.tags].join(' · ')}</span></div>
-                  <span className="partner__mult">+{p.checkInPoints}</span>
+                  <span className="partner__mult">+{venuePoints(p)}{isBoosted(p) ? ' 🚀' : ''}</span>
                 </Link>
               ))}
             </div>

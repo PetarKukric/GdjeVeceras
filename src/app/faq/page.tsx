@@ -6,7 +6,7 @@ import { FAQ } from '@/lib/i18n/pages';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getT();
-  return { title: t('info.faqTitle'), description: t('info.faqLead') };
+  return { title: t('info.faqTitle'), description: t('info.faqLead'), alternates: { canonical: '/faq' } };
 }
 
 export default async function FaqPage() {

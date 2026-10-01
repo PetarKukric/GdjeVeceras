@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
+import { monthKey } from '@/lib/score';
+import { monthlyTop } from '@/lib/rewards';
 import { getSession } from '@/lib/auth';
 import { getT } from '@/lib/i18n/server';
 import { RewardsClient, type RewardItem, type MyCode } from '@/components/score/RewardsClient';
@@ -20,15 +22,16 @@ export default async function RewardsPage() {
   let codes: MyCode[] = [];
   let balance: number | null = null;
   let failed = false;
+  let standings: Awaited<ReturnType<typeof monthlyTop>> = [];
 
   try {
     const [rewardRows, user, redemptions] = await Promise.all([
       prisma.reward.findMany({
-        where: { active: true },
-        orderBy: [{ venueId: 'asc' }, { cost: 'asc' }],
+        where: { active: true, OR: [{ type: 'REDEEM' }, { type: 'TOP', month: monthKey() }] },
+        orderBy: [{ topRank: 'asc' }, { venueId: 'asc' }, { cost: 'asc' }],
         select: {
           id: true, title: true, titleEn: true, description: true, descriptionEn: true,
-          kind: true, cost: true, imageUrl: true, stock: true,
+          kind: true, cost: true, imageUrl: true, stock: true, type: true, topRank: true, provider: true,
           venue: { select: { name: true, slug: true, city: true } },
         },
       }),
@@ -37,10 +40,11 @@ export default async function RewardsPage() {
         where: { userId: session.user.id },
         orderBy: { createdAt: 'desc' },
         take: 20,
-        select: { id: true, code: true, status: true, createdAt: true, usedAt: true, reward: { select: { title: true, titleEn: true, venue: { select: { name: true } } } } },
+        select: { id: true, code: true, status: true, createdAt: true, usedAt: true, reward: { select: { title: true, titleEn: true, provider: true, type: true, venue: { select: { name: true } } } } },
       }) : [],
     ]);
     rewards = rewardRows;
+    standings = await monthlyTop(monthKey()).catch(() => []);
     balance = user?.points ?? null;
     codes = JSON.parse(JSON.stringify(redemptions));
   } catch (error) {
@@ -61,7 +65,7 @@ export default async function RewardsPage() {
         </div>
         {failed
           ? <div className="empty"><b>{t('common.errorTitle')}</b>{t('common.tryLater')}</div>
-          : <RewardsClient rewards={rewards} codes={codes} initialBalance={balance} loggedIn={Boolean(session)} />}
+          : <RewardsClient rewards={rewards} codes={codes} initialBalance={balance} loggedIn={Boolean(session)} standings={standings} meId={session?.user.id || null} />}
       </div>
     </main>
   );

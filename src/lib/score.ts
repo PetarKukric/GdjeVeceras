@@ -2,34 +2,96 @@
  * Večeras Score — pravila bodovanja (dijeli se između klijenta i servera, bez Prisme).
  */
 
+// Pragovi su skalirani na bodovanje 10/30 po izlasku (≈ 3, 15 i 50 partner izlazaka)
 export const TIERS = [
   { key: 'rookie', min: 0 },
-  { key: 'regular', min: 1000 },
-  { key: 'nightOwl', min: 5000 },
-  { key: 'legend', min: 15000 },
+  { key: 'regular', min: 100 },
+  { key: 'nightOwl', min: 500 },
+  { key: 'legend', min: 1500 },
 ] as const;
 
 export type TierKey = (typeof TIERS)[number]['key'];
 
 export const CHECKIN_RULES = {
-  /** Isti lokal najviše jednom u 12h */
+  /** Jedan check-in (bilo gdje) u 12h */
   cooldownHours: 12,
-  /** Najviše 3 check-ina u 24h (zaštita od "farmanja") */
-  dailyLimit: 3,
+  /** Osnovni bodovi za svaki lokal */
+  basePoints: 10,
+  /** Partner lokal ili lokal boostovan za vikend: ukupno 30 (osnova + 20) */
+  partnerBonus: 20,
+  boostBonus: 20,
   /** Fotka + lokacija: moraš biti unutar ovog radijusa od lokala (+ tolerancija GPS preciznosti) */
   photoRadiusM: 150,
   maxAccuracyToleranceM: 150,
   /** QR skeniran dalje od ovoga (ako je lokacija poslana) se odbija — neko skenira fotku QR koda od kuće */
   qrMaxDistanceM: 2000,
-  /** Bonus kad u lokalu upravo traje događaj */
-  liveBonus: 50,
-  /** Bonus kad se u zadnja 3h u istom lokalu čekirao neko koga pratiš */
-  squadBonus: 25,
-  squadWindowHours: 3,
-  /** Niz: ovoliko uzastopnih sedmica sa check-inom → osnovni bodovi × multiplier */
-  streakWeeks: 3,
-  streakMultiplier: 1.5,
+  /** Niz vikenda: od 3 zaredom ×1.5, pa +0.5 na svaka još 2 vikenda (5 → ×2, 7 → ×2.5…) */
+  streakStartWeekends: 3,
+  streakStartMultiplier: 1.5,
+  streakStepWeekends: 2,
+  streakStep: 0.5,
+  /** Račun se može prijaviti do ovoliko sati nakon check-ina u tom lokalu */
+  receiptWindowHours: 12,
 } as const;
+
+/** Množilac za niz vikenda (1 = bez bonusa) */
+export function streakMultiplier(weekends: number): number {
+  const r = CHECKIN_RULES;
+  if (weekends < r.streakStartWeekends) return 1;
+  return r.streakStartMultiplier + r.streakStep * Math.floor((weekends - r.streakStartWeekends) / r.streakStepWeekends);
+}
+
+export function isBoosted(venue: { boostedUntil?: string | Date | null }, now = Date.now()): boolean {
+  return Boolean(venue.boostedUntil) && new Date(venue.boostedUntil as string | Date).getTime() > now;
+}
+
+/** Bodovi za check-in prije množioca niza: 10 svuda, 30 partner ili boost (oba = 50) */
+export function venuePoints(venue: { isPartner?: boolean | null; boostedUntil?: string | Date | null }, now = Date.now()): number {
+  const r = CHECKIN_RULES;
+  return r.basePoints + (venue.isPartner ? r.partnerBonus : 0) + (isBoosted(venue, now) ? r.boostBonus : 0);
+}
+
+const SARAJEVO_PARTS = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Sarajevo', year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' });
+
+/** Lokalni (Sarajevo) dan kao broj dana od epohe + dan u sedmici (0 = ned) */
+function localDay(date: Date): { day: number; weekday: number; y: number; m: number } {
+  const parts = Object.fromEntries(SARAJEVO_PARTS.formatToParts(date).map((p) => [p.type, p.value]));
+  const y = Number(parts.year), m = Number(parts.month), d = Number(parts.day);
+  return { day: Math.round(Date.UTC(y, m - 1, d) / 86400000), weekday: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday), y, m };
+}
+
+/** Ključ vikenda (dan petka) za check-in u pet/sub/ned po sarajevskom vremenu, inače null */
+export function weekendKey(date: Date): number | null {
+  const { day, weekday } = localDay(date);
+  if (weekday === 5) return day;
+  if (weekday === 6) return day - 1;
+  if (weekday === 0) return day - 2;
+  return null;
+}
+
+/** Posljednji vikend koji je počeo do ovog trenutka (tekući ako je vikend) */
+export function latestWeekendKey(date = new Date()): number {
+  const { day, weekday } = localDay(date);
+  return day - ((weekday - 5 + 7) % 7);
+}
+
+/** Broj uzastopnih vikenda sa izlaskom, računajući od referentnog vikenda unazad */
+export function countWeekendStreak(keys: Set<number>, fromKey: number): number {
+  let n = 0;
+  for (let k = fromKey; keys.has(k); k -= 7) n++;
+  return n;
+}
+
+/** Mjesec "YYYY-MM" po sarajevskom vremenu */
+export function monthKey(date = new Date()): string {
+  const { y, m } = localDay(date);
+  return `${y}-${String(m).padStart(2, '0')}`;
+}
+
+export function previousMonthKey(key: string): string {
+  const [y, m] = key.split('-').map(Number);
+  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
+}
 
 export function tierInfo(totalPoints: number) {
   let index = 0;

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 /**
- * Sajt je LANSIRAN — Google slobodno indeksira javne stranice.
+ * Aplikacija je iza prijave — Google indeksira samo javne stranice (prijava, registracija, FAQ, kako radi, kontakt, pravni tekstovi).
  * Zaključano: admin, API i lične stranice (chat, podešavanja, reset lozinke...).
  */
 export default function robots(): MetadataRoute.Robots {
@@ -17,8 +17,10 @@ export default function robots(): MetadataRoute.Robots {
           '/chat',
           '/settings',
           '/favorites',
-          '/login',
-          '/signup',
+          '/profile',
+          '/rewards',
+          '/checkin',
+          '/u/',
           '/thank-you',
           '/forgot-password',
           '/reset-password',

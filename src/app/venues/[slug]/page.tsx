@@ -16,7 +16,7 @@ import { PartnerCheckInBanner } from '@/components/score/PartnerCheckInBanner';
 import { useToast } from '@/components/ui/Toast';
 import { useLang } from '@/components/i18n/LangProvider';
 import { getVenueStatus } from '@/lib/venue-utils';
-import { initials } from '@/lib/score';
+import { CHECKIN_RULES, initials, isBoosted, venuePoints } from '@/lib/score';
 import { trackEvent } from '@/lib/analytics';
 
 type IconProps = { size?: number; className?: string };
@@ -157,7 +157,7 @@ export default function VenuePage() {
                     <span className="dot" aria-hidden="true" />{venueStatus.label}{venueStatus.subLabel ? ` · ${venueStatus.subLabel}` : ''}
                   </span>
                 )}
-                {venue.isPartner && <span className="mchip mchip--pink"><Zap size={15} aria-hidden="true" />+{venue.checkInPoints ?? 100} {t('score.ptsAbbr')}</span>}
+                <span className={`mchip${venuePoints(venue) > CHECKIN_RULES.basePoints ? ' mchip--pink' : ''}`}><Zap size={15} aria-hidden="true" />+{venuePoints(venue)} {t('score.ptsAbbr')}{isBoosted(venue) ? ` · ${t('score.boosted')}` : ''}</span>
               </div>
             </div>
             <div className="dhero__cta">
@@ -168,7 +168,7 @@ export default function VenuePage() {
         </div>
       </section>
 
-      {venue.isPartner && <div className="wrap" style={{ marginTop: 16 }}><PartnerCheckInBanner points={venue.checkInPoints ?? 100} /></div>}
+      <div className="wrap" style={{ marginTop: 16 }}><PartnerCheckInBanner points={venuePoints(venue)} partner={Boolean(venue.isPartner || isBoosted(venue))} receipt={venue.receiptBoostEnabled ? { min: venue.receiptMinAmount, bonus: venue.receiptBonusPoints } : null} /></div>
 
       <nav className="dtabs" aria-label={t('venue.sectionsAria')}>
         <div className="wrap dtabs__inner">

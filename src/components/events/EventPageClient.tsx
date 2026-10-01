@@ -14,7 +14,7 @@ import { PosterArt } from '@/components/ui/PosterArt';
 import { useToast } from '@/components/ui/Toast';
 import { useLang } from '@/components/i18n/LangProvider';
 import { intlLocale } from '@/lib/i18n';
-import { initials } from '@/lib/score';
+import { CHECKIN_RULES, initials, venuePoints } from '@/lib/score';
 import { trackEvent } from '@/lib/analytics';
 
 const TZ = 'Europe/Sarajevo';
@@ -139,7 +139,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
                   <span className="mchip"><Calendar size={15} aria-hidden="true" />{longDate}</span>
                   <span className="mchip"><Clock size={15} aria-hidden="true" />{time(startDate)}{endDate ? ` – ${time(endDate)}` : ''}</span>
                   <Link className="mchip mchip--link" href={`/venues/${event.venue.slug}`}><MapPin size={15} aria-hidden="true" />{event.venue.name}</Link>
-                  {event.venue?.isPartner && <span className="mchip mchip--pink"><Zap size={15} aria-hidden="true" />+{event.venue.checkInPoints ?? 100} {t('score.ptsAbbr')}</span>}
+                  <span className={`mchip${venuePoints(event.venue) > CHECKIN_RULES.basePoints ? ' mchip--pink' : ''}`}><Zap size={15} aria-hidden="true" />+{venuePoints(event.venue)} {t('score.ptsAbbr')}</span>
                 </div>
               </div>
               <div className="dhero__cta">

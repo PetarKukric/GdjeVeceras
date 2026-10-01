@@ -2,97 +2,77 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Loader2, Send } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2, Mail, MailCheck } from 'lucide-react';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
+import { useLang } from '@/components/i18n/LangProvider';
+import { AuthShell } from '@/components/auth/AuthShell';
 
 export default function ForgotPasswordPage() {
+  const { t } = useLang();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (!isValidEmail(normalizeEmail(email))) {
-      setError('Unesite ispravnu email adresu.');
-      return;
-    }
-
+    const normalized = normalizeEmail(email);
+    if (!normalized || !isValidEmail(normalized)) { setError(t('auth.invalidEmail')); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizeEmail(email) }),
+        body: JSON.stringify({ email: normalized }),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setSent(true);
-      } else {
-        setError(data.error || 'Greška. Pokušajte ponovo.');
-      }
+      const data = await res.json().catch(() => ({}));
+      // Odgovor je isti bez obzira da li nalog postoji (ne otkrivamo registrovane emailove)
+      if (res.ok) setSent(true);
+      else setError(data.error || t('checkin.errors.server'));
     } catch {
-      setError('Mrežna greška.');
+      setError(t('checkin.errors.network'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow min-h-[80vh] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 shadow-2xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-black mb-2 uppercase tracking-tight text-primary">Zaboravljena lozinka</h1>
-            <p className="text-muted text-sm font-medium">Unesite svoju email adresu i poslaćemo vam uputstvo za prijavu.</p>
-          </div>
-
-          {sent ? (
-            <div className="space-y-6">
-              <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-5 rounded-2xl text-sm font-bold leading-relaxed">
-                Ako nalog sa tom adresom postoji, uputstvo je poslano na email. Provjerite inbox (i spam folder).
-              </div>
-              <Link href="/login" className="block text-center text-primary text-xs font-black uppercase tracking-widest hover:underline">
-                Nazad na prijavu
-              </Link>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-sm font-bold">
-                  {error}
-                </div>
-              )}
-              <div>
-                <label className="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2">Email adresa</label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" size={18} />
-                  <input
-                    type="text"
-                    required
-                    placeholder="ime@gmail.com"
-                    className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-all text-sm"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-14 bg-primary text-white font-black rounded-xl hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />} POŠALJI
-              </button>
-              <Link href="/login" className="block text-center text-muted text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
-                Nazad na prijavu
-              </Link>
-            </form>
-          )}
+    <AuthShell>
+      <Link href="/login" className="link" style={{ minHeight: 32, marginBottom: 12 }}><ArrowLeft size={16} aria-hidden="true" />{t('forgot.back')}</Link>
+      {sent ? (
+        <div role="status">
+          <div className="burst" style={{ margin: '8px 0 22px' }}><MailCheck className="ic" aria-hidden="true" /></div>
+          <h1 className="h2">{t('forgot.sentTitle')}</h1>
+          <p className="lead" style={{ fontSize: 16 }}>{t('forgot.sentText', { email: normalizeEmail(email) })}</p>
+          <ul className="forgot__tips">
+            <li>{t('forgot.tip1')}</li>
+            <li>{t('forgot.tip2')}</li>
+          </ul>
+          <button type="button" className="btn btn--ghost btn--block" style={{ marginTop: 20 }} onClick={() => setSent(false)}>{t('forgot.again')}</button>
         </div>
-      </main>
-    </div>
+      ) : (
+        <>
+          <p className="kicker">{t('forgot.kicker')}</p>
+          <h1 className="h2">{t('forgot.title')}</h1>
+          <p className="lead" style={{ fontSize: 16 }}>{t('forgot.lead')}</p>
+          <form className="form" onSubmit={submit} noValidate>
+            {error && <div className="alert alert--error" role="alert"><AlertCircle className="ic" aria-hidden="true" />{error}</div>}
+            <label className="field">
+              <span>{t('auth.email')}</span>
+              <span className="field__box">
+                <Mail className="ic" aria-hidden="true" />
+                <input type="email" inputMode="email" autoComplete="email" required className="input" placeholder="ime@gmail.com"
+                  value={email} onChange={(e) => { setEmail(e.target.value); if (error) setError(''); }} aria-invalid={Boolean(error)} />
+              </span>
+            </label>
+            <button type="submit" disabled={loading} className="btn btn--pink btn--block" style={{ marginTop: 8 }}>
+              {loading ? <><Loader2 className="ic animate-spin" aria-hidden="true" />{t('auth.sending')}</> : t('forgot.send')}
+            </button>
+          </form>
+          <p className="auth__alt">{t('forgot.google')} <Link href="/login">{t('nav.login')}</Link></p>
+        </>
+      )}
+    </AuthShell>
   );
 }

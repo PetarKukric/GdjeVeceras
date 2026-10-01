@@ -58,6 +58,9 @@ model User {
   // Povećava se pri promjeni lozinke / banu / "odjavi se svuda" — stare sesije (JWT) prestaju da važe
   sessionVersion    Int              @default(0)
   photos            UserPhoto[]
+  receiptClaims     ReceiptClaim[]  @relation("ClaimUser")
+  reviewedClaims    ReceiptClaim[]  @relation("ClaimReviewer")
+  monthlyAwards     MonthlyAward[]
 }
 
 model Venue {
@@ -98,6 +101,13 @@ model Venue {
   checkInPoints Int       @default(100)
   // QR kod se izvodi kao HMAC(venueId:verzija) — tajna se ne čuva u bazi; nova verzija poništava stare QR kodove
   checkInVersion Int      @default(1)
+  // Boost za vikend: admin "pinuje" lokal — check-in nosi partner bodove dok boostedUntil ne prođe
+  boostedUntil   DateTime?
+  // Bonus za račun: gost koji potroši >= receiptMinAmount dobija receiptBonusPoints (račun provjerava lokal/admin)
+  receiptBoostEnabled Boolean @default(false)
+  receiptMinAmount    Float   @default(120)
+  receiptBonusPoints  Int     @default(30)
+  receiptClaims  ReceiptClaim[]
   checkIns      CheckIn[]
   rewards       Reward[]
   userPhotos    UserPhoto[]
@@ -511,10 +521,51 @@ model CheckIn {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
   event     Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  receiptClaim ReceiptClaim?
 
   @@index([userId, createdAt])
   @@index([venueId, createdAt])
   @@index([createdAt])
+}
+
+// Zahtjev za bonus za račun: fotka računa (+ sadržaj QR koda fiskalnog računa ako je očitan)
+model ReceiptClaim {
+  id           String    @id @default(cuid())
+  userId       String
+  venueId      String
+  checkInId    String    @unique
+  amount       Float
+  photoUrl     String
+  qrData       String?
+  qrHash       String?   @unique // isti račun se ne može iskoristiti dvaput
+  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  points       Int       @default(0)
+  note         String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  user         User      @relation("ClaimUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer     User?     @relation("ClaimReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  venue        Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  checkIn      CheckIn   @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+}
+
+// Dodijeljena mjesečna nagrada (top 5) — jedinstveno po mjesecu i mjestu, pa se ne dodjeljuje dvaput
+model MonthlyAward {
+  id           String   @id @default(cuid())
+  month        String
+  rank         Int
+  points       Int
+  rewardId     String
+  userId       String
+  redemptionId String?
+  createdAt    DateTime @default(now())
+  reward       Reward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([month, rank])
 }
 
 model Reward {
@@ -528,7 +579,12 @@ model Reward {
   imageUrl      String?
   stock         Int?         // null = neograničeno
   active        Boolean      @default(true)
-  venueId       String?      // null = GdjeVečeras merch (upaljač, majica, patike...)
+  venueId       String?      // null = nagrada partnera bez lokala (vidi provider)
+  provider      String?      // kad nema lokala: "GV" (GdjeVečeras merch) ili "PANTHER_TIKE"
+  type          String       @default("REDEEM") // "REDEEM" = kupuje se bodovima, "TOP" = mjesečna nagrada za top 5
+  topRank       Int?         // TOP: mjesto 1–5
+  month         String?      // TOP: mjesec takmičenja "YYYY-MM"
+  awards        MonthlyAward[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   venue         Venue?       @relation(fields: [venueId], references: [id], onDelete: Cascade)

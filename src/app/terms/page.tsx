@@ -5,7 +5,7 @@ import { LegalPage } from '@/components/info/LegalPage';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getT();
-  return { title: t('info.termsTitle'), description: t('info.termsDesc') };
+  return { title: t('info.termsTitle'), description: t('info.termsDesc'), alternates: { canonical: '/terms' } };
 }
 
 export default async function TermsPage() {
