@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import crypto from 'crypto';
 import { sendVerificationEmail } from '@/lib/email';
@@ -7,6 +8,9 @@ import { hashToken } from '@/lib/password';
 
 export async function POST(request: NextRequest) {
   try {
+    if (!rateLimit(`resend:${getClientIp(request)}`, 5, 15 * 60_000).ok) {
+      return NextResponse.json({ error: 'Previše pokušaja. Sačekaj par minuta.' }, { status: 429 });
+    }
     const { email } = await request.json();
     if (!email) {
       return NextResponse.json({ error: 'Email je obavezan.' }, { status: 400 });

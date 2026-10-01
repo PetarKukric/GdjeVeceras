@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { requireVerifiedEmail } from '@/lib/verification';
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
     }
     const verificationError = await requireVerifiedEmail(session.user.id);
     if (verificationError) return verificationError;
+    if (!rateLimit(`comment:${session.user.id}`, 10, 10 * 60_000).ok) {
+      return NextResponse.json({ error: 'Previše komentara. Sačekaj par minuta.' }, { status: 429 });
+    }
 
     const body = await request.json();
     const { content, eventId, venueId } = body;

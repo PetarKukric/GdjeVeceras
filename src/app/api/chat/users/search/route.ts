@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
@@ -12,6 +13,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
 
+    if (!rateLimit(`user-search:${session.user.id}`, 60, 60_000).ok) {
+      return NextResponse.json([], { status: 429 });
+    }
     if (!query || query.length < 2) {
       return NextResponse.json([]);
     }
@@ -22,11 +26,13 @@ export async function GET(request: NextRequest) {
           {
             OR: [
               { name: { contains: query } },
-              { email: { contains: query } },
+              // Email samo kao tačno poklapanje — djelimična pretraga bi otkrivala ko je registrovan
+              { email: query.trim().toLowerCase() },
             ],
           },
           {
             id: { not: session.user.id },
+            restricted: false,
           },
         ],
       },

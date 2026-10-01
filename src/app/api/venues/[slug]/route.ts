@@ -141,7 +141,6 @@ export async function PUT(
           instagramUrl: body.instagramUrl,
           facebookUrl: body.facebookUrl,
           tiktokUrl: body.tiktokUrl,
-          reservationsEnabled: body.reservationsEnabled === undefined ? undefined : !!body.reservationsEnabled,
           imageUrl: body.imageUrl,
           ownerId: ownerId,
           openingHours: body.openingHours ? {

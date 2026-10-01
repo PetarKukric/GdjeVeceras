@@ -12,7 +12,10 @@ const COOKIE_SAMESITE: 'lax' | 'none' = process.env.NODE_ENV === 'production' ? 
 
 export async function login(user: { id: string; email: string; role: string; name: string }) {
   const expires = new Date(Date.now() + SESSION_DURATION_MS);
-  const session = await encrypt({ user, expires });
+  const { default: prisma } = await import('@/lib/prisma');
+  const current = await prisma.user.findUnique({ where: { id: user.id }, select: { sessionVersion: true } });
+  // sv = verzija sesije; getSession odbija token kad se verzija u bazi promijeni (promjena lozinke, ban, "odjavi se svuda")
+  const session = await encrypt({ user: { ...user, sv: current?.sessionVersion ?? 0 }, expires });
   const cookieStore = await cookies();
   
   cookieStore.set('bl_session', session, { 
@@ -26,7 +29,13 @@ export async function login(user: { id: string; email: string; role: string; nam
 
 export async function logout() {
   const cookieStore = await cookies();
-  cookieStore.set('bl_session', '', { expires: new Date(0), path: '/' });
+  cookieStore.set('bl_session', '', { expires: new Date(0), path: '/', httpOnly: true, secure: true, sameSite: COOKIE_SAMESITE });
+}
+
+/** Poništi SVE postojeće sesije korisnika (svi uređaji moraju se ponovo prijaviti) */
+export async function revokeSessions(userId: string) {
+  const { default: prisma } = await import('@/lib/prisma');
+  await prisma.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
 }
 
 export async function getSession() {
@@ -43,10 +52,11 @@ export async function getSession() {
     const { default: prisma } = await import('@/lib/prisma');
     const currentUser = await prisma.user.findUnique({
       where: { id: parsed.user.id },
-      select: { id: true, email: true, role: true, name: true, restricted: true },
+      select: { id: true, email: true, role: true, name: true, restricted: true, sessionVersion: true },
     });
 
     if (!currentUser || currentUser.restricted) return null;
+    if ((parsed.user.sv ?? 0) !== currentUser.sessionVersion) return null;
 
     return {
       ...parsed,

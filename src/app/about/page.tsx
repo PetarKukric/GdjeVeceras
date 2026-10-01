@@ -1,6 +1,5 @@
 'use client';
 
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Target, Users, Heart } from 'lucide-react';
 
 export default function AboutPage() {
@@ -51,7 +50,7 @@ export default function AboutPage() {
               <div className="space-y-4">
                  <div className="text-primary font-black text-4xl">01</div>
                  <h4 className="font-black uppercase tracking-widest text-sm">Sve na jednom mjestu</h4>
-                 <p className="text-muted text-xs font-bold uppercase tracking-widest leading-loose">Od žurki do rezervacija i live atmosfere.</p>
+                 <p className="text-muted text-xs font-bold uppercase tracking-widest leading-loose">Od žurki do svirki i live atmosfere.</p>
               </div>
               <div className="space-y-4">
                  <div className="text-primary font-black text-4xl">02</div>
@@ -72,7 +71,6 @@ export default function AboutPage() {
         </div>
 
       </main>
-      <BottomNav />
     </div>
   );
 }

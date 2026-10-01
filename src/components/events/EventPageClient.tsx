@@ -1,147 +1,69 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
-  Calendar,
-  Check,
-  Flag,
-  Clock,
-  MapPin,
-  Tag,
-  Ticket,
-  Bookmark,
-  Info,
-  ExternalLink,
-  Heart,
-  AlertTriangle,
-  Send,
-  Share2,
-  Users,
-  Music,
-  Disc,
-  Disc3,
-  Guitar,
-  ChevronRight,
-  Car,
-  Wifi,
-  Utensils,
-  Tv,
-  Star,
-  Snowflake,
-  Sun,
-  CalendarCheck,
-  Target,
-  Accessibility,
-  Shirt,
-  Beer,
-  Tag as TagIcon,
-  Sparkles,
-  ArrowLeft
+  Calendar, Clock, MapPin, Ticket, Heart, Share2, Users, Shirt, Flag, Send, AlertTriangle, ExternalLink,
+  Zap, Sparkles, Navigation, Music2, Tag,
 } from 'lucide-react';
-import {} from '@/lib/services';
-import { BottomNav } from '@/components/layout/BottomNav';
-import {} from '@/components/events/EventCard';
 import { VenueLocation } from '@/components/venues/VenueLocation';
 import { CommentSection } from '@/components/comments/CommentSection';
-import Link from 'next/link';
 import { ShareModal } from '@/components/share/ShareModal';
 import { LiveFeed } from '@/components/events/LiveFeed';
-import { ReservationModal } from '@/components/events/ReservationModal';
+import { PosterArt } from '@/components/ui/PosterArt';
 import { useToast } from '@/components/ui/Toast';
-import { formatSerbianDate } from '@/lib/date-format';
+import { useLang } from '@/components/i18n/LangProvider';
+import { intlLocale } from '@/lib/i18n';
+import { initials } from '@/lib/score';
 import { trackEvent } from '@/lib/analytics';
 
-const TAG_ICONS: Record<string, any> = {
-  'Parking': Car,
-  'Wi-Fi': Wifi,
-  'Hrana': Utensils,
-  'TV': Tv,
-  'Sportski prenosi': Tv,
-  'VIP': Star,
-  'Live muzika': Music,
-  'Plesni podij': Disc,
-  'Klima': Snowflake,
-  'Terasa': Sun,
-  'Bašta': Sun,
-  'Rezervacije': CalendarCheck,
-  'Bilijar': Target,
-  'Pikado': Target,
-  'Pristup za osobe sa invaliditetom': Accessibility,
-  'Garderoba': Shirt,
-  'Piće': Beer,
-  'Kokteli': Beer,
-};
+const TZ = 'Europe/Sarajevo';
 
-const categoryLabel = (category: string) =>
-  category === 'PARTY' ? 'Žurka' : category === 'CONCERT' ? 'Koncert' : 'Muzika uživo';
-
+/* eslint-disable @typescript-eslint/no-explicit-any -- odgovor /api/events/[slug] nema zajednički tip */
 export function EventPageClient({ slug, initialData }: { slug: string; initialData: any }) {
+  const { t, lang } = useLang();
+  const { showToast } = useToast();
   const [data] = useState<any>(initialData);
   const [user, setUser] = useState<any>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
   const [reportReason, setReportReason] = useState('other');
-  const [reportText, setReportReasonText] = useState('');
+  const [reportText, setReportText] = useState('');
   const [reportSuccess, setReportSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState('detalji');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
-  const [floorItems, setFloorItems] = useState<any[]>([]);
-  const { showToast } = useToast();
+  const [now, setNow] = useState<number | null>(null);
+  const [failedImage, setFailedImage] = useState(false);
 
   useEffect(() => {
-    async function fetchSession() {
+    setNow(Date.now());
+    (async () => {
       const res = await fetch('/api/auth/session');
-      if (res.ok) {
-        const result = await res.json();
-        setUser(result.user);
-      }
-    }
-    fetchSession();
-  }, []);
+      if (!res.ok) return;
+      const result = await res.json();
+      setUser(result.user);
+      const favRes = await fetch(`/api/favorites?userId=${result.user.id}`);
+      if (favRes.ok) setIsFavorited(((await favRes.json()).eventIds || []).includes(initialData.event.id));
+    })().catch(() => {});
+  }, [initialData.event.id]);
 
   useEffect(() => {
-    async function fetchAvailability() {
-      if (!slug) return;
-      try {
-        const dateParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('date') : null;
-        const floorRes = await fetch('/api/events/' + slug + '/floor-plan' + (dateParam ? '?date=' + dateParam : ''));
-        if (floorRes.ok) {
-          const floorData = await floorRes.json();
-          setFloorItems(floorData);
-        }
-      } catch {}
-    }
-    fetchAvailability();
     trackEvent('view_event', { event_id: initialData.event.id }, `view-event:${initialData.event.id}`);
-
-    if (window.location.hash === '#rezervacija' && initialData.event.venue?.reservationsEnabled) {
-      setIsReservationModalOpen(true);
-    }
-  }, [slug, initialData.event.id, initialData.event.venue?.reservationsEnabled]);
-
-  const openReservation = (source: string) => {
-    trackEvent('reservation_click', { event_id: data.event.id, source });
-    setIsReservationModalOpen(true);
-  };
+  }, [initialData.event.id]);
 
   const toggleFavorite = async () => {
     try {
       const sessionRes = await fetch('/api/auth/session');
-      if (!sessionRes.ok) {
-        window.location.href = '/login';
-        return;
-      }
+      if (!sessionRes.ok) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return; }
       const session = await sessionRes.json();
       const res = await fetch('/api/favorites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session.user.id, eventId: data.event.id })
+        body: JSON.stringify({ userId: session.user.id, eventId: data.event.id }),
       });
       if (res.ok) {
         const result = await res.json();
         setIsFavorited(result.favorited);
-        showToast(result.favorited ? 'Događaj sačuvan' : 'Uklonjeno iz sačuvanih');
+        showToast(result.favorited ? t('event.saved') : t('event.unsaved'));
       }
     } catch {}
   };
@@ -150,20 +72,12 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
     e.preventDefault();
     try {
       const sessionRes = await fetch('/api/auth/session');
-      if (!sessionRes.ok) {
-        window.location.href = '/login';
-        return;
-      }
+      if (!sessionRes.ok) { window.location.href = '/login'; return; }
       const session = await sessionRes.json();
       const res = await fetch('/api/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventId: data.event.id,
-          userId: session.user.id,
-          reason: reportReason,
-          description: reportText
-        })
+        body: JSON.stringify({ eventId: data.event.id, userId: session.user.id, reason: reportReason, description: reportText }),
       });
       if (res.ok) {
         setReportSuccess(true);
@@ -172,580 +86,187 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
     } catch {}
   };
 
-  const scrollToSection = (id: string) => {
-    setActiveTab(id);
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 100;
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = element.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   if (!data) return null;
-
   const { event, related } = data;
-  const eventDisplayImage = event.imageUrl || event.venue?.imageUrl;
+  const image = !failedImage && (event.imageUrl || event.venue?.imageUrl);
   const startDate = new Date(event.startDateTime);
   const endDate = event.endDateTime ? new Date(event.endDateTime) : null;
   const isOwner = user && (user.id === event.venue?.ownerId || user.role === 'ADMIN');
+  const isLive = now !== null && Boolean(endDate) && startDate.getTime() <= now && endDate!.getTime() > now;
+  const locale = intlLocale(lang);
+  const fmtDate = (d: Date, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(locale, { timeZone: TZ, ...opts }).format(d);
+  const time = (d: Date) => fmtDate(d, { hour: '2-digit', minute: '2-digit', hour12: false });
+  const longDate = fmtDate(startDate, { weekday: 'long', day: 'numeric', month: 'long' });
+  const price = typeof event.price === 'number' && event.price > 0 ? `${event.price} ${event.currency || 'KM'}` : event.price === 0 ? t('event.free') : t('eventDetail.priceUnknown');
+  const dress = event.dressCodeType === 'SPECIAL' ? event.dressCodeName : t(`eventDetail.dress.${event.dressCodeType}`);
+  const hasCoords = typeof event.venue?.latitude === 'number' && typeof event.venue?.longitude === 'number';
+  const directions = hasCoords
+    ? `https://www.google.com/maps/dir/?api=1&destination=${event.venue.latitude},${event.venue.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue.name} ${event.venue.address} ${event.venue.city}`)}`;
 
-  const availableUnits = floorItems.filter(i => (i.type === 'TABLE' || i.type === 'BOOTH') && i.status === 'AVAILABLE' && !i.groupId).length;
-  const totalUnits = floorItems.filter(i => (i.type === 'TABLE' || i.type === 'BOOTH') && !i.groupId).length;
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="event-detail flex-grow pb-28 md:pb-24 animate-fade-up">
-        {/* BREADCRUMBS */}
-        <nav className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-2 text-[10px] font-bold text-muted uppercase tracking-widest">
-           <Link href="/" className="hover:text-primary transition-colors">Početna</Link>
-           <ChevronRight size={10} />
-           <Link href="/events" className="hover:text-primary transition-colors">Događaji</Link>
-           <ChevronRight size={10} />
-           <span className="text-white truncate max-w-[200px]">{event.title}</span>
-        </nav>
-
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 pt-6">
-
-          {/* LEFT COLUMN (8 cols) */}
-          <div className="lg:col-span-8 space-y-10 md:space-y-8">
-
-            {/* HERO CARD */}
-            <div className="event-detail-hero relative rounded-2xl overflow-hidden bg-card border border-border group flex flex-col">
-
-              {/* IMAGE LAYER */}
-              <div className="relative aspect-[4/3] min-h-[260px] max-h-[520px] bg-background">
-                {eventDisplayImage ? (
-                  <a href={eventDisplayImage} target="_blank" rel="noopener noreferrer" className="block w-full h-full" aria-label="Otvori cijelu sliku"><img src={eventDisplayImage} alt={event.title} className="w-full h-full object-cover object-center" fetchPriority="high" decoding="async" sizes="(max-width: 768px) 100vw, 768px" /></a>
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-surface via-background to-surface relative flex items-center justify-center overflow-hidden">
-                     <div className="absolute top-0 right-0 w-72 h-72 bg-primary/15 rounded-full blur-[100px]" />
-                     <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent/10 rounded-full blur-[100px]" />
-                     <div className="relative flex flex-col items-center gap-4">
-                        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary ">
-                           {event.category === 'PARTY' ? <Disc3 size={44} /> : <Guitar size={44} />}
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted">
-                           {categoryLabel(event.category)}
-                        </span>
-                     </div>
-                  </div>
-                )}
-                <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between p-4">
-                  <Link href="/events" className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-black/60 text-white backdrop-blur-md" aria-label="Nazad na događaje">
-                    <ArrowLeft size={22} />
-                  </Link>
-                  <div className="flex gap-2">
-                   <button
-                     onClick={() => setIsShareModalOpen(true)}
-                     className="w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:text-primary transition-all group/btn"
-                     aria-label="Podijeli događaj"
-                   >
-                     <Share2 size={18} className="group-hover/btn:scale-110 transition-transform" />
-                   </button>
-                   <button
-                     onClick={toggleFavorite}
-                     className={`w-11 h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all group/btn ${isFavorited ? 'text-primary' : 'text-white hover:text-primary'}`}
-                     aria-label={isFavorited ? 'Ukloni iz sačuvanih' : 'Sačuvaj događaj'}
-                   >
-                     <Heart size={18} fill={isFavorited ? "currentColor" : "none"} className="group-hover/btn:scale-110 transition-transform" />
-                   </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="event-detail-summary relative z-10 p-5 sm:p-8">
-                <h1>{event.title}</h1>
-                {event.performers && <p className="event-detail-summary__performer">{event.performers}</p>}
-                <div className="event-detail-summary__facts">
-                  <p><Calendar size={20} /><span>{formatSerbianDate(startDate)} · {startDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}</span></p>
-                  <Link href={`/venues/${event.venue.slug}`}><MapPin size={20} /><span>{event.venue.name} · {event.venue.city}</span><ChevronRight size={18} className="ml-auto" /></Link>
-                  <p><Ticket size={20} /><span>{typeof event.price === 'number' && event.price > 0 ? `${event.price} ${event.currency || 'KM'}` : 'Cijena ulaza nije navedena'}</span></p>
-                </div>
-                <div className="event-detail-summary__description">
-                  <h2>O događaju</h2>
-                  <p>{event.description || 'Opis događaja nije unesen.'}</p>
-                </div>
-              </div>
+    <div className="flex-grow flex flex-col">
+      <main className="detail event-detail">
+        {/* ============ HERO ============ */}
+        <section className="wrap">
+          <div className="dhero dhero--event">
+            <div className="dhero__bg" aria-hidden="true">
+              {image ? <img src={image} alt="" fetchPriority="high" decoding="async" onError={() => setFailedImage(true)} /> : <PosterArt seed={event.id} className="dhero__poster" />}
             </div>
-
-            {/* TAB NAVIGATION */}
-            <div className="flex items-center gap-8 border-b border-white/5 overflow-x-auto scrollbar-hide py-2 px-4">
-               {[
-                 { id: 'detalji', label: 'Detalji' },
-                 { id: 'lokacija', label: 'Lokacija' },
-                 { id: 'komentari', label: 'Komentari' },
-                 { id: 'organizator', label: 'Organizator' },
-               ].map((tab) => (
-                 <button
-                   key={tab.id}
-                   onClick={() => scrollToSection(tab.id)}
-                   className={`text-[10px] font-black uppercase tracking-[0.2em] pb-4 transition-all relative shrink-0 ${activeTab === tab.id ? 'text-primary' : 'text-muted hover:text-white'}`}
-                 >
-                   {tab.label} {tab.id === 'komentari' && `(${event._count?.comments || 0})`}
-                   {activeTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-4px_10px_rgba(255,0,110,0.5)]" />}
-                 </button>
-               ))}
-            </div>
-
-            {/* MAIN CONTENT AREA */}
-            <div className="space-y-16 py-8">
-
-              {/* O DOGAĐAJU */}
-              <section id="detalji" className="event-detail-more space-y-8 text-left">
-                <div className="flex items-center gap-3">
-                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
-                   <h2 className="text-2xl font-black uppercase tracking-tight">O događaju</h2>
-                </div>
-
-                <div className="space-y-6">
-                  <p className="text-muted leading-relaxed font-medium text-lg">
-                    {event.description || 'Spremi se za nezaboravnu noć uz Gdje Večeras!'}
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-                     <div className="flex items-center gap-4 group">
-                        <div className="w-10 h-10 rounded-xl bg-card border border-white/5 flex items-center justify-center text-primary shadow-xl group-hover:scale-110 transition-transform">
-                           <Calendar size={18} />
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
-                           <p className="text-xs font-bold text-white uppercase">{formatSerbianDate(startDate)}</p>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-4 group">
-                        <div className="w-10 h-10 rounded-xl bg-card border border-white/5 flex items-center justify-center text-primary shadow-xl group-hover:scale-110 transition-transform">
-                           <Clock size={18} />
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Vrijeme</p>
-                           <p className="text-xs font-bold text-white uppercase">
-                              {startDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}
-                              {endDate && ` - ${endDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}`}
-                           </p>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-4 group">
-                        <div className="w-10 h-10 rounded-xl bg-card border border-white/5 flex items-center justify-center text-primary shadow-xl group-hover:scale-110 transition-transform">
-                           <Tag size={18} />
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Kategorija</p>
-                           <p className="text-xs font-bold text-white uppercase">{categoryLabel(event.category)}</p>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-4 group">
-                        <div className="w-10 h-10 rounded-xl bg-card border border-white/5 flex items-center justify-center text-primary shadow-xl group-hover:scale-110 transition-transform">
-                           <Users size={18} />
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
-                           <p className="text-xs font-bold text-white uppercase">{event.minimumAge ? `${event.minimumAge}+` : 'Svi'}</p>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-4 group">
-                        <div className="w-10 h-10 rounded-xl bg-card border border-white/5 flex items-center justify-center text-primary shadow-xl group-hover:scale-110 transition-transform">
-                           <Disc size={18} />
-                        </div>
-                        <div>
-                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Dress code</p>
-                           <p className="text-xs font-bold text-white uppercase">
-                              {event.dressCodeType === 'SPECIAL' ? event.dressCodeName :
-                               event.dressCodeType === 'ELEGANT' ? 'Elegantno' :
-                               event.dressCodeType === 'CASUAL' ? 'Casual' : 'Casual / Nightlife'}
-                           </p>
-                        </div>
-                     </div>
-                  </div>
-
-                  {event.dressCodeType !== 'NONE' && event.dressCodeDescription && (
-                    <div className="mt-8 p-6 bg-primary/5 border border-primary/10 rounded-3xl space-y-3">
-                       <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
-                          <Shirt size={14} /> Detalji o dress code-u
-                       </h4>
-                       <p className="text-sm font-medium text-white/80 leading-relaxed uppercase tracking-wide italic">
-                          &quot;{event.dressCodeDescription}&quot;
-                       </p>
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              {/* LIVE FEED SECTION */}
-              <section id="live-feed" className="bg-card/20 border border-white/5 p-10 rounded-3xl shadow-xl">
-                 <LiveFeed
-                    eventSlug={slug}
-                    isOwner={isOwner}
-                    isLive={Boolean(endDate && new Date() >= startDate && new Date() < endDate)}
-                 />
-              </section>
-
-              {/* ORGANIZATOR */}
-              <section id="organizator" className="space-y-8 text-left">
-                <div className="flex items-center gap-3">
-                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
-                   <h2 className="text-2xl font-black uppercase tracking-tight">Organizator</h2>
-                </div>
-
-                <div className="bg-card/50 border border-white/5 rounded-3xl p-6 flex items-center gap-6 group hover:border-primary/20 transition-all shadow-xl">
-                   <div className="w-20 h-20 rounded-2xl bg-surface border border-white/5 flex items-center justify-center text-3xl shrink-0 overflow-hidden">
-                      {event.venue.imageUrl ? (
-                        <img src={event.venue.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" loading="lazy" decoding="async" sizes="96px" />
-                      ) : <Disc size={28} className='opacity-40' />}
-                   </div>
-                   <div className="flex-grow">
-                      <div className="flex items-center gap-2 mb-2">
-                         <h4 className="text-lg font-black text-white uppercase tracking-tight">{event.venue.name}</h4>
-                         <div className="w-4 h-4 rounded-full bg-accent flex items-center justify-center text-white"><Check size={10} strokeWidth={3} /></div>
-                      </div>
-                      <Link href={`/venues/${event.venue.slug}`} className="px-5 py-2 bg-accent/20 text-accent text-[10px] font-black rounded-lg hover:bg-accent hover:text-white transition-all uppercase tracking-widest border border-accent/30 shadow-lg inline-block">
-                         Pogledaj profil
-                      </Link>
-                   </div>
-                </div>
-
-                {(event.additionalVenues && event.additionalVenues.length > 0) && (
-                  <div className="space-y-3 mt-2">
-                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Users size={14} /> Zajednički događaj — održava se i u:
-                     </p>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {event.additionalVenues.map((av: any) => (
-                          <div key={av.id} className="bg-card/50 border border-white/5 rounded-2xl p-4 flex items-center gap-4 hover:border-primary/20 transition-all">
-                             <div className="w-12 h-12 rounded-xl bg-surface border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
-                                {av.venue.imageUrl ? (
-                                  <img src={av.venue.imageUrl} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  <MapPin size={18} className="text-primary" />
-                                )}
-                             </div>
-                             <div className="flex-grow min-w-0">
-                                <p className="text-sm font-black text-white uppercase tracking-tight truncate">{av.venue.name}</p>
-                                <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5">{av.venue.city || ''}{av.venue.address ? ' · ' + av.venue.address : ''}</p>
-                             </div>
-                             <Link href={`/venues/${av.venue.slug}`} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[10px] font-black text-muted hover:text-white uppercase tracking-widest rounded-lg transition-all shrink-0">
-                                Profil
-                             </Link>
-                          </div>
-                        ))}
-                     </div>
-                  </div>
-                )}
-              </section>
-
-              {/* O LOKALU */}
-              <section className="space-y-8 text-left">
-                <div className="flex items-center gap-3">
-                   <div className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_8px_rgba(255,0,110,0.8)]" />
-                   <h2 className="text-2xl font-black uppercase tracking-tight">O lokalu</h2>
-                </div>
-
-                <div className="space-y-6">
-                   <p className="text-muted leading-relaxed font-medium text-sm">
-                      {event.venue.description || 'Nema opisa za ovaj lokal.'}
-                   </p>
-
-                   {event.venue.tags && event.venue.tags.length > 0 ? (
-                     <div className="flex flex-wrap gap-4">
-                        {event.venue.tags.map((tag: any) => {
-                          const Icon = TAG_ICONS[tag.name] || TagIcon;
-                          return (
-                            <div key={tag.id} className="px-4 py-2 bg-card/50 border border-white/5 rounded-2xl flex items-center gap-2.5 text-[10px] font-black text-muted uppercase tracking-widest shadow-lg">
-                               <Icon size={14} className="text-primary" /> {tag.name}
-                            </div>
-                          );
-                        })}
-                     </div>
-                   ) : (
-                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest italic">Nema dodatnih informacija o pogodnostima.</p>
-                   )}
-                </div>
-              </section>
-
-              {/* KOMENTARI SECTION */}
-              <section id="komentari" className="pt-8 border-t border-white/5 text-left">
-                <CommentSection eventId={event.id} currentUser={user} />
-              </section>
-
-              <div className="flex justify-center pt-8">
-                 <button
-                  onClick={() => setIsReporting(true)}
-                  className="px-6 py-3 rounded-2xl border border-white/5 text-muted hover:text-red-400 text-[10px] font-black uppercase tracking-[0.3em] transition-all bg-card/30"
-                >
-                  <Flag size={12} className="inline mr-1 -mt-0.5" />Prijavi problem sa ovim događajem
+            <div className="dhero__top">
+              <Link href="/events" className="dhero__back">← {t('nav.events')}</Link>
+              <div className="dhero__icons">
+                <button onClick={() => setIsShareModalOpen(true)} aria-label={t('eventDetail.share')}><Share2 size={18} aria-hidden="true" /></button>
+                <button onClick={toggleFavorite} aria-pressed={isFavorited} aria-label={isFavorited ? t('event.unsaveAria', { title: event.title }) : t('event.saveAria', { title: event.title })} className={isFavorited ? 'is-on' : ''}>
+                  <Heart size={18} fill={isFavorited ? 'currentColor' : 'none'} aria-hidden="true" />
                 </button>
               </div>
-
+            </div>
+            <div className="dhero__body">
+              <div className="event__date dhero__date" aria-hidden="true">
+                <small>{fmtDate(startDate, { weekday: 'short' }).replace('.', '')}</small>
+                <b>{fmtDate(startDate, { day: 'numeric' }).replace('.', '')}</b>
+                <small className="dhero__month">{fmtDate(startDate, { month: 'short' }).replace('.', '')}</small>
+              </div>
+              <div className="dhero__text">
+                <p className="kicker">
+                  {t(`categories.${event.category}`)}{isLive && <span className="tag-hot tag-live dhero__live">{t('event.live')}</span>}
+                </p>
+                <h1 className="h1">{event.title}</h1>
+                {event.performers && <p className="dhero__perf"><Music2 size={16} aria-hidden="true" />{event.performers}</p>}
+                <div className="chips-row">
+                  <span className="mchip"><Calendar size={15} aria-hidden="true" />{longDate}</span>
+                  <span className="mchip"><Clock size={15} aria-hidden="true" />{time(startDate)}{endDate ? ` – ${time(endDate)}` : ''}</span>
+                  <Link className="mchip mchip--link" href={`/venues/${event.venue.slug}`}><MapPin size={15} aria-hidden="true" />{event.venue.name}</Link>
+                  {event.venue?.isPartner && <span className="mchip mchip--pink"><Zap size={15} aria-hidden="true" />+{event.venue.checkInPoints ?? 100} {t('score.ptsAbbr')}</span>}
+                </div>
+              </div>
+              <div className="dhero__cta">
+                {event.ticketUrl && <a className="btn btn--pink" href={event.ticketUrl} target="_blank" rel="noopener noreferrer"><Ticket className="ic" aria-hidden="true" />{t('eventDetail.tickets')}</a>}
+              </div>
             </div>
           </div>
+        </section>
 
-          {/* RIGHT COLUMN (4 cols) */}
-          <aside className="lg:col-span-4 space-y-10 md:space-y-8">
+        <div className="wrap dgrid">
+          <div className="dgrid__main">
+            <section id="detalji" className="dsec">
+              <h2 className="dsec__title">{t('eventDetail.about')}</h2>
+              <p className="dsec__lead">{event.description || t('eventDetail.noDescription')}</p>
+              <dl className="facts">
+                <div><dt><Calendar size={16} aria-hidden="true" />{t('eventDetail.date')}</dt><dd>{longDate}</dd></div>
+                <div><dt><Clock size={16} aria-hidden="true" />{t('eventDetail.time')}</dt><dd>{time(startDate)}{endDate ? ` – ${time(endDate)}` : ''}</dd></div>
+                <div><dt><Ticket size={16} aria-hidden="true" />{t('eventDetail.price')}</dt><dd>{price}</dd></div>
+                <div><dt><Tag size={16} aria-hidden="true" />{t('eventDetail.category')}</dt><dd>{t(`categories.${event.category}`)}</dd></div>
+                <div><dt><Users size={16} aria-hidden="true" />{t('eventDetail.age')}</dt><dd>{event.minimumAge ? `${event.minimumAge}+` : t('eventDetail.allAges')}</dd></div>
+                <div><dt><Shirt size={16} aria-hidden="true" />{t('eventDetail.dressCode')}</dt><dd>{dress}</dd></div>
+              </dl>
+              {event.dressCodeType !== 'NONE' && event.dressCodeDescription && (
+                <p className="dnote"><Shirt size={16} aria-hidden="true" />{event.dressCodeDescription}</p>
+              )}
+            </section>
 
-            {/* INFO CARD */}
-            <div className="bg-card border border-white/5 rounded-3xl sm:rounded-3xl p-5 sm:p-8  space-y-6 sm:space-y-8 relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
+            <section id="live-feed" className="dsec">
+              <LiveFeed eventSlug={slug} isOwner={isOwner} isLive={isLive} />
+            </section>
 
-               <h3 className="text-xl font-black uppercase tracking-tight text-white flex items-center gap-3">
-                  Informacije
-               </h3>
+            <section id="organizator" className="dsec">
+              <h2 className="dsec__title">{t('eventDetail.where')}</h2>
+              <Link href={`/venues/${event.venue.slug}`} className="vcard">
+                <div className="vcard__img">{event.venue.imageUrl ? <img src={event.venue.imageUrl} alt="" loading="lazy" /> : <span aria-hidden="true">{initials(event.venue.name)}</span>}</div>
+                <div className="vcard__body">
+                  <b>{event.venue.name}</b>
+                  <span>{event.venue.address}, {event.venue.city}</span>
+                  {event.venue.description && <span className="vcard__desc">{event.venue.description}</span>}
+                </div>
+                <span className="link">{t('eventDetail.venueProfile')} →</span>
+              </Link>
+              {event.additionalVenues?.length > 0 && (
+                <>
+                  <p className="ci-note" style={{ textAlign: 'left', margin: '18px 0 10px' }}>{t('eventDetail.alsoAt')}</p>
+                  <div className="venues venues--2">
+                    {event.additionalVenues.map((av: any) => (
+                      <Link key={av.id} href={`/venues/${av.venue.slug}`} className="vcard">
+                        <div className="vcard__img">{av.venue.imageUrl ? <img src={av.venue.imageUrl} alt="" loading="lazy" /> : <span aria-hidden="true">{initials(av.venue.name)}</span>}</div>
+                        <div className="vcard__body"><b>{av.venue.name}</b><span>{[av.venue.city, av.venue.address].filter(Boolean).join(' · ')}</span></div>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
 
-               <div className="space-y-6">
-                  <div className="flex gap-4">
-                     <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
-                        <MapPin size={20} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Lokacija</p>
-                        <p className="text-sm font-bold text-white uppercase">{event.venue.name}</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                     <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
-                        <Info size={20} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Adresa</p>
-                        <p className="text-sm font-bold text-white uppercase">{event.venue.address}, {event.venue.city}</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                     <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
-                        <Calendar size={20} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Datum</p>
-                        <p className="text-sm font-bold text-white uppercase">{formatSerbianDate(startDate)}</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                     <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
-                        <Clock size={20} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Vrijeme</p>
-                        <p className="text-sm font-bold text-white uppercase">
-                           {startDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}
-                           {endDate && ` – ${endDate.toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}`}
-                        </p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                     <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
-                        <Users size={20} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Uzrast</p>
-                        <p className="text-sm font-bold text-white uppercase">{event.minimumAge ? `${event.minimumAge}+` : 'Svi'}</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4">
-                     <div className="w-10 h-10 rounded-xl bg-surface border border-white/5 flex items-center justify-center text-primary shrink-0 shadow-lg">
-                        <Ticket size={20} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-0.5">Cijena</p>
-                        <p className="text-sm font-bold text-white uppercase">{typeof event.price === 'number' && event.price > 0 ? `${event.price} ${event.currency || 'KM'}` : 'Cijena nije navedena'}</p>
-                     </div>
-                  </div>
-               </div>
+            <section id="komentari" className="dsec">
+              <CommentSection eventId={event.id} currentUser={user} />
+            </section>
 
-               {totalUnits > 0 && (
-                  <div className="p-5 bg-surface border border-white/5 rounded-3xl space-y-3">
-                     <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-black text-muted uppercase tracking-widest">Dostupnost stolova</p>
-                        <span className={`text-[10px] font-black uppercase ${availableUnits > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                           {availableUnits > 0 ? 'Dostupno' : 'Popunjeno'}
-                        </span>
-                     </div>
-                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div
-                           className={`h-full transition-all duration-1000 ${availableUnits > 0 ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`}
-                           style={{ width: `${(availableUnits / totalUnits) * 100}%` }}
-                        />
-                     </div>
-                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest text-center">
-                        {availableUnits} od {totalUnits} jedinica slobodno
-                     </p>
-                  </div>
-               )}
+            <button type="button" className="link dreport" onClick={() => { setReportSuccess(false); setIsReporting(true); }}>
+              <Flag size={14} aria-hidden="true" />{t('eventDetail.report')}
+            </button>
+          </div>
 
-               <div id="rezervacija" className="space-y-5 md:space-y-4 pt-6 md:pt-4 scroll-mt-28">
-                  {/* Vlasnik/admin ne vidi kupčevce CTA (ima svoj link "Rezervacije za događaj" ispod) */}
-                  {event.venue?.reservationsEnabled && !isOwner && (
-                  <button
-                    onClick={() => openReservation('event_page')}
-                    disabled={availableUnits === 0 && totalUnits > 0}
-                    className="w-full py-5 bg-white text-background font-black rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px]  disabled:opacity-50 disabled:grayscale"
-                  >
-                     {availableUnits === 0 && totalUnits > 0 ? 'SVE POPUNJENO' : 'REZERVIŠI STO / SEPARE'}
-                  </button>
-                  )}
+          <aside className="dgrid__side">
+            <div className="dcard dcard--cta">
+              <p className="panel__title">{t('eventDetail.goingTitle')}</p>
+              <div className="ci-actions" style={{ marginTop: 0 }}>
+                {event.ticketUrl && <a className="btn btn--white btn--block" href={event.ticketUrl} target="_blank" rel="noopener noreferrer"><Ticket className="ic" aria-hidden="true" />{t('eventDetail.tickets')}</a>}
+                <button className={`btn btn--block ${isFavorited ? 'btn--pink' : 'btn--ghost'}`} onClick={toggleFavorite} aria-pressed={isFavorited}>
+                  <Heart className="ic" fill={isFavorited ? 'currentColor' : 'none'} aria-hidden="true" />{isFavorited ? t('eventDetail.savedBtn') : t('eventDetail.saveBtn')}
+                </button>
+                <button className="btn btn--ghost btn--block" onClick={() => setIsShareModalOpen(true)}><Share2 className="ic" aria-hidden="true" />{t('eventDetail.share')}</button>
+              </div>
+              {event._count?.favorites > 0 && <p className="ci-note" style={{ marginTop: 12 }}>{t('event.savedBy', { n: event._count.favorites })}</p>}
+            </div>
 
-                  <button
-                    onClick={toggleFavorite}
-                    className={`w-full py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 transition-all shadow-xl active:scale-[0.98] ${isFavorited ? 'bg-primary text-white shadow-primary/20' : 'bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:scale-[1.02]'}`}
-                  >
-                     {isFavorited ? <Heart fill="white" size={18} /> : <Bookmark size={18} />}
-                     {isFavorited ? 'Sačuvano u tvojoj kolekciji' : 'SAČUVAJ DOGAĐAJ'}
-                  </button>
-                  {event._count?.favorites > 0 && (
-                    <p className="text-center text-[10px] font-black text-muted uppercase tracking-[0.2em]">
-                      Sačuvalo {event._count.favorites} korisnika
-                    </p>
-                  )}
-                  <button
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="w-full py-5 bg-surface border border-white/5 text-white font-black rounded-[1.25rem] hover:bg-white/5 transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px] shadow-lg group/share"
-                  >
-                     <Share2 size={18} className="group-hover/share:scale-110 transition-transform" /> Podijeli događaj
-                  </button>
-                  {isOwner && (
-                    <Link
-                      href={`/admin/reservations?event=${event.id}`}
-                      className="w-full py-5 bg-white/5 border border-white/10 text-white font-black rounded-[1.25rem] flex items-center justify-center gap-3 hover:bg-white/10 transition-all uppercase tracking-[0.2em] text-[10px]"
-                    >
-                       <CalendarCheck size={18} className="text-primary" /> Rezervacije za događaj
+            <div id="lokacija" className="dcard">
+              <p className="panel__title">{t('venue.location')}</p>
+              <p className="dcard__addr"><b>{event.venue.address}</b><span>{event.venue.city}</span></p>
+              {hasCoords && <div className="dcard__map"><VenueLocation venue={event.venue} hideHeader /></div>}
+              <a className="btn btn--ghost btn--block btn--sm" href={directions} target="_blank" rel="noopener noreferrer"><Navigation className="ic" aria-hidden="true" />{t('venue.directions')} <ExternalLink className="ic" aria-hidden="true" /></a>
+            </div>
+
+            <div className="dcard">
+              <p className="panel__title"><span>{user ? t('eventDetail.youMightLike') : t('eventDetail.similar')}</span><Link href="/events" className="link" style={{ minHeight: 0 }}>{t('home.allEvents')}</Link></p>
+              {related.similarEvents.length > 0 ? (
+                <div className="mini-list">
+                  {related.similarEvents.slice(0, 4).map((e: any) => (
+                    <Link key={e.id} href={`/events/${e.slug}`} className="mini">
+                      <span className="mini__img">{e.imageUrl || e.venue?.imageUrl ? <img src={e.imageUrl || e.venue?.imageUrl} alt="" loading="lazy" /> : <PosterArt seed={e.id} className="event__art" />}</span>
+                      <span className="mini__body">
+                        <b>{e.title}</b>
+                        <small>{e.venue?.name} · {fmtDate(new Date(e.startDateTime), { weekday: 'short', day: 'numeric', month: 'numeric' })} {time(new Date(e.startDateTime))}</small>
+                        {e.recommendationReason && <small className="pink"><Sparkles size={11} aria-hidden="true" style={{ display: 'inline', marginRight: 4 }} />{e.recommendationReason}</small>}
+                      </span>
                     </Link>
-                  )}
-                  {event.ticketUrl && (
-                    <a href={event.ticketUrl} target="_blank" className="w-full py-5 bg-primary text-white font-black rounded-[1.25rem] flex items-center justify-center gap-3 hover:bg-primary-hover transition-colors shadow-xl shadow-primary/20 uppercase tracking-[0.2em] text-[10px]">
-                       <Ticket size={18} /> KUPI KARTU
-                    </a>
-                  )}
-               </div>
+                  ))}
+                </div>
+              ) : <p className="ci-note" style={{ margin: 0, textAlign: 'left' }}>{t('eventDetail.noSimilar')}</p>}
             </div>
-
-            {/* SMALL MAP CARD */}
-            <div id="lokacija" className="bg-card border border-white/5 rounded-3xl overflow-hidden  text-left">
-               <div className="p-8">
-                  <h3 className="text-xl font-black uppercase tracking-tight text-white mb-6">
-                     Lokacija na mapi
-                  </h3>
-                  <div className="relative rounded-[1.5rem] overflow-hidden border border-white/5 shadow-inner">
-                     <div className="h-[250px] w-full filter brightness-90 grayscale-[0.5] contrast-125">
-                        <VenueLocation venue={event.venue} />
-                     </div>
-                  </div>
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${event.venue.latitude},${event.venue.longitude}`}
-                    target="_blank"
-                    className="w-full mt-6 py-4 bg-surface border border-white/5 text-white font-black rounded-2xl hover:bg-white/5 transition-all flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[10px] shadow-lg group"
-                  >
-                     Otvori u Google Maps <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  </a>
-               </div>
-            </div>
-
-            {/* RELATED EVENTS SIDEBAR */}
-            <div className="space-y-6 text-left">
-               <div className="flex items-center justify-between px-2">
-                  <h3 className="text-xl font-black uppercase tracking-tight text-white">
-                     {user ? 'Možda će ti se svidjeti' : 'Slični događaji'}
-                  </h3>
-                  <Link href="/events" className="text-primary text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors">
-                     Pogledaj sve
-                  </Link>
-               </div>
-
-               <div className="space-y-4">
-                  {related.similarEvents.length > 0 ? related.similarEvents.slice(0, 3).map((e: any) => (
-                    <Link key={e.id} href={`/events/${e.slug}`} className="bg-card/40 backdrop-blur-sm border border-white/5 p-4 rounded-3xl flex items-center gap-4 hover:border-primary/30 transition-all group shadow-xl">
-                       <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 relative">
-                          <img src={e.imageUrl || e.venue?.imageUrl || '/logo.svg'} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
-                          <div className="absolute inset-0 bg-black/20" />
-                          <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[7px] font-black text-white uppercase">
-                             {formatSerbianDate(e.startDateTime)}
-                          </div>
-                       </div>
-                       <div className="flex-grow min-w-0">
-                          <h4 className="text-xs font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{e.title}</h4>
-                          <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5 line-clamp-1">{e.venue.name}</p>
-                          {e.recommendationReason && (
-                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.1em] mt-1"><Sparkles size={10} className="inline mr-1 -mt-0.5" /> {e.recommendationReason}</p>
-                          )}
-                          <div className="flex items-center justify-between mt-2">
-                             <div className="flex items-center gap-1.5 text-[10px] font-black text-white uppercase">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                {formatSerbianDate(e.startDateTime)}
-                             </div>
-                             <span className="text-[10px] font-bold text-muted">{new Date(e.startDateTime).toLocaleTimeString('bs', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sarajevo' })}</span>
-                          </div>
-                       </div>
-                    </Link>
-                  )) : (
-                    <div className="text-center py-8 text-muted text-[10px] font-black uppercase tracking-[0.2em]">Nema sličnih događaja</div>
-                  )}
-               </div>
-
-               {/* Related Footer Pagination Dummy */}
-               <div className="flex justify-center gap-2 pt-2">
-                  <div className="w-8 h-1 rounded-full bg-primary shadow-glow" />
-                  <div className="w-2 h-1 rounded-full bg-white/10" />
-                  <div className="w-2 h-1 rounded-full bg-white/10" />
-               </div>
-            </div>
-
           </aside>
         </div>
 
-        {/* REPORT MODAL (PRESERVED) */}
         {isReporting && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[1000] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-card border border-white/10 rounded-3xl p-10 max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300">
-              <div className="flex items-center gap-4 mb-8">
-                 <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
-                    <AlertTriangle size={24} />
-                 </div>
-                 <h3 className="text-2xl font-black uppercase tracking-tight">Prijavi problem</h3>
-              </div>
-
+          <div className="lightbox" role="dialog" aria-modal="true" aria-labelledby="report-title" onClick={(e) => { if (e.target === e.currentTarget) setIsReporting(false); }}>
+            <div className="panel" style={{ maxWidth: 440, width: '100%' }}>
+              <p className="h3" id="report-title" style={{ marginBottom: 18 }}><AlertTriangle className="ic" aria-hidden="true" style={{ color: '#fca5a5' }} />{t('eventDetail.reportTitle')}</p>
               {reportSuccess ? (
-                  <div className="py-12 text-center text-green-500 font-black uppercase tracking-widest animate-fade-up">
-                     <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Send size={32} />
-                     </div>
-                     Hvala! Prijava poslata.
-                  </div>
+                <div className="alert alert--ok" role="status"><Send className="ic" aria-hidden="true" />{t('eventDetail.reportThanks')}</div>
               ) : (
-                  <form onSubmit={submitReport} className="space-y-6">
-                      <div className="space-y-2">
-                         <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Razlog prijave</label>
-                         <select
-                            className="w-full bg-surface/50 border border-white/5 rounded-2xl p-4 text-sm font-bold focus:outline-none focus:border-primary transition-all text-white appearance-none cursor-pointer"
-                            value={reportReason}
-                            onChange={(e) => setReportReason(e.target.value)}
-                         >
-                            <option value="event_cancelled">Događaj otkazan</option>
-                            <option value="wrong_date">Pogrešan datum</option>
-                            <option value="wrong_price">Pogrešna cijena</option>
-                            <option value="other">Ostalo</option>
-                         </select>
-                      </div>
-                      <div className="space-y-2">
-                         <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Detaljan opis</label>
-                         <textarea
-                            className="w-full bg-surface/50 border border-white/5 rounded-2xl p-5 text-sm font-medium min-h-[120px] focus:outline-none focus:border-primary transition-all text-white placeholder:text-muted/30"
-                            placeholder="Molimo opišite problem..."
-                            value={reportText}
-                            onChange={(e) => setReportReasonText(e.target.value)}
-                            required
-                         />
-                      </div>
-                      <div className="flex gap-4 pt-2">
-                          <button type="button" onClick={() => setIsReporting(false)} className="flex-grow py-4 bg-surface border border-white/5 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all">Odustani</button>
-                          <button type="submit" className="flex-grow py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all">
-                             Pošalji <Send size={14} />
-                          </button>
-                      </div>
-                  </form>
+                <form onSubmit={submitReport} className="form" style={{ marginTop: 0 }}>
+                  <label className="field"><span>{t('eventDetail.reportReason')}</span>
+                    <select className="input" value={reportReason} onChange={(e) => setReportReason(e.target.value)}>
+                      {['event_cancelled', 'wrong_date', 'wrong_price', 'other'].map((r) => <option key={r} value={r}>{t(`eventDetail.reasons.${r}`)}</option>)}
+                    </select>
+                  </label>
+                  <label className="field"><span>{t('eventDetail.reportDetails')}</span>
+                    <textarea className="input" rows={4} style={{ paddingBlock: 12 }} value={reportText} onChange={(e) => setReportText(e.target.value)} required />
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button type="button" className="btn btn--ghost" style={{ flex: 1 }} onClick={() => setIsReporting(false)}>{t('profile.cancel')}</button>
+                    <button type="submit" className="btn btn--pink" style={{ flex: 1 }}><Send className="ic" aria-hidden="true" />{t('eventDetail.send')}</button>
+                  </div>
+                </form>
               )}
             </div>
           </div>
@@ -755,46 +276,10 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
           type="event"
-          data={{
-            id: event.id,
-            title: event.title,
-            slug: event.slug,
-            imageUrl: eventDisplayImage,
-            date: (event as any).occurrenceDate || undefined
-          }}
-        />
-
-        <ReservationModal
-          isOpen={isReservationModalOpen}
-          onClose={() => setIsReservationModalOpen(false)}
-          event={event}
-          user={user}
+          data={{ id: event.id, title: event.title, slug: event.slug, imageUrl: event.imageUrl || event.venue?.imageUrl, date: event.occurrenceDate || undefined }}
         />
       </main>
 
-      {/* STICKY MOBILNI CTA — samo ako lokal prima rezervacije */}
-      {event.venue?.reservationsEnabled && !isOwner && (
-      <div className="reservation-dock md:hidden fixed left-0 right-0 z-40">
-        <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl  shadow-black/60 flex items-center gap-3 p-3">
-          <button
-            onClick={toggleFavorite}
-            aria-label="Sačuvaj događaj"
-            className={`w-12 h-12 rounded-xl border flex items-center justify-center shrink-0 transition-all ${isFavorited ? 'bg-primary/10 border-primary/40 text-primary' : 'border-border text-muted'}`}
-          >
-            <Heart size={20} fill={isFavorited ? 'currentColor' : 'none'} />
-          </button>
-          <button
-            onClick={() => openReservation('event_page_mobile')}
-            disabled={availableUnits === 0 && totalUnits > 0}
-            className="flex-grow h-12 bg-primary text-white font-black rounded-xl uppercase tracking-[0.2em] text-[10px] hover:bg-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {availableUnits === 0 && totalUnits > 0 ? 'Sve popunjeno' : 'Rezerviši sto'}
-          </button>
-        </div>
-        <p>Zahtjev potvrđuje lokal.</p>
-      </div>
-      )}
-      <BottomNav />
     </div>
   );
 }

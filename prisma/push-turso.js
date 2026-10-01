@@ -46,11 +46,15 @@ async function main() {
   console.log('🚀 Izvršavam naredbe...');
   const statements = sql
     .split(/;\s*\n/)
-    .map((s) => s.trim())
+    // Prisma dodaje komentare ("-- CreateIndex") ispred naredbi — skini ih da bi provjere ispod radile
+    .map((s) => s.split('\n').filter((line) => !line.trim().startsWith('--')).join('\n').trim())
     .filter((s) => s.length > 0);
 
   let ok = 0;
   let skipped = 0;
+  // Indeksi nad kolonama koje postojećoj bazi tek dodajemo (npr. nove kolone na User/Venue)
+  // padaju sa "no such column" — pokušavamo ih ponovo nakon aditivnih migracija.
+  const deferred = [];
   for (const stmt of statements) {
     // Idempotencija: IF NOT EXISTS gdje je moguće
     let safe = stmt;
@@ -74,6 +78,12 @@ async function main() {
       if (/^PRAGMA/i.test(safe)) {
         continue; // PRAGMA naredbe su nebitne za šemu
       }
+      // Na postojećoj bazi SQLite nepostojeću kolonu u "navodnicima" tumači kao string konstantu,
+      // pa UNIQUE indeks pada kao duplikat — i taj indeks odlažemo dok aditivne migracije ne dodaju kolonu.
+      if (/^CREATE\s+(UNIQUE\s+)?INDEX/i.test(safe) && /no such column|UNIQUE constraint failed/i.test(msg)) {
+        deferred.push(safe);
+        continue;
+      }
       console.error('✗ Naredba nije prošla:', safe.slice(0, 90));
       console.error('  Greška:', msg.slice(0, 200));
       process.exit(1);
@@ -92,6 +102,15 @@ async function main() {
     'ALTER TABLE "Reservation" ADD COLUMN "occurrenceDate" TEXT',
     'ALTER TABLE "User" ADD COLUMN "restricted" BOOLEAN NOT NULL DEFAULT false',
     'ALTER TABLE "Venue" ADD COLUMN "email" TEXT',
+    'ALTER TABLE "User" ADD COLUMN "points" INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE "User" ADD COLUMN "totalPoints" INTEGER NOT NULL DEFAULT 0',
+    'ALTER TABLE "Venue" ADD COLUMN "isPartner" BOOLEAN NOT NULL DEFAULT false',
+    'ALTER TABLE "Venue" ADD COLUMN "checkInPoints" INTEGER NOT NULL DEFAULT 100',
+    'ALTER TABLE "Venue" ADD COLUMN "checkInVersion" INTEGER NOT NULL DEFAULT 1',
+    'ALTER TABLE "User" ADD COLUMN "googleId" TEXT',
+    'ALTER TABLE "User" ADD COLUMN "bio" TEXT',
+    'ALTER TABLE "User" ADD COLUMN "showCheckIns" BOOLEAN NOT NULL DEFAULT true',
+    'ALTER TABLE "User" ADD COLUMN "sessionVersion" INTEGER NOT NULL DEFAULT 0',
   ];
   for (const migration of additiveMigrations) {
     try {
@@ -105,6 +124,17 @@ async function main() {
       }
       console.error('✗ Aditivna migracija nije prošla:', migration);
       console.error('  Greška:', msg.slice(0, 200));
+      process.exit(1);
+    }
+  }
+
+  for (const stmt of deferred) {
+    try {
+      await prisma.$executeRawUnsafe(stmt);
+      ok++;
+    } catch (e) {
+      console.error('✗ Odloženi indeks nije prošao:', stmt.slice(0, 90));
+      console.error('  Greška:', String(e && e.message || e).slice(0, 200));
       process.exit(1);
     }
   }

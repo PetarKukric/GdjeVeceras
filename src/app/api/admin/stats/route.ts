@@ -33,6 +33,19 @@ export async function GET() {
       })
     ]);
 
+    const weekAgo = new Date(Date.now() - 7 * 24 * 3600_000);
+    const [checkIns7d, partners, activeRewards, activeCodes, recentCheckIns] = await Promise.all([
+      prisma.checkIn.count({ where: { createdAt: { gte: weekAgo } } }),
+      prisma.venue.count({ where: { isPartner: true } }),
+      prisma.reward.count({ where: { active: true } }),
+      prisma.redemption.count({ where: { status: 'ACTIVE' } }),
+      prisma.checkIn.findMany({
+        take: 6,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, points: true, method: true, createdAt: true, user: { select: { name: true, avatarUrl: true } }, venue: { select: { name: true } } },
+      }),
+    ]);
+
     const upcoming = await prisma.event.count({
       where: {
         status: 'PUBLISHED',
@@ -49,7 +62,12 @@ export async function GET() {
       users,
       reports: totalReports,
       pendingReports,
-      recentEvents
+      recentEvents,
+      checkIns7d,
+      partners,
+      activeRewards,
+      activeCodes,
+      recentCheckIns,
     });
   } catch (error) {
     console.error('Stats API Error:', error);

@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-
-import { BottomNav } from '@/components/layout/BottomNav';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Lock, Mail, User, Loader2, AlertCircle } from 'lucide-react';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
+import { useLang } from '@/components/i18n/LangProvider';
+import { AuthShell, GoogleSection, safeNext } from '@/components/auth/AuthShell';
 
 export default function Signup() {
+  const { t } = useLang();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [query, setQuery] = useState('');
+  useEffect(() => setQuery(window.location.search), []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,164 +27,101 @@ export default function Signup() {
     setEmailError('');
 
     const normalizedEmail = normalizeEmail(formData.email);
-    
-    if (!normalizedEmail) {
-      setEmailError('Unesite ispravnu email adresu.');
+    if (!normalizedEmail || !isValidEmail(normalizedEmail)) {
+      setEmailError(t('auth.invalidEmail'));
       return;
     }
-
-    if (!isValidEmail(normalizedEmail)) {
-      setEmailError('Unesite ispravnu email adresu.');
-      return;
-    }
-
     if (formData.password.length < 8) {
-      setError('Lozinka mora imati najmanje 8 znakova.');
+      setError(t('auth.passwordShort'));
       return;
     }
 
     setLoading(true);
-
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          email: normalizedEmail
-        }),
+        body: JSON.stringify({ ...formData, email: normalizedEmail }),
       });
-
       const data = await res.json();
-
       if (res.ok) {
-        window.location.href = '/';
+        window.location.href = safeNext() || '/profile';
         return;
-      } else {
-        if (data.error === 'Email je već registrovan.') {
-          setEmailError(data.error);
-        } else if (data.error === 'Unesite ispravnu email adresu.' || data.error === 'Email adresa nije validna ili domena ne prima email.') {
-          setEmailError(data.error);
-        } else {
-          setError(data.error || 'Došlo je do greške pri registraciji.');
-        }
-        setLoading(false);
       }
+      if (data.error === 'Email je već registrovan.') setEmailError(t('auth.emailTaken'));
+      else if (data.error === 'Unesite ispravnu email adresu.' || data.error === 'Email adresa nije validna ili domena ne prima email.') setEmailError(data.error);
+      else setError(data.error || t('checkin.errors.server'));
+      setLoading(false);
     } catch (err) {
       console.error('Signup error:', err);
-      setError('Mrežna greška. Pokušajte ponovo.');
+      setError(t('checkin.errors.network'));
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col text-left">
-      <main className="flex-grow flex items-center justify-center p-4 pt-12 pb-32 md:pb-12 animate-fade-up">
-        <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 shadow-2xl">
-          <div className="mb-8 text-left">
-            <h1 className="text-3xl font-black mb-2 uppercase tracking-tight text-primary">REGISTRACIJA</h1>
-            <p className="text-muted text-sm font-medium">Pridruži se zajednici i nikad ne propusti dobru žurku.</p>
-          </div>
+    <AuthShell>
+      <p className="kicker">{t('auth.signupKicker')}</p>
+      <h1 className="h2">{t('auth.signupTitle')}</h1>
+      <p className="lead" style={{ fontSize: 16 }}>{t('auth.signupLead')}</p>
+      <GoogleSection t={t} />
 
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-sm font-bold mb-6 flex items-center gap-2">
-              <AlertCircle size={16} />
-              {error}
-            </div>
-          )}
+      <form onSubmit={handleSubmit} className="form" style={{ marginTop: 0 }} noValidate>
+        {error && <div className="alert alert--error" role="alert"><AlertCircle className="ic" aria-hidden="true" />{error}</div>}
 
-          <form onSubmit={handleSubmit} className="space-y-5 md:space-y-4">
-            <div>
-              <label className="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 text-left">Ime i prezime</label>
-              <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" size={18} />
-                <input
-                  type="text"
-                  required
-                  className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-all text-sm text-text"
-                  placeholder="Marko Marković"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-            </div>
+        <label className="field">
+          <span>{t('auth.name')}</span>
+          <span className="field__box">
+            <User className="ic" aria-hidden="true" />
+            <input type="text" autoComplete="name" required className="input" placeholder="Marko Marković"
+              value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          </span>
+        </label>
 
-            <div>
-              <label className="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 text-left">Email adresa</label>
-              <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" size={18} />
-                <input
-                  type="text"
-                  required
-                  className={`w-full h-14 pl-12 pr-4 bg-surface border ${emailError ? 'border-red-500/50 focus:border-red-500' : 'border-border focus:border-primary'} rounded-xl focus:outline-none transition-all text-sm text-text`}
-                  placeholder="ime@gmail.com"
-                  value={formData.email}
-                  onChange={(e) => {
-                    setFormData({ ...formData, email: e.target.value });
-                    if (emailError) setEmailError('');
-                  }}
-                />
-              </div>
-              {emailError && (
-                <p className="text-red-500 text-[10px] font-bold mt-2 ml-1 flex items-center gap-1">
-                  <AlertCircle size={12} /> {emailError}
-                </p>
-              )}
-            </div>
+        <label className="field">
+          <span>{t('auth.email')}</span>
+          <span className="field__box">
+            <Mail className="ic" aria-hidden="true" />
+            <input type="email" inputMode="email" autoComplete="email" required className="input" placeholder="ime@gmail.com"
+              aria-invalid={Boolean(emailError)}
+              value={formData.email}
+              onChange={(e) => { setFormData({ ...formData, email: e.target.value }); if (emailError) setEmailError(''); }} />
+          </span>
+          {emailError && <span className="field__err">{emailError}</span>}
+        </label>
 
-            <div>
-              <label className="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 text-left">Lozinka</label>
-              <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors" size={18} />
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  className="w-full h-14 pl-12 pr-4 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-all text-sm text-text"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                />
-              </div>
-            </div>
+        <label className="field">
+          <span>{t('auth.password')}</span>
+          <span className="field__box">
+            <Lock className="ic" aria-hidden="true" />
+            <input type="password" autoComplete="new-password" required minLength={8} className="input" placeholder={t('auth.passwordHint')}
+              value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          </span>
+        </label>
 
-            {/* Honeypot: skriveno polje za botove — ne dirati */}
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, opacity: 0 }}
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden="true"
-            />
+        {/* Honeypot: skriveno polje za botove — ne dirati */}
+        <input
+          type="text"
+          name="company"
+          value={formData.company}
+          onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+          style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, opacity: 0 }}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-14 bg-primary text-text font-black rounded-xl hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest text-sm mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} />
-                  <span>REGISTRACIJA...</span>
-                </>
-              ) : 'REGISTRUJ SE'}
-            </button>
-          </form>
+        <button type="submit" disabled={loading} className="btn btn--pink btn--block" style={{ marginTop: 8 }}>
+          {loading ? <><Loader2 className="ic animate-spin" aria-hidden="true" />{t('auth.signingUp')}</> : t('auth.signupBtn')}
+        </button>
+        <p className="ci-note" style={{ fontSize: 13, textAlign: 'center' }}>
+          {t('auth.terms1')} <Link href="/terms" className="pink">{t('footer.terms')}</Link> {t('auth.terms2')} <Link href="/privacy" className="pink">{t('footer.privacy')}</Link>.
+        </p>
+      </form>
 
-          <div className="text-center mt-8 pt-8 border-t border-border">
-            <p className="text-muted text-[15px] font-medium">
-              Već imaš nalog?{' '}
-              <button onClick={() => window.location.href='/login'} className="text-primary font-bold underline underline-offset-4 hover:text-white transition-colors">
-                Prijavi se
-              </button>
-            </p>
-          </div>
-        </div>
-      </main>
-      <BottomNav />
-    </div>
+      <p className="auth__alt">
+        {t('auth.haveAccount')} <Link href={`/login${query}`}>{t('nav.login')}</Link>
+      </p>
+    </AuthShell>
   );
 }

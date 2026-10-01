@@ -191,7 +191,7 @@ export default function AdminEvents() {
                           </span>
                         ) : (
                           <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${getStatusColor(event.status)}`}>
-                            {event.status}
+                            {({ PUBLISHED: 'Objavljen', PENDING: 'Na čekanju', REJECTED: 'Odbijen', CANCELLED: 'Otkazan', EXPIRED: 'Istekao' } as Record<string, string>)[event.status] || event.status}
                           </span>
                         )}
                       </td>

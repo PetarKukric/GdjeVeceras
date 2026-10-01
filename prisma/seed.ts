@@ -57,6 +57,8 @@ async function main() {
     },
   });
 
+  await seedMerchRewards();
+
   // Demo podaci (lokali, događaji, Marko korisnik) NE stvaraju se po defaultu.
   // Vraćaju se samo eksplicitno: SEED_DEMO=true npm run seed
   if (process.env.NODE_ENV === 'production' || process.env.SEED_DEMO !== 'true') {
@@ -226,7 +228,33 @@ async function main() {
     }
   }
 
+  // Večeras Score demo: prva 3 lokala su partneri, svaki nudi piće za bodove
+  const partnerVenues = allVenues.slice(0, 3);
+  for (const [i, venue] of partnerVenues.entries()) {
+    await prisma.venue.update({ where: { id: venue.id }, data: { isPartner: true, checkInPoints: [150, 200, 100][i] } });
+    const hasReward = await prisma.reward.findFirst({ where: { venueId: venue.id } });
+    if (!hasReward) {
+      await prisma.reward.create({
+        data: { venueId: venue.id, kind: 'DRINK', title: 'Shot dobrodošlice', titleEn: 'Welcome shot', cost: 350 },
+      });
+    }
+  }
+
   console.log('Seed completed successfully!');
+}
+
+/** GdjeVečeras merch nagrade (bez lokala) — idempotentno, radi i u produkciji */
+async function seedMerchRewards() {
+  const existing = await prisma.reward.count({ where: { venueId: null } });
+  if (existing > 0) return;
+  await prisma.reward.createMany({
+    data: [
+      { kind: 'MERCH', title: 'GV upaljač', titleEn: 'GV lighter', description: 'Pink upaljač sa GdjeVečeras logom.', descriptionEn: 'Pink lighter with the GdjeVečeras logo.', cost: 800 },
+      { kind: 'MERCH', title: 'GV majica', titleEn: 'GV T-shirt', description: 'Crna majica, pink logo. Izaberi veličinu pri preuzimanju.', descriptionEn: 'Black tee, pink logo. Pick your size at pickup.', cost: 3000, stock: 50 },
+      { kind: 'MERCH', title: 'GV patike', titleEn: 'GV sneakers', description: 'Limitirana edicija za legende noći.', descriptionEn: 'Limited edition for night legends.', cost: 15000, stock: 10 },
+    ],
+  });
+  console.log('🎁 Seed: dodane GdjeVečeras merch nagrade.');
 }
 
 main()

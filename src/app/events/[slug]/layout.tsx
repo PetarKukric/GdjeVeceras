@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   const desc =
     (event.description || '').slice(0, 155) ||
-    `${event.title} u ${event.venue?.name || 'lokalu'}, ${event.venue?.city || ''} — ${formatSerbianDate(event.startDateTime)} Detalji, cijena i rezervacije na Gdje Večeras.`;
+    `${event.title} u ${event.venue?.name || 'lokalu'}, ${event.venue?.city || ''} — ${formatSerbianDate(event.startDateTime)} Detalji, cijena i lokacija na Gdje Večeras.`;
 
   return {
     title: `${event.title} — ${event.venue?.name || ''}`,

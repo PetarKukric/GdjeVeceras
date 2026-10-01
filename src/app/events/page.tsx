@@ -2,10 +2,8 @@
 
 import React, { useState, useMemo, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { EventFilters } from '@/components/search/EventFilters';
 import { EventCard } from '@/components/events/EventCard';
-import { EventCardSkeleton } from '@/components/ui/Skeleton';
 import { useEvents } from '@/hooks/useEvents';
 import { useVenues } from '@/hooks/useVenues';
 import { Category } from '@/types';
@@ -13,6 +11,7 @@ import dynamic from 'next/dynamic';
 import { Map as MapIcon, LayoutGrid, Search } from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { getCityBySlug } from '@/lib/cities';
+import { useLang } from '@/components/i18n/LangProvider';
 import { readSavedCity, saveCity } from '@/lib/city-preference';
 
 interface FilterState {
@@ -23,16 +22,16 @@ interface FilterState {
   venue: string;
   city: string;
   sort: string;
-  reservations: 'available' | '';
 }
 
 // Dynamic import for the Map to avoid SSR issues with Leaflet
 const EventMap = dynamic(() => import('@/components/map/EventMap'), {
   ssr: false,
-  loading: () => <div className="w-full h-[500px] bg-card border border-border rounded-3xl animate-pulse flex items-center justify-center">Učitavanje mape...</div>
+  loading: () => <div className="skel" style={{ minHeight: 500 }} />
 });
 
 function EventsContent() {
+  const { t } = useLang();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState<'grid' | 'map'>(searchParams.get('view') === 'map' ? 'map' : 'grid');
@@ -70,7 +69,6 @@ function EventsContent() {
     venue: searchParams.get('venue') || '',
     city: searchParams.get('city') || '',
     sort: searchParams.get('sort') || 'startTime',
-    reservations: searchParams.get('reservations') === 'available' ? 'available' : '',
   }), [searchParams]);
 
   useEffect(() => {
@@ -126,7 +124,6 @@ function EventsContent() {
     sort: currentFilters.sort,
     lat: currentFilters.sort === 'distance' ? coords?.lat : undefined,
     lng: currentFilters.sort === 'distance' ? coords?.lng : undefined,
-    reservations: currentFilters.reservations,
     limit: 50
   });
 
@@ -145,10 +142,15 @@ function EventsContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <h1 className="text-[32px] font-bold mb-4">Događaji</h1>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
-        <div className="flex-grow w-full md:w-auto">
+    <div className="wrap page">
+      <div className="page-head" style={{ marginBottom: 20 }}>
+        <div>
+          <p className="kicker">{t('eventsPage.kicker')}</p>
+          <h1 className="h1">{t('eventsPage.title')}</h1>
+        </div>
+      </div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-start mb-8 gap-4">
+        <div className="flex-grow w-full md:w-auto min-w-0">
           <EventFilters
             initialFilters={currentFilters}
             onFilterChange={handleFilterChange}
@@ -156,53 +158,48 @@ function EventsContent() {
           />
         </div>
 
-        <div className="flex bg-card border border-border rounded-xl p-1 shrink-0">
-          <button
-            onClick={() => changeView('grid')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${viewMode === 'grid' ? 'bg-primary text-text shadow-lg' : 'text-muted hover:text-text'}`}
-          >
-            <LayoutGrid size={16} /> Lista
+        <div className="seg" style={{ marginTop: 0 }} role="group" aria-label={t('eventsPage.viewAria')}>
+          <button type="button" className="seg__btn" aria-pressed={viewMode === 'grid'} onClick={() => changeView('grid')}>
+            <LayoutGrid size={16} aria-hidden="true" />&nbsp;{t('eventsPage.list')}
           </button>
-          <button
-            onClick={() => changeView('map')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold transition-all ${viewMode === 'map' ? 'bg-primary text-text shadow-lg' : 'text-muted hover:text-text'}`}
-          >
-            <MapIcon size={16} /> Mapa
+          <button type="button" className="seg__btn" aria-pressed={viewMode === 'map'} onClick={() => changeView('map')}>
+            <MapIcon size={16} aria-hidden="true" />&nbsp;{t('eventsPage.map')}
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          {[1, 2, 3, 4, 5, 6].map(i => <EventCardSkeleton key={i} />)}
+        <div className="events">
+          {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="skel" />)}
         </div>
       ) : error ? (
-        <div className="bg-card border border-border rounded-3xl p-12 text-center">
-          <p className="text-red-400 font-bold mb-4">Ups! Greška pri učitavanju.</p>
-          <button onClick={() => window.location.reload()} className="px-6 py-2 bg-primary text-text font-bold rounded-full">Pokušaj ponovo</button>
+        <div className="empty">
+          <b>{t('home.loadError')}</b>
+          <button onClick={() => window.location.reload()} className="btn btn--pink btn--sm" style={{ marginTop: 12 }}>{t('common.retry')}</button>
         </div>
       ) : data?.events.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="Nema rezultata"
-          description="Nismo pronašli nijedan događaj koji odgovara vašim filterima. Pokušajte sa drugim datumom ili kategorijom."
+          title={t('eventsPage.noResults')}
+          description={t('eventsPage.noResultsText')}
           actionHref="/events"
-          actionLabel="PONIŠTI SVE FILTERE"
+          actionLabel={t('filters.reset')}
         />
       ) : (
         <>
           {viewMode === 'grid' ? (
-            <div className="grid gap-3 md:grid-cols-2">
-              {data?.events.map(event => (
+            <div className="events">
+              {data?.events.map((event, index) => (
                 <EventCard
-                  key={event.id}
+                  key={`${event.id}-${event.occurrenceDate || ''}`}
+                  index={index}
                   event={event}
                   isFavoritedInitial={favoriteEventIds.includes(event.id)}
                 />
               ))}
             </div>
           ) : (
-            <div className="h-[600px]">
+            <div className="h-[600px] rounded-3xl overflow-hidden border border-border">
               <EventMap
                 events={data?.events || []}
                 center={getCityBySlug(currentFilters.city) ? [getCityBySlug(currentFilters.city)!.lat, getCityBySlug(currentFilters.city)!.lng] : undefined}
@@ -220,12 +217,11 @@ function EventsContent() {
 export default function EventsPage() {
   return (
     <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow pb-24">
-        <Suspense fallback={<div className="p-8 text-center">Učitavanje...</div>}>
+      <main className="flex-grow">
+        <Suspense fallback={<div className="wrap page"><div className="skel" /></div>}>
           <EventsContent />
         </Suspense>
       </main>
-      <BottomNav />
     </div>
   );
 }

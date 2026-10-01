@@ -3,7 +3,6 @@
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Lock, Loader2, CheckCircle2 } from 'lucide-react';
 
 function ResetPasswordForm() {
@@ -137,7 +136,6 @@ export default function ResetPasswordPage() {
           <ResetPasswordForm />
         </Suspense>
       </main>
-      <BottomNav />
     </div>
   );
 }

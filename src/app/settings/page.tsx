@@ -1,256 +1,194 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BottomNav } from '@/components/layout/BottomNav';
-import { ClientOnly } from '@/components/ui/ClientOnly';
-import { Mail, Shield, LogOut, Trash2, ArrowLeft, AlertTriangle, KeyRound, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { AlertCircle, AlertTriangle, Check, Globe, KeyRound, Loader2, LogOut, Lock, Mail, MonitorSmartphone, Trash2, User } from 'lucide-react';
+import { LangSwitch, useLang } from '@/components/i18n/LangProvider';
+import { Avatar } from '@/components/ui/Avatar';
 import { useToast } from '@/components/ui/Toast';
 
+interface Account {
+  name: string | null; email: string; role: string; avatarUrl: string | null; bio: string | null;
+  showCheckIns: boolean; emailVerified: boolean; hasGoogle: boolean; createdAt: string;
+}
+
 export default function SettingsPage() {
+  const { t } = useLang();
   const { showToast } = useToast();
-  const [user, setUser] = useState<any>(null);
+  const [acc, setAcc] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [privacyBusy, setPrivacyBusy] = useState(false);
+  const [deleteText, setDeleteText] = useState('');
   const [deleting, setDeleting] = useState(false);
-  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
-  const [pwLoading, setPwLoading] = useState(false);
-  const [pwError, setPwError] = useState('');
-  const [pwSuccess, setPwSuccess] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [resent, setResent] = useState('');
 
   useEffect(() => {
-    async function fetchSession() {
-      try {
-        const res = await fetch('/api/auth/session');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user || null);
-        }
-      } catch {}
-      setLoading(false);
-    }
-    fetchSession();
+    fetch('/api/profile').then((r) => (r.ok ? r.json() : null)).then(setAcc).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const handleChangePassword = async () => {
-    setPwError('');
-    setPwSuccess('');
+  const confirmWord = t('settings.deleteWord');
 
-    if (!pwForm.current || !pwForm.next || !pwForm.confirm) {
-      setPwError('Popunite sva polja.');
-      return;
-    }
-    if (pwForm.next.length < 8) {
-      setPwError('Nova lozinka mora imati najmanje 8 znakova.');
-      return;
-    }
-    if (pwForm.next !== pwForm.confirm) {
-      setPwError('Nova lozinka i potvrda se ne poklapaju.');
-      return;
-    }
-
-    setPwLoading(true);
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwMsg(null);
+    if (pw.next.length < 8) { setPwMsg({ ok: false, text: t('auth.passwordShort') }); return; }
+    if (pw.next !== pw.confirm) { setPwMsg({ ok: false, text: t('settings.pwMismatch') }); return; }
+    setPwBusy(true);
     try {
       const res = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.next }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: pw.current, newPassword: pw.next }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setPwSuccess('Lozinka je uspješno promijenjena.');
-        setPwForm({ current: '', next: '', confirm: '' });
-        showToast('Lozinka je promijenjena');
-      } else {
-        setPwError(data.error || 'Greška pri promjeni lozinke.');
-      }
-    } catch {
-      setPwError('Mrežna greška. Pokušajte ponovo.');
-    } finally {
-      setPwLoading(false);
-    }
+      if (res.ok) { setPw({ current: '', next: '', confirm: '' }); setPwMsg({ ok: true, text: t('settings.pwChanged') }); }
+      else setPwMsg({ ok: false, text: data.error || t('checkin.errors.server') });
+    } catch { setPwMsg({ ok: false, text: t('checkin.errors.network') }); }
+    finally { setPwBusy(false); }
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
+  const togglePrivacy = async (value: boolean) => {
+    setPrivacyBusy(true);
+    try {
+      const res = await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ showCheckIns: value }) });
+      if (res.ok) { setAcc((a) => (a ? { ...a, showCheckIns: value } : a)); showToast(t('settings.saved')); }
+    } finally { setPrivacyBusy(false); }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!confirm('Da li ste SIGURNI da želite trajno obrisati svoj nalog? Ova akcija se ne može poništiti.')) return;
-    if (!confirm('Posljednja potvrda: brišu se nalog, tvoji događaji i povezane rezervacije, komentari, poruke i razgovori u kojima učestvuješ. Nastaviti?')) return;
+  const logoutAll = async () => {
+    if (!window.confirm(t('settings.logoutAllConfirm'))) return;
+    const res = await fetch('/api/auth/logout-all', { method: 'POST' });
+    if (res.ok) showToast(t('settings.logoutAllDone'));
+  };
+
+  const logout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    window.location.href = '/login';
+  };
+
+  const resend = async () => {
+    if (!acc) return;
+    const res = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: acc.email }) });
+    const data = await res.json().catch(() => ({}));
+    setResent(data.message || data.error || '');
+  };
+
+  const deleteAccount = async () => {
+    setDeleteError('');
     setDeleting(true);
     try {
       const res = await fetch('/api/auth/account', { method: 'DELETE' });
       const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        showToast('Nalog je obrisan');
-        window.location.href = '/';
-      } else {
-        alert(data.error || 'Greška pri brisanju naloga.');
-      }
-    } catch {
-      alert('Mrežna greška.');
-    } finally {
-      setDeleting(false);
-    }
+      if (res.ok) { window.location.href = '/login'; return; }
+      setDeleteError(data.error || t('checkin.errors.server'));
+    } catch { setDeleteError(t('checkin.errors.network')); }
+    finally { setDeleting(false); }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-text flex flex-col">
-        <main className="flex-grow flex items-center justify-center">
-          <div className="p-10 text-center animate-pulse uppercase font-black tracking-widest text-muted text-xs">Učitavanje...</div>
-        </main>
-        <BottomNav />
-      </div>
-    );
-  }
+  if (loading) return <main className="page"><div className="wrap"><div className="skel" style={{ minHeight: 400 }} /></div></main>;
+  if (!acc) return null;
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background text-text flex flex-col">
-        <main className="flex-grow max-w-2xl mx-auto w-full px-4 py-16 text-center space-y-6">
-          <h1 className="text-3xl font-black uppercase tracking-tight">Niste prijavljeni</h1>
-          <Link href="/login" className="inline-block px-10 py-4 bg-primary text-white font-black rounded-xl uppercase tracking-widest text-xs">
-            Prijavi se
-          </Link>
-        </main>
-        <BottomNav />
-      </div>
-    );
-  }
+  const roleLabel = acc.role === 'ADMIN' ? t('settings.roleAdmin') : acc.role === 'OWNER' ? t('settings.roleOwner') : t('settings.roleUser');
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow max-w-2xl mx-auto w-full px-4 py-6 space-y-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-muted hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">
-          <ArrowLeft size={14} /> Nazad
-        </Link>
-
-        <div className="space-y-2">
-          <h1 className="text-[30px] font-bold tracking-tight">Podešavanja</h1>
-          <p className="text-muted text-xs font-bold uppercase tracking-[0.2em]">Tvoj nalog</p>
+    <main className="page">
+      <div className="wrap settings">
+        <div className="page-head">
+          <div>
+            <p className="kicker">{t('settings.kicker')}</p>
+            <h1 className="h1">{t('nav.settings')}</h1>
+          </div>
         </div>
 
-        <ClientOnly>
-          <div className="bg-card border border-white/5 rounded-2xl p-4 md:p-6 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-sm font-black uppercase">
-                {user.name?.substring(0, 2) || '??'}
-              </div>
-              <div>
-                <p className="text-lg font-bold text-white break-words">{user.name}</p>
-                <p className="text-sm font-normal text-muted break-all flex items-center gap-1.5 mt-1">
-                  <Mail size={11} /> {user.email}
-                </p>
+        <nav className="settings__nav" aria-label={t('info.toc')}>
+          {[['nalog', t('settings.account')], ['privatnost', t('settings.privacy')], ['sigurnost', t('settings.security')], ['jezik', t('common.language')], ['brisanje', t('settings.danger')]].map(([id, label]) => (
+            <a key={id} href={`#${id}`}>{label}</a>
+          ))}
+        </nav>
+
+        <div className="settings__body">
+          <section id="nalog" className="panel">
+            <p className="panel__title"><span><User size={14} aria-hidden="true" style={{ display: 'inline', marginRight: 8, verticalAlign: -2 }} />{t('settings.account')}</span></p>
+            <div className="who">
+              <Avatar name={acc.name} url={acc.avatarUrl} className="avatar avatar--lg" />
+              <div style={{ minWidth: 0 }}>
+                <b style={{ fontSize: 18, display: 'block', overflowWrap: 'anywhere' }}>{acc.name}</b>
+                <p style={{ margin: '2px 0 0', overflowWrap: 'anywhere' }}><Mail size={13} aria-hidden="true" style={{ display: 'inline', marginRight: 6, verticalAlign: -2 }} />{acc.email}</p>
+                <p style={{ margin: '2px 0 0' }}>{roleLabel}{acc.hasGoogle ? ` · ${t('settings.googleLinked')}` : ''}</p>
               </div>
             </div>
-
-            <div className="h-px bg-white/5" />
-
-            <div className="flex items-center gap-3 text-sm font-semibold text-muted">
-              <Shield size={14} className="text-primary" /> Uloga: {user.role === 'ADMIN' ? 'Administrator' : user.role === 'OWNER' ? 'Vlasnik lokala' : 'Korisnik'}
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-            >
-              <LogOut size={14} /> Odjavi se
-            </button>
-          </div>
-        </ClientOnly>
-
-        {/* PROMJENA LOZINKE */}
-        {user.role !== 'ADMIN' && (
-          <div className="bg-card border border-white/5 rounded-2xl p-4 md:p-6 space-y-6">
-            <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-              <KeyRound size={16} className="text-primary" /> Promijeni lozinku
-            </h3>
-
-            {pwError && (
-              <p className="text-red-500 text-xs font-bold bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-                {pwError}
-              </p>
+            {!acc.emailVerified && (
+              <div className="alert alert--info" style={{ marginTop: 16 }}>
+                <AlertCircle className="ic" aria-hidden="true" />
+                <div>{t('auth.verifyBar')} <button className="link" style={{ minHeight: 0 }} onClick={resend}>{t('auth.resend')}</button>{resent && <div>{resent}</div>}</div>
+              </div>
             )}
-            {pwSuccess && (
-              <p className="text-green-500 text-xs font-bold bg-green-500/10 border border-green-500/20 rounded-xl p-3">
-                {pwSuccess}
-              </p>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Trenutna lozinka</label>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm text-text"
-                  value={pwForm.current}
-                  onChange={(e) => setPwForm({ ...pwForm, current: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Nova lozinka (min. 8 znakova)</label>
-                <input
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm text-text"
-                  value={pwForm.next}
-                  onChange={(e) => setPwForm({ ...pwForm, next: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Potvrdi novu lozinku</label>
-                <input
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  className="w-full px-4 py-3 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary text-sm text-text"
-                  value={pwForm.confirm}
-                  onChange={(e) => setPwForm({ ...pwForm, confirm: e.target.value })}
-                />
-              </div>
+            <div className="settings__row">
+              <Link className="btn btn--ghost btn--sm" href="/profile">{t('settings.editProfile')}</Link>
+              <button className="btn btn--ghost btn--sm" onClick={logout}><LogOut className="ic" aria-hidden="true" />{t('nav.logout')}</button>
             </div>
+          </section>
 
-            <button
-              onClick={handleChangePassword}
-              disabled={pwLoading}
-              className="w-full py-4 bg-primary text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
-            >
-              {pwLoading ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" /> Čuvanje...
-                </>
-              ) : (
-                <>
-                  <KeyRound size={14} /> Sačuvaj novu lozinku
-                </>
-              )}
+          <section id="privatnost" className="panel">
+            <p className="panel__title"><span><Lock size={14} aria-hidden="true" style={{ display: 'inline', marginRight: 8, verticalAlign: -2 }} />{t('settings.privacy')}</span></p>
+            <label className="toggle">
+              <input type="checkbox" checked={acc.showCheckIns} disabled={privacyBusy} onChange={(e) => togglePrivacy(e.target.checked)} />
+              <span className="toggle__track"><span className="toggle__thumb" /></span>
+              <span className="toggle__text">{t('profile.showCheckIns')}</span>
+            </label>
+            <p className="ci-note" style={{ textAlign: 'left', margin: '8px 0 0' }}>{acc.showCheckIns ? t('settings.checkinsPublic') : t('profile.privateNote')}</p>
+            <p className="ci-note" style={{ textAlign: 'left', margin: '12px 0 0' }}>{t('settings.locationNote')} <Link className="pink" href="/privacy">{t('footer.privacy')}</Link></p>
+          </section>
+
+          <section id="sigurnost" className="panel">
+            <p className="panel__title"><span><KeyRound size={14} aria-hidden="true" style={{ display: 'inline', marginRight: 8, verticalAlign: -2 }} />{t('settings.security')}</span></p>
+            {acc.role === 'ADMIN' ? (
+              <p className="ci-note" style={{ textAlign: 'left', margin: 0 }}>{t('settings.adminOtp')}</p>
+            ) : (
+              <form className="form" style={{ marginTop: 0 }} onSubmit={changePassword}>
+                {acc.hasGoogle && <p className="ci-note" style={{ textAlign: 'left', margin: 0 }}>{t('settings.googlePw')} <Link className="pink" href="/forgot-password">{t('auth.forgot')}</Link></p>}
+                {pwMsg && <div className={`alert ${pwMsg.ok ? 'alert--ok' : 'alert--error'}`} role="status">{pwMsg.ok ? <Check className="ic" aria-hidden="true" /> : <AlertCircle className="ic" aria-hidden="true" />}{pwMsg.text}</div>}
+                <label className="field"><span>{t('settings.pwCurrent')}</span><input className="input" type="password" autoComplete="current-password" required value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
+                <div className="form-2">
+                  <label className="field"><span>{t('settings.pwNew')}</span><input className="input" type="password" autoComplete="new-password" minLength={8} required value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
+                  <label className="field"><span>{t('settings.pwConfirm')}</span><input className="input" type="password" autoComplete="new-password" minLength={8} required value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} /></label>
+                </div>
+                <button className="btn btn--pink" disabled={pwBusy} style={{ justifySelf: 'start' }}>{pwBusy ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <KeyRound className="ic" aria-hidden="true" />}{t('settings.pwSave')}</button>
+                <p className="ci-note" style={{ textAlign: 'left', margin: 0, fontSize: 13 }}>{t('settings.pwNote')}</p>
+              </form>
+            )}
+            <div className="settings__row" style={{ borderTop: '1px solid var(--line)', paddingTop: 16, marginTop: 18 }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <b style={{ display: 'flex', gap: 8, alignItems: 'center' }}><MonitorSmartphone size={16} aria-hidden="true" />{t('settings.logoutAll')}</b>
+                <p className="ci-note" style={{ textAlign: 'left', margin: '4px 0 0', fontSize: 13 }}>{t('settings.logoutAllText')}</p>
+              </div>
+              <button className="btn btn--ghost btn--sm" onClick={logoutAll}>{t('settings.logoutAllBtn')}</button>
+            </div>
+          </section>
+
+          <section id="jezik" className="panel">
+            <div className="panel__title"><span><Globe size={14} aria-hidden="true" style={{ display: 'inline', marginRight: 8, verticalAlign: -2 }} />{t('common.language')}</span><LangSwitch /></div>
+            <p className="ci-note" style={{ textAlign: 'left', margin: 0 }}>{t('settings.langNote')}</p>
+          </section>
+
+          <section id="brisanje" className="panel settings__danger">
+            <p className="panel__title"><span><AlertTriangle size={14} aria-hidden="true" style={{ display: 'inline', marginRight: 8, verticalAlign: -2 }} />{t('settings.danger')}</span></p>
+            <p style={{ margin: 0, color: 'var(--text)' }}>{t('settings.deleteText')}</p>
+            {acc.role === 'OWNER' && <p className="ci-note" style={{ textAlign: 'left', margin: '8px 0 0' }}>{t('settings.ownerDelete')}</p>}
+            <label className="field" style={{ marginTop: 16 }}>
+              <span>{t('settings.deleteType', { word: confirmWord })}</span>
+              <input className="input" value={deleteText} onChange={(e) => setDeleteText(e.target.value)} autoComplete="off" />
+            </label>
+            {deleteError && <div className="alert alert--error" style={{ marginTop: 12 }}><AlertCircle className="ic" aria-hidden="true" />{deleteError}</div>}
+            <button className="btn btn--danger" style={{ marginTop: 14 }} disabled={deleting || deleteText.trim().toUpperCase() !== confirmWord.toUpperCase()} onClick={deleteAccount}>
+              {deleting ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <Trash2 className="ic" aria-hidden="true" />}{t('settings.deleteBtn')}
             </button>
-          </div>
-        )}
-
-        {/* OPASNA ZONA */}
-        <div className="bg-card border border-red-500/20 rounded-2xl p-4 md:p-6 space-y-4">
-          <h3 className="text-sm font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
-            <AlertTriangle size={16} /> Upravljanje nalogom
-          </h3>
-          <p className="text-muted text-xs font-medium leading-relaxed">
-            Brisanjem se uklanjaju nalog, tvoji događaji i povezane rezervacije, komentari, poruke, sačuvane stavke i razgovori u kojima učestvuješ. Ako posjeduješ lokal, prvo moraš prenijeti vlasništvo.
-            Ova akcija se ne može poništiti.
-          </p>
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
-          >
-            <Trash2 size={14} /> {deleting ? 'Brisanje...' : 'Obriši nalog trajno'}
-          </button>
+          </section>
         </div>
-      </main>
-      <BottomNav />
-    </div>
+      </div>
+    </main>
   );
 }

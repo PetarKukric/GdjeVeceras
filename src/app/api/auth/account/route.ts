@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession, logout } from '@/lib/auth';
+import { rateLimit } from '@/lib/rate-limit';
+import { deleteUserCompletely } from '@/lib/user-deletion';
 
 /**
  * Brisanje sopstvenog naloga (GDPR).
@@ -14,6 +16,9 @@ export async function DELETE(_request: NextRequest) {
     }
 
     const userId = session.user.id;
+    if (!rateLimit(`account-delete:${userId}`, 3, 10 * 60_000).ok) {
+      return NextResponse.json({ error: 'Previše pokušaja. Sačekaj par minuta.' }, { status: 429 });
+    }
 
     // Blokiraj brisanje ako korisnik posjeduje lokale
     const ownedVenues = await prisma.venue.count({ where: { ownerId: userId } });
@@ -24,59 +29,7 @@ export async function DELETE(_request: NextRequest) {
       );
     }
 
-    // Događaji koje je korisnik kreirao — obriši sve povezano pa događaj
-    const userEvents = await prisma.event.findMany({ where: { createdById: userId } });
-    for (const event of userEvents) {
-      await prisma.eventFloorItem.deleteMany({ where: { eventId: event.id } });
-      await prisma.eventTableGroup.deleteMany({ where: { eventId: event.id } });
-      await prisma.reservation.deleteMany({ where: { eventId: event.id } });
-      await prisma.eventFavorite.deleteMany({ where: { eventId: event.id } });
-      await prisma.comment.deleteMany({ where: { eventId: event.id } });
-      await prisma.report.deleteMany({ where: { eventId: event.id } });
-      await prisma.eventLiveMedia.deleteMany({ where: { eventId: event.id } });
-      await prisma.event.delete({ where: { id: event.id } });
-    }
-
-    // Lični podaci korisnika
-    await prisma.eventFavorite.deleteMany({ where: { userId } });
-    await prisma.venueFavorite.deleteMany({ where: { userId } });
-    await prisma.comment.deleteMany({ where: { userId } });
-    await prisma.report.deleteMany({ where: { userId } });
-    await prisma.chatReport.deleteMany({ where: { userId } });
-    await prisma.globalMessage.deleteMany({ where: { senderId: userId } });
-    await prisma.message.deleteMany({ where: { senderUserId: userId } });
-    await prisma.notification.deleteMany({ where: { userId } });
-    await prisma.eventLiveMedia.deleteMany({ where: { uploadedByUserId: userId } });
-    await prisma.block.deleteMany({ where: { OR: [{ blockerId: userId }, { blockedId: userId }] } });
-
-    // Rezervacije korisnika (prvo oslobodi stolove)
-    const userReservations = await prisma.reservation.findMany({ where: { userId } });
-    for (const r of userReservations) {
-      await prisma.eventFloorItem.updateMany({
-        where: { reservationId: r.id },
-        data: { status: 'AVAILABLE', reservationId: null },
-      });
-      await prisma.eventTableGroup.updateMany({
-        where: { reservationId: r.id },
-        data: { reservationId: null },
-      });
-    }
-    await prisma.reservation.deleteMany({ where: { userId } });
-
-    // Razgovori u kojima učestvuje
-    const conversations = await prisma.conversation.findMany({
-      where: { participants: { some: { userId } } },
-      select: { id: true },
-    });
-    const conversationIds = conversations.map((c) => c.id);
-    if (conversationIds.length > 0) {
-      await prisma.chatMessage.deleteMany({ where: { conversationId: { in: conversationIds } } });
-      await prisma.conversationParticipant.deleteMany({ where: { conversationId: { in: conversationIds } } });
-      await prisma.conversation.deleteMany({ where: { id: { in: conversationIds } } });
-    }
-
-    // Na kraju — korisnik
-    await prisma.user.delete({ where: { id: userId } });
+    await deleteUserCompletely(userId);
 
     // Odjava (čisti cookie)
     await logout();

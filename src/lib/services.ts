@@ -76,13 +76,3 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
   return JSON.parse(JSON.stringify(venueData));
 }
 
-export async function getUserReservations(userId: string) {
-  return await prisma.reservation.findMany({
-    where: { userId },
-    include: {
-        event: true,
-        venue: true
-    },
-    orderBy: { startTime: 'desc' }
-  });
-}

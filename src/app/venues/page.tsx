@@ -1,33 +1,35 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { MapPin, Search, Zap } from 'lucide-react';
 import { VenueCard } from '@/components/venues/VenueCard';
 import { useVenues } from '@/hooks/useVenues';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { MapPin, Search } from 'lucide-react';
-import { VenueCardSkeleton } from '@/components/ui/Skeleton';
 import { SUPPORTED_CITIES } from '@/lib/cities';
 import { readSavedCity, saveCity } from '@/lib/city-preference';
-import { useRouter } from 'next/navigation';
+import { useLang } from '@/components/i18n/LangProvider';
 
 function VenuesContent() {
+  const { t } = useLang();
   const searchParams = useSearchParams();
   const router = useRouter();
   const citySlug = searchParams.get('city') || '';
   const venueType = searchParams.get('type') || '';
+  const onlyPartners = searchParams.get('partners') === '1';
 
   const { data: venues, loading, error } = useVenues({ city: citySlug, type: venueType });
   const [favoriteVenueIds, setFavoriteVenueIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const updateFilter = (key:string, value:string) => {
-    const params = new URLSearchParams(searchParams.toString()); params.set(key,value);
-    if (key === 'city') saveCity(value);
-    router.replace('/venues?'+params.toString(), {scroll:false});
+  const updateFilter = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set(key, value); else params.delete(key);
+    if (key === 'city') { params.set('city', value); saveCity(value); }
+    router.replace('/venues?' + params.toString(), { scroll: false });
   };
 
-  const filteredVenues = (venues || []).filter((v: any) => {
+  const filteredVenues = (venues || []).filter((v) => {
+    if (onlyPartners && !v.isPartner) return false;
     const q = searchQuery.trim().toLowerCase();
     if (!q) return true;
     return [v.name, v.city, v.address].filter(Boolean).join(' ').toLowerCase().includes(q);
@@ -63,62 +65,59 @@ function VenuesContent() {
     fetchFavorites();
   }, [citySlug, router, searchParams]);
 
-  return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow max-w-7xl mx-auto px-4 py-6 w-full pb-32 animate-fade-up">
-        <header className="mb-5">
-          <h1 className="text-[32px] font-bold mb-2">Lokali</h1>\n          <p className="text-muted text-sm font-medium max-w-xl mx-auto md:mx-0">Istražite najbolja mjesta za izlazak, koncerte i žurke.</p>
-        </header>
+  const types = [['', t('common.all')], ['clubs', t('venuesPage.clubs')], ['bars', t('venuesPage.bars')]] as const;
 
-        <div className="city-picker mb-4"><MapPin size={18}/><select aria-label="Izaberi grad" value={citySlug} onChange={e=>updateFilter('city',e.target.value)}><option value="">Svi gradovi</option>{SUPPORTED_CITIES.map(c=><option key={c.slug} value={c.slug}>{c.name}</option>)}</select></div>
-        <div className="flex gap-2 overflow-x-auto mb-4" aria-label="Tip lokala">{[['','Svi'],['clubs','Klubovi'],['bars','Kafići / Barovi']].map(([value,label])=><button key={value} aria-pressed={venueType===value} onClick={()=>updateFilter('type',value)} className={`shrink-0 min-h-11 rounded-xl px-4 text-sm border border-border ${venueType===value?'bg-primary text-white':'bg-card text-muted'}`}>{label}</button>)}</div>
-        {/* PRETRAGA LOKALA */}
-        <div className="mb-4 max-w-xl mx-auto md:mx-0 relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); updateFilter('search',e.target.value); }}
-            placeholder="Pretraži lokale (naziv, grad, adresa)..."
-            aria-label="Pretraga lokala"
-            className="w-full h-14 bg-surface border border-border rounded-2xl pl-12 pr-4 text-sm font-medium text-white placeholder:text-muted focus:outline-none focus:border-primary transition-colors"
-          />
+  return (
+    <main className="page">
+      <div className="wrap">
+        <div className="page-head">
+          <div>
+            <p className="kicker">{t('venuesPage.kicker')}</p>
+            <h1 className="h1">{t('venuesPage.title')}</h1>
+            <p className="lead">{t('venuesPage.lead')}</p>
+          </div>
+        </div>
+
+        <div className="search" style={{ boxShadow: 'none', maxWidth: 720 }}>
+          <label className="search__field">
+            <Search className="ic" aria-hidden="true" />
+            <span className="sr-only">{t('venuesPage.searchLabel')}</span>
+            <input type="search" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); updateFilter('search', e.target.value); }} placeholder={t('venuesPage.searchPlaceholder')} />
+          </label>
+          <label className="search__city">
+            <MapPin className="ic" aria-hidden="true" />
+            <span className="sr-only">{t('home.city')}</span>
+            <select value={citySlug} onChange={(e) => updateFilter('city', e.target.value)}>
+              <option value="">{t('home.allCities')}</option>
+              {SUPPORTED_CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+            </select>
+          </label>
+        </div>
+
+        <div className="chips" style={{ marginTop: 16 }} role="group" aria-label={t('venuesPage.typeAria')}>
+          {types.map(([value, label]) => (
+            <button key={value} type="button" className="chip" aria-pressed={venueType === value} onClick={() => updateFilter('type', value)}>{label}</button>
+          ))}
+          <button type="button" className="chip" aria-pressed={onlyPartners} onClick={() => updateFilter('partners', onlyPartners ? '' : '1')}>
+            <Zap size={14} aria-hidden="true" />&nbsp;{t('venuesPage.partners')}
+          </button>
         </div>
 
         {loading ? (
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <VenueCardSkeleton key={i} />
-            ))}
-          </div>
+          <div className="venues">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="skel" style={{ minHeight: 104 }} />)}</div>
         ) : error ? (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-10 text-center text-sm font-bold text-white">Lokale trenutno nije moguće učitati. <button className="min-h-11 text-primary" onClick={()=>window.location.reload()}>Pokušaj ponovo</button></div>
+          <div className="empty"><b>{t('venuesPage.loadError')}</b><button className="link" onClick={() => window.location.reload()}>{t('common.retry')}</button></div>
         ) : filteredVenues.length === 0 ? (
-          <div className="text-center py-20 text-muted text-sm font-black uppercase tracking-widest">
-            Nema lokala za pretragu &quot;{searchQuery}&quot;
-          </div>
+          <EmptyState icon={MapPin} title={t('venuesPage.emptyTitle')} description={searchQuery ? t('venuesPage.emptySearch', { q: searchQuery }) : t('venuesPage.empty')} />
         ) : (
-          <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-            {filteredVenues.map((venue) => (
-              <VenueCard
-                key={venue.id}
-                venue={venue}
-                isFavoritedInitial={favoriteVenueIds.includes(venue.id)}
-              />
+          <div className="venues">
+            {filteredVenues.map((venue, index) => (
+              <VenueCard key={venue.id} venue={venue} index={index} isFavoritedInitial={favoriteVenueIds.includes(venue.id)} />
             ))}
           </div>
         )}
-
-        {venues.length === 0 && !loading && (
-          <EmptyState
-            icon={MapPin}
-            title="Nema lokala"
-            description="Trenutno nema registrovanih lokala u bazi podataka."
-          />
-        )}
-      </main>
-      <BottomNav />
-    </div>
+      </div>
+    </main>
   );
 }
 

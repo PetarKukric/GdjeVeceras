@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { requireVerifiedEmail } from '@/lib/verification';
@@ -41,6 +42,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const verificationError = await requireVerifiedEmail(session.user.id);
+    if (!rateLimit(`global-chat:${session.user.id}`, 20, 60_000).ok) {
+      return NextResponse.json({ error: 'Previše poruka. Uspori malo.' }, { status: 429 });
+    }
     if (verificationError) return verificationError;
 
     const { content } = await request.json();

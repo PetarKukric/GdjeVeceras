@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Poslali ste previše poruka. Pokušajte za ${Math.ceil(rl.retryAfter / 60)} minuta.` }, { status: 429 });
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { name, email, subject, message, venueId } = body;
     const session = await getSession();
 
@@ -25,8 +25,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unesite ispravnu email adresu.' }, { status: 400 });
     }
 
-    if (message.length < 5) {
+    if ([name, email, subject, message].some((v) => typeof v !== 'string')) {
+      return NextResponse.json({ error: 'Neispravan zahtjev.' }, { status: 400 });
+    }
+    if (message.trim().length < 5) {
       return NextResponse.json({ error: 'Poruka je prekratka.' }, { status: 400 });
+    }
+    if (name.length > 80 || subject.length > 150 || message.length > 3000 || email.length > 254) {
+      return NextResponse.json({ error: 'Poruka je preduga.' }, { status: 400 });
+    }
+    if (venueId !== undefined && venueId !== null && venueId !== '' && typeof venueId !== 'string') {
+      return NextResponse.json({ error: 'Neispravan lokal.' }, { status: 400 });
     }
 
     // 2. Security Check for senderUserId (to prevent P2003 if session is stale)
@@ -48,12 +57,12 @@ export async function POST(request: NextRequest) {
     // 4. Create Message
     const newMessage = await prisma.message.create({
       data: {
-        senderName: name,
+        senderName: name.trim(),
         senderEmail: normalizeEmail(email),
         senderUserId: validSenderId,
-        subject,
-        message,
-        venueId: venueId || null,
+        subject: subject.trim(),
+        message: message.trim(),
+        venueId: venue ? venue.id : null,
       }
     });
 

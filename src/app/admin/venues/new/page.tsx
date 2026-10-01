@@ -9,7 +9,6 @@ import {
   MapPin,
   Phone,
   Info,
-  CalendarCheck,
   Clock,
   Tag,
   Plus,
@@ -23,7 +22,7 @@ import { SUPPORTED_CITIES } from '@/lib/cities';
 import { ImageUploader } from '@/components/admin/ImageUploader';
 
 const PREDEFINED_TAGS = [
-  'Parking', 'Bingo', 'Wi-Fi', 'Terasa', 'Bašta', 'Rezervacije', 'Hrana', 
+  'Parking', 'Bingo', 'Wi-Fi', 'Terasa', 'Bašta', 'Hrana', 
   'Kokteli', 'Bilijar', 'Pikado', 'TV', 'Sportski prenosi', 
   'Pristup za osobe sa invaliditetom', 'Garderoba', 'VIP', 
   'Live muzika', 'Plesni podij', 'Klima'
@@ -68,7 +67,6 @@ export default function NewVenue() {
     tiktokUrl: string;
     imageUrl: string;
     ownerId: string;
-    reservationsEnabled: boolean;
   }>({
     name: '',
     description: '',
@@ -83,7 +81,6 @@ export default function NewVenue() {
     tiktokUrl: '',
     imageUrl: '',
     ownerId: '',
-    reservationsEnabled: false,
   });
 
   const toggleTag = (tag: string) => {
@@ -458,26 +455,6 @@ export default function NewVenue() {
                  />
               </div>
 
-              <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
-                 <div className="flex items-center justify-between gap-6">
-                    <div>
-                       <h3 className="text-lg font-bold flex items-center gap-2 uppercase tracking-wider text-primary mb-2">
-                          <CalendarCheck size={18} /> Rezervacije
-                       </h3>
-                       <p className="text-xs text-muted">Odredi da li ovaj lokal prima rezervacije stolova. Ako je isključeno, dugme "Rezerviši" se ne prikazuje na stranicama događaja ovog lokala.</p>
-                    </div>
-                    <button
-                       type="button"
-                       role="switch"
-                       aria-label="Uključi ili isključi rezervacije za lokal"
-                       aria-checked={formData.reservationsEnabled}
-                       onClick={() => setFormData({ ...formData, reservationsEnabled: !formData.reservationsEnabled })}
-                       className={`relative w-14 h-8 rounded-full transition-colors shrink-0 ${formData.reservationsEnabled ? 'bg-primary' : 'bg-border'}`}
-                    >
-                       <span className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-all ${formData.reservationsEnabled ? 'left-7' : 'left-1'}`} />
-                    </button>
-                 </div>
-              </div>
 
               <div className="bg-card border border-border rounded-2xl p-8 space-y-6 shadow-sm">
                  <h3 className="text-lg font-bold flex items-center gap-2 mb-2 uppercase tracking-wider text-primary">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { getSession, login } from '@/lib/auth';
+import { rateLimit } from '@/lib/rate-limit';
 import { verifyPassword, hashPassword } from '@/lib/password';
 
 /**
@@ -13,6 +14,10 @@ export async function POST(request: NextRequest) {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: 'Niste prijavljeni.' }, { status: 401 });
+    }
+    // Zaštita od pogađanja trenutne lozinke sa ukradenom sesijom
+    if (!rateLimit(`change-password:${session.user.id}`, 5, 15 * 60_000).ok) {
+      return NextResponse.json({ error: 'Previše pokušaja. Sačekaj 15 minuta.' }, { status: 429 });
     }
 
     const { currentPassword, newPassword } = await request.json();
@@ -50,8 +55,11 @@ export async function POST(request: NextRequest) {
         passwordHash: await hashPassword(newPassword),
         failedLoginAttempts: 0,
         loginLockoutUntil: null,
+        // Svi drugi uređaji se odjavljuju; ovaj dobija novu sesiju odmah ispod
+        sessionVersion: { increment: 1 },
       },
     });
+    await login({ id: user.id, email: user.email, role: user.role, name: user.name || '' });
 
     return NextResponse.json({ message: 'Lozinka je uspješno promijenjena.' });
   } catch (error) {

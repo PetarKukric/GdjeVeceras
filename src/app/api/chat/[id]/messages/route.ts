@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit  } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { requireVerifiedEmail } from '@/lib/verification';
@@ -13,6 +14,9 @@ export async function GET(
 
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!rateLimit(`dm:${session.user.id}`, 30, 60_000).ok) {
+      return NextResponse.json({ error: 'Previše poruka. Uspori malo.' }, { status: 429 });
     }
     const verificationError = await requireVerifiedEmail(session.user.id);
     if (verificationError) return verificationError;

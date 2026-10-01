@@ -21,7 +21,6 @@ export interface Venue {
   id: string;
   name: string;
   slug: string;
-  reservationsEnabled?: boolean;
   description?: string;
   address: string;
   city: string;
@@ -34,6 +33,8 @@ export interface Venue {
   tiktokUrl?: string;
   imageUrl?: string;
   ownerId?: string | null;
+  isPartner?: boolean;
+  checkInPoints?: number;
   openingHours?: OpeningHour[];
   tags?: VenueTag[];
   _count?: {
@@ -110,7 +111,6 @@ export interface UseEventsProps {
   limit?: number;
   lat?: number;
   lng?: number;
-  reservations?: 'available' | '';
   initialData?: EventsResponse;
 }
 

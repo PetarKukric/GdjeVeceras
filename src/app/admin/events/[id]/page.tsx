@@ -261,7 +261,7 @@ export default function EditEvent() {
 
   const handleDelete = async () => {
     if (isRecurring) {
-      if (!confirm('PAŽNJA: Ovo briše CIJELU SERIJU ponavljajućeg događaja (sve termine i rezervacije). Nastaviti?')) return;
+      if (!confirm('PAŽNJA: Ovo briše CIJELU SERIJU ponavljajućeg događaja (sve termine). Nastaviti?')) return;
     } else {
       if (!confirm('Da li ste sigurni da želite obrisati ovaj događaj?')) return;
     }

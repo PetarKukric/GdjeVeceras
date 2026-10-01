@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { deleteUserCompletely } from '@/lib/user-deletion';
 
 /**
  * Restrikcija korisnika (ban / skidanje bana) - samo ADMIN.
@@ -34,7 +35,8 @@ export async function PATCH(
 
     const updated = await prisma.user.update({
       where: { id },
-      data: { restricted },
+      // Ban odmah odjavljuje korisnika sa svih uređaja
+      data: { restricted, ...(restricted ? { sessionVersion: { increment: 1 } } : {}) },
       select: { id: true, name: true, email: true, role: true, restricted: true },
     });
 
@@ -68,15 +70,12 @@ export async function DELETE(
       return NextResponse.json({ error: 'Korisnik nije pronađen' }, { status: 404 });
     }
 
-    // Delete related records or handle constraints
-    await prisma.venue.updateMany({
-        where: { ownerId: id },
-        data: { ownerId: null }
-    });
+    if (user.role === 'ADMIN') {
+      return NextResponse.json({ error: 'Admin nalog se ne može obrisati iz panela.' }, { status: 400 });
+    }
 
-    await prisma.user.delete({
-      where: { id },
-    });
+    // Lokali ostaju (bez vlasnika), događaji prelaze na admina koji briše — ostalo se briše skroz, uklj. fajlove
+    await deleteUserCompletely(id, { reassignEventsTo: session.user.id });
 
     return NextResponse.json({ message: 'Korisnik obrisan' });
   } catch (error) {

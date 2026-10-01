@@ -85,7 +85,6 @@ export async function POST(_request: NextRequest) {
         instagramUrl: body.instagramUrl,
         facebookUrl: body.facebookUrl,
         tiktokUrl: body.tiktokUrl,
-        reservationsEnabled: !!body.reservationsEnabled,
         imageUrl: body.imageUrl,
         // Samo ADMIN smije dodijeliti lokal drugom korisniku.
         // OWNER koji kreira lokal uvijek postaje vlasnik tog lokala.

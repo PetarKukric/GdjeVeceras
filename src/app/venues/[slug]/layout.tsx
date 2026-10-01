@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   const desc =
     (venue.description || '').slice(0, 155) ||
-    `${venue.name} u ${venue.city} — adresa, radno vrijeme, događaji i rezervacije na Gdje Večeras.`;
+    `${venue.name} u ${venue.city} — adresa, radno vrijeme i događaji na Gdje Večeras.`;
 
   return {
     title: `${venue.name} — ${venue.city}`,

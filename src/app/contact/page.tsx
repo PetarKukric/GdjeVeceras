@@ -1,273 +1,148 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { AlertCircle, Check, Loader2, Mail, MapPin, Phone, Send } from 'lucide-react';
+import { useLang } from '@/components/i18n/LangProvider';
+import { CONTACT_EMAIL } from '@/lib/i18n/pages';
 
-const Instagram = (props: any) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+const Instagram = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+);
+const Facebook = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+);
+const TikTok = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
 );
 
-const Facebook = (props: any) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-);
-
-const TikTok = (props: any) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
-);
-
-import { useToast } from '@/components/ui/Toast';
+const TOPICS = ['general', 'partner', 'problem', 'rewards', 'collab'] as const;
+type Topic = (typeof TOPICS)[number];
 
 export default function ContactPage() {
-  const router = useRouter();
-  const { showToast } = useToast();
-  
-  // Safe icons
-  const socialIcons = [
-    { icon: Instagram, label: 'Instagram', link: 'https://www.instagram.com/gdjeveceras' },
-    { icon: Facebook, label: 'Facebook', link: 'https://www.facebook.com/share/1EaMwFTjic/?mibextid=wwXIfr' },
-    { icon: TikTok, label: 'TikTok', link: 'https://www.tiktok.com/@gdjeveceras2' }
-  ];
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-    venueId: ''
-  });
-  const [venues, setVenues] = useState<{ id: string, name: string }[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const { t } = useLang();
+  const [topic, setTopic] = useState<Topic>('general');
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', venueId: '' });
+  const [venues, setVenues] = useState<{ id: string; name: string }[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
   const [error, setError] = useState('');
 
-  React.useEffect(() => {
-    async function fetchVenues() {
-      try {
-        const res = await fetch('/api/venues');
-        if (res.ok) {
-          const data = await res.json();
-          setVenues(data);
-        }
-      } catch {
-        console.error('Failed to fetch venues');
-      }
-    }
-    fetchVenues();
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('topic');
+    if (q && (TOPICS as readonly string[]).includes(q)) setTopic(q as Topic);
+    fetch('/api/venues').then((r) => (r.ok ? r.json() : [])).then((list) => Array.isArray(list) && setVenues(list.map((v: { id: string; name: string }) => ({ id: v.id, name: v.name })))).catch(() => {});
+    // Prijavljen korisnik: ime i email se popunjavaju sami
+    fetch('/api/auth/session').then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (d?.user) setForm((f) => ({ ...f, name: f.name || d.user.name || '', email: f.email || d.user.email || '' }));
+    }).catch(() => {});
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [key]: e.target.value });
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
-    
+    setBusy(true);
     try {
+      const subject = `[${t(`contactPage.topics.${topic}`)}] ${form.subject}`.slice(0, 150);
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...form, subject }),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccess(true);
-        showToast('Poruka uspješno poslana');
-        router.push('/thank-you');
-        setFormData({ name: '', email: '', subject: '', message: '', venueId: '' });
-      } else {
-        setError(data.error || 'Došlo je do greške. Pokušajte ponovo.');
-      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(data.error || t('checkin.errors.server')); return; }
+      setDone(true);
+      setForm((f) => ({ ...f, subject: '', message: '', venueId: '' }));
     } catch {
-      setError('Mrežna greška. Pokušajte ponovo.');
+      setError(t('checkin.errors.network'));
     } finally {
-      setIsSubmitting(false);
+      setBusy(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow max-w-7xl mx-auto px-4 py-20 w-full animate-fade-up">
-        
-        <header className="mb-20 text-center md:text-left">
-          <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0">
-             Get In Touch
+    <main className="page">
+      <div className="wrap">
+        <div className="page-head">
+          <div>
+            <p className="kicker">{t('contactPage.kicker')}</p>
+            <h1 className="h1">{t('contactPage.title')}</h1>
+            <p className="lead">{t('contactPage.lead')}</p>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter uppercase mb-4 sm:mb-6 leading-tight break-words">
-            Kontaktirajte <span className="text-primary italic">Nas</span>
-          </h1>
-          <p className="text-muted text-lg font-medium max-w-2xl mx-auto md:mx-0 leading-relaxed">
-            Imate pitanje, sugestiju ili želite da sarađujete sa nama? Pišite nam — odgovaramo u roku od 24 sata (radnim danima).
-          </p>
-        </header>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
-          
-          {/* Contact Form */}
-          <div className="bg-surface/50 border border-border/50 p-5 sm:p-10 rounded-3xl sm:rounded-3xl shadow-2xl relative overflow-hidden">
-            <h2 className="text-2xl font-black uppercase mb-8 tracking-tight">Pošaljite poruku</h2>
-            
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-sm font-bold mb-6">
-                {error}
-              </div>
-            )}
-
-            {success ? (
-              <div className="py-20 text-center animate-fade-up">
-                <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Send className="text-primary" size={32} />
-                </div>
-                <h3 className="text-2xl font-black uppercase mb-2">Poruka poslata!</h3>
-                <p className="text-muted">Poruka je uspješno poslana. Odgovorićemo vam uskoro.</p>
-                <button 
-                  onClick={() => setSuccess(false)}
-                  className="mt-8 px-10 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20"
-                >
-                  POŠALJI NOVU PORUKU
-                </button>
+        <div className="contact">
+          <section className="panel">
+            {done ? (
+              <div className="ci-done" role="status" style={{ textAlign: 'center' }}>
+                <div className="burst"><Check className="ic" aria-hidden="true" /></div>
+                <h2 className="h3" style={{ justifyContent: 'center' }}>{t('contactPage.sentTitle')}</h2>
+                <p className="ci-note" style={{ marginTop: 8 }}>{t('contactPage.sentText')}</p>
+                <button className="btn btn--ghost" style={{ marginTop: 20 }} onClick={() => setDone(false)}>{t('contactPage.another')}</button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-7 md:space-y-6 relative z-10">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Lokal</label>
-                  <select 
-                    className="w-full h-14 px-6 bg-background border border-border/50 rounded-2xl text-sm focus:outline-none focus:border-primary transition-all appearance-none"
-                    value={formData.venueId}
-                    onChange={(e) => setFormData({...formData, venueId: e.target.value})}
-                  >
-                    <option value="">OPŠTI UPIT (ADMIN) ▼</option>
-                    {venues.map(v => (
-                      <option key={v.id} value={v.id}>{v.name}</option>
+              <form className="form" style={{ marginTop: 0 }} onSubmit={submit}>
+                <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
+                  <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)', marginBottom: 8 }}>{t('contactPage.topic')}</legend>
+                  <div className="chips" style={{ flexWrap: 'wrap', marginBottom: 0 }}>
+                    {TOPICS.map((tp) => (
+                      <button key={tp} type="button" className="chip" aria-pressed={topic === tp} onClick={() => setTopic(tp)}>{t(`contactPage.topics.${tp}`)}</button>
                     ))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Ime</label>
-                    <input 
-                      type="text" 
-                      required
-                      placeholder="Vaše ime"
-                      className="w-full h-14 px-6 bg-background border border-border/50 rounded-2xl text-sm focus:outline-none focus:border-primary transition-all"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Email</label>
-                    <input 
-                      type="email" 
-                      required
-                      placeholder="ime@gmail.com"
-                      className="w-full h-14 px-6 bg-background border border-border/50 rounded-2xl text-sm focus:outline-none focus:border-primary transition-all"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                  </div>
+                </fieldset>
+                {error && <div className="alert alert--error" role="alert"><AlertCircle className="ic" aria-hidden="true" />{error}</div>}
+                <div className="form-2">
+                  <label className="field"><span>{t('auth.name')}</span><input className="input" required maxLength={80} autoComplete="name" value={form.name} onChange={set('name')} /></label>
+                  <label className="field"><span>{t('auth.email')}</span><input className="input" type="email" required maxLength={254} autoComplete="email" value={form.email} onChange={set('email')} /></label>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Naslov</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="Naslov poruke"
-                    className="w-full h-14 px-6 bg-background border border-border/50 rounded-2xl text-sm focus:outline-none focus:border-primary transition-all"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-1">Poruka</label>
-                  <textarea 
-                    required
-                    placeholder="Vaša poruka..."
-                    rows={5}
-                    className="w-full p-6 bg-background border border-border/50 rounded-[1.5rem] text-sm focus:outline-none focus:border-primary transition-all resize-none"
-                    value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  ></textarea>
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full h-16 bg-primary text-white font-black rounded-2xl hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 uppercase tracking-[0.3em] text-[10px] flex items-center justify-center gap-3 disabled:opacity-50"
-                >
-                  {isSubmitting ? 'SLANJE...' : <>POŠALJI PORUKU <Send size={16} /></>}
+                {(topic === 'problem' || topic === 'rewards' || topic === 'general') && venues.length > 0 && (
+                  <label className="field"><span>{t('contactPage.venue')}</span>
+                    <select className="input" value={form.venueId} onChange={set('venueId')}>
+                      <option value="">{t('contactPage.noVenue')}</option>
+                      {venues.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
+                    </select>
+                  </label>
+                )}
+                <label className="field"><span>{t('contactPage.subject')}</span><input className="input" required maxLength={120} value={form.subject} onChange={set('subject')} placeholder={t(`contactPage.placeholders.${topic}`)} /></label>
+                <label className="field"><span>{t('contactPage.message')}</span><textarea className="input" required minLength={5} maxLength={3000} rows={6} style={{ paddingBlock: 14, resize: 'vertical' }} value={form.message} onChange={set('message')} /></label>
+                <button className="btn btn--pink btn--block" disabled={busy}>
+                  {busy ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <Send className="ic" aria-hidden="true" />}{t('contactPage.send')}
                 </button>
+                <p className="ci-note" style={{ fontSize: 13 }}>{t('contactPage.privacy1')} <Link className="pink" href="/privacy">{t('footer.privacy')}</Link>.</p>
               </form>
             )}
-            
-            {/* Background Glow */}
-            <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
-          </div>
+          </section>
 
-          {/* Contact Info */}
-          <div className="space-y-12">
-            <div className="space-y-8">
-              <h2 className="text-2xl font-black uppercase tracking-tight">Informacije</h2>
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 sm:gap-6 group min-w-0">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all shrink-0">
-                    <Mail size={22} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Email</p>
-                    <p className="text-lg font-bold text-white break-words">gdjevecerasbusiness@gmail.com</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 sm:gap-6 group min-w-0">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all shrink-0">
-                    <Phone size={22} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Telefon</p>
-                    <p className="text-lg font-bold text-white break-words">+387 66 771 086</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 sm:gap-6 group min-w-0">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-primary shadow-xl group-hover:border-primary/30 transition-all shrink-0">
-                    <MapPin size={22} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Lokacija</p>
-                    <p className="text-lg font-bold text-white break-words">Bosna i Hercegovina</p>
-                  </div>
-                </div>
+          <aside className="contact__side">
+            <div className="panel">
+              <p className="panel__title">{t('contactPage.direct')}</p>
+              <div className="dlinks">
+                <a href={`mailto:${CONTACT_EMAIL}`}><span className="dlinks__ic"><Mail size={18} /></span><span className="dlinks__label">{CONTACT_EMAIL}</span></a>
+                <a href="tel:+38766771086"><span className="dlinks__ic"><Phone size={18} /></span><span className="dlinks__label">+387 66 771 086</span></a>
+                <div className="dlinks__row"><span className="dlinks__ic"><MapPin size={18} /></span><span className="dlinks__label">{t('contactPage.location')}</span></div>
+              </div>
+              <p className="ci-note" style={{ textAlign: 'left', marginTop: 12 }}>{t('contactPage.reply')}</p>
+            </div>
+            <div className="panel">
+              <p className="panel__title">{t('footer.followUs')}</p>
+              <div className="footer__social">
+                <a href="https://www.instagram.com/gdjeveceras" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram /></a>
+                <a href="https://www.tiktok.com/@gdjeveceras2" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><TikTok /></a>
+                <a href="https://www.facebook.com/share/1EaMwFTjic/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><Facebook /></a>
               </div>
             </div>
-
-            <div className="space-y-8">
-              <h2 className="text-2xl font-black uppercase tracking-tight">Pratite nas</h2>
-              <div className="flex gap-4">
-                {socialIcons.map((social, i) => (
-                  <a 
-                    key={i}
-                    href={social.link}
-                    className="w-16 h-16 rounded-2xl bg-surface border border-border/50 flex items-center justify-center text-muted hover:text-primary hover:border-primary/30 transition-all shadow-xl group"
-                  >
-                    {social.icon && <social.icon size={28} className="group-hover:scale-110 transition-transform" />}
-                  </a>
-                ))}
+            <div className="venue-cta" style={{ marginTop: 0 }}>
+              <div>
+                <h2 className="h3">{t('partners.ctaTitle')}</h2>
+                <p>{t('contactPage.partnerText')}</p>
               </div>
+              <button type="button" className="btn btn--white" onClick={() => { setTopic('partner'); setDone(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>{t('partners.ctaBtn')}</button>
             </div>
-
-            <div className="bg-accent/5 border border-accent/20 p-8 rounded-3xl relative overflow-hidden">
-               <div className="relative z-10">
-                 <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2">Vlasnik ste lokala?</h4>
-                 <p className="text-muted text-[11px] leading-relaxed mb-6 uppercase tracking-wide">Ako želite da vaš lokal i događaji budu na našem sajtu, slobodno nas kontaktirajte putem forme ili direktno na email.</p>
-                 <button 
-                  onClick={() => router.push('/signup')}
-                  className="text-accent text-[10px] font-black uppercase tracking-[0.3em] hover:text-white transition-colors"
-                >
-                  PRIDRUŽITE SE MREŽI →
-                </button>
-               </div>
-               <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 blur-3xl rounded-full" />
-            </div>
-          </div>
-
+          </aside>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

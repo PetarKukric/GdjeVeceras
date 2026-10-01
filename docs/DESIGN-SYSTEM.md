@@ -5,18 +5,18 @@
 
 ## Brend u jednoj rečenici
 
-**Tamna noć + neon roza** — aplikacija za noćni izlazak: skoro crna pozadina (`#050505`), jarko roza akcent (`#FF006E`), bijeli tekst, crni uppercase naslovi sa širim razmakom.
+**Tamna noć + neon roza** — aplikacija za noćni izlazak: skoro crna pozadina (`#070708`), jarko roza akcent (`#FF0A78`), bijeli tekst, crni uppercase naslovi sa širim razmakom.
 
 ## Tokeni
 
 | Token | Vrijednost | Upotreba |
 |---|---|---|
-| Pozadina | `#050505` (`bg-background`) | stranica |
+| Pozadina | `#070708` (`bg-background`) | stranica |
 | Elevated | `#0D0D0F` (`bg-elevated`) | izdignute površine |
 | Površina | `#121216` (`bg-surface`) | kartice, inputi |
 | Kartica | `#18181D` (`bg-card`) | paneli, modali |
-| **Primarna** | **`#FF006E`** (`bg-primary`, `text-primary`) | CTA dugmad, akcenti, aktivna stanja |
-| Primary hover | `#FF2D86` (`bg-primary-hover`) | hover CTA |
+| **Primarna** | **`#FF0A78`** (`bg-primary`, `text-primary`) | CTA dugmad, akcenti, aktivna stanja |
+| Primary hover | `#FF4D9A` (`bg-primary-hover`) | hover CTA |
 | Tekst | `#FFFFFF` (`text-text`) | naslovi i tijelo |
 | Muted | `#A7A7B0` (`text-muted`) | sekundarni tekst, labeli |
 | Border | `#232329` (`border-border`) | obrubi i razdjelnici |
@@ -73,3 +73,11 @@
 - [ ] Sva icon-only dugmad imaju aria-label
 - [ ] Loading/error stanja pokrivena
 - [ ] Focus vidljiv sa tastature
+
+
+## Redesign 2026 — Hot pink / crna / bijela
+
+- Tokeni i komponente javnog dijela: `src/app/gv.css` (header, hero, poster kartice događaja, Score, nivoi, nagrade, rang lista, check-in, profil). Tailwind tokeni u `globals.css` su usklađeni sa istom paletom.
+- Fontovi: **Unbounded** (naslovi, `--font-display`) + **Manrope** (tekst).
+- Jezik: sav tekst javnog dijela ide kroz `src/lib/i18n/sr.ts` i `en.ts` (`useLang().t('kljuc')` u klijentu, `getT()` na serveru). Nikad ne hardkodiraj tekst u komponenti.
+- Tranzicija stranica: `src/app/template.tsx` + `.page-enter` / `.page-sweep` u `gv.css` (poštuje `prefers-reduced-motion`).

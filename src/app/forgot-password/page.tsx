@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { BottomNav } from '@/components/layout/BottomNav';
 import { Mail, Loader2, Send } from 'lucide-react';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 
@@ -94,7 +93,6 @@ export default function ForgotPasswordPage() {
           )}
         </div>
       </main>
-      <BottomNav />
     </div>
   );
 }

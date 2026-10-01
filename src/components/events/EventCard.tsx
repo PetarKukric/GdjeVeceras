@@ -1,58 +1,103 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Heart, MapPin, Music2 } from 'lucide-react';
+import { Clock, Heart, MapPin, Zap } from 'lucide-react';
 import { Event } from '@/types';
 import { useToast } from '@/components/ui/Toast';
-import { formatEventCardDate } from '@/lib/date-format';
-import { trackEvent } from '@/lib/analytics';
+import { useLang } from '@/components/i18n/LangProvider';
+import { PosterArt, posterFor } from '@/components/ui/PosterArt';
+import { intlLocale } from '@/lib/i18n';
+import { POPULARITY_THRESHOLD } from '@/lib/constants';
+
+const TZ = 'Europe/Sarajevo';
+
 interface EventCardProps {
   event: Event;
   variant?: 'featured' | 'compact';
   isFavoritedInitial?: boolean;
   onFavoriteToggle?: (eventId: string, favorited: boolean) => void;
   showPopularBadge?: boolean;
+  index?: number;
 }
-export function EventCard({ event, variant = 'compact', isFavoritedInitial = false, onFavoriteToggle }: EventCardProps) {
+
+export function EventCard({ event, variant = 'compact', isFavoritedInitial = false, onFavoriteToggle, index = 0 }: EventCardProps) {
+  const { t, lang } = useLang();
   const [saved, setSaved] = useState(isFavoritedInitial);
   const [busy, setBusy] = useState(false);
   const [failedImage, setFailedImage] = useState(false);
+  const [live, setLive] = useState(false);
   const { showToast } = useToast();
   useEffect(() => setSaved(isFavoritedInitial), [isFavoritedInitial]);
   useEffect(() => setFailedImage(false), [event.imageUrl, event.venue?.imageUrl]);
+  // "Uživo" se računa tek na klijentu (izbjegava hydration razliku u vremenu)
+  useEffect(() => {
+    const now = Date.now();
+    setLive(new Date(event.startDateTime).getTime() <= now && Boolean(event.endDateTime) && new Date(event.endDateTime).getTime() > now);
+  }, [event.startDateTime, event.endDateTime]);
+
   const href = `/events/${event.slug}${event.occurrenceDate ? `?date=${event.occurrenceDate}` : ''}`;
   const image = !failedImage && (event.imageUrl || event.venue?.imageUrl);
+  const start = new Date(event.startDateTime);
+  const locale = intlLocale(lang);
+  const weekday = new Intl.DateTimeFormat(locale, { timeZone: TZ, weekday: 'short' }).format(start).replace('.', '');
+  const day = new Intl.DateTimeFormat(locale, { timeZone: TZ, day: 'numeric' }).format(start).replace('.', '');
+  const time = new Intl.DateTimeFormat(locale, { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(start);
+  const hot = (event._count?.favorites || 0) >= POPULARITY_THRESHOLD;
+  const partner = Boolean(event.venue?.isPartner);
+  const genre = t(`categories.${event.category}`);
+
   async function toggleFavorite() {
     if (busy) return;
     setBusy(true);
     try {
       const session = await fetch('/api/auth/session');
-      if (!session.ok) { window.location.href = '/login'; return; }
+      if (!session.ok) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return; }
       const user = await session.json();
       const response = await fetch('/api/favorites', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.user.id, eventId: event.id }) });
       if (!response.ok) throw new Error('favorite');
       const result = await response.json();
       setSaved(result.favorited);
       onFavoriteToggle?.(event.id, result.favorited);
-      showToast(result.favorited ? 'Događaj sačuvan' : 'Uklonjeno iz sačuvanih');
-    } catch { showToast('Čuvanje nije uspjelo. Pokušaj ponovo.'); }
+      showToast(result.favorited ? t('event.saved') : t('event.unsaved'));
+    } catch { showToast(t('event.saveFailed'), 'error'); }
     finally { setBusy(false); }
   }
-  return <article className={`event-card event-card--${variant}`}>
-    <Link href={href} className="event-card__image" aria-label={`Pogledaj: ${event.title}`}>
-      {image ? <img src={image} alt="" loading={variant === 'featured' ? 'eager' : 'lazy'} fetchPriority={variant === 'featured' ? 'high' : 'auto'} decoding="async" sizes={variant === 'featured' ? '(max-width: 768px) calc(100vw - 32px), 620px' : '(max-width: 430px) 76px, 104px'} onError={() => setFailedImage(true)} /> : <Music2 size={32} aria-hidden="true" />}
-    </Link>
-    <div className="event-card__body">
-      <Link href={href}><h3>{event.title}</h3></Link>
-      {event.performers && <p className="event-card__performer">{event.performers}</p>}
-      <p className="event-card__meta"><MapPin size={15} /><span>{event.venue?.name || 'Lokacija nije navedena'}{event.venue?.city ? ` · ${event.venue.city}` : ''}</span></p>
-      <p className="event-card__meta"><Calendar size={15} /><span>{formatEventCardDate(event.startDateTime)}</span></p>
-      {event.additionalVenues?.length ? <p className="event-card__performer">+ {event.additionalVenues.map(v => v.venue.name).join(', ')}</p> : null}
-      <div className="event-card__labels">
-        {typeof event.price === 'number' && event.price > 0 && <span>{event.price} {event.currency || 'KM'}</span>}
-        {event.venue?.reservationsEnabled && <Link href={`${href}#reservation`} onClick={() => trackEvent('reservation_click', { event_id: event.id, source: 'event_card' })}>Rezerviši sto</Link>}
+
+  return (
+    <article className="event" style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}>
+      <div className="event__poster">
+        {image ? (
+          <>
+            <img className="event__img" src={image} alt="" loading={variant === 'featured' || index < 3 ? 'eager' : 'lazy'} decoding="async" onError={() => setFailedImage(true)} />
+            <span className="event__shade" aria-hidden="true" />
+          </>
+        ) : <PosterArt seed={event.id} />}
+        <div className="event__date" aria-hidden="true"><small>{weekday}</small><b>{day}</b></div>
+        <button className="event__fav" onClick={toggleFavorite} disabled={busy} aria-pressed={saved} aria-label={saved ? t('event.unsaveAria', { title: event.title }) : t('event.saveAria', { title: event.title })}>
+          <Heart size={20} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
+        </button>
+        <span className="event__genre" style={{ color: image ? '#fff' : posterFor(event.id).text }}>{genre}</span>
+        {live ? <span className="tag-hot tag-live">{t('event.live')}</span> : hot ? <span className="tag-hot">{t('event.hot')}</span> : null}
       </div>
-    </div>
-    <button className="event-card__save" onClick={toggleFavorite} disabled={busy} aria-pressed={saved} aria-label={saved ? 'Ukloni iz sačuvanih' : 'Sačuvaj događaj'}><Heart size={22} fill={saved ? 'currentColor' : 'none'} /></button>
-  </article>;
+      <div className="event__body">
+        <h3 className="event__title"><Link href={href}>{event.title}</Link></h3>
+        {event.performers && <p className="event__perf">{event.performers}</p>}
+        <div className="event__meta">
+          <span><MapPin className="ic" aria-hidden="true" />{event.venue?.name || t('event.noVenue')}{event.venue?.city ? ` · ${event.venue.city}` : ''}</span>
+          <span><Clock className="ic" aria-hidden="true" />{time}</span>
+          {typeof event.price === 'number' && event.price > 0
+            ? <span className="event__price">{event.price} {event.currency || 'KM'}</span>
+            : event.price === 0 ? <span className="event__price">{t('event.free')}</span> : null}
+        </div>
+        <div className="event__foot">
+          <div className="event__going">
+            {event._count?.favorites ? <span>{t('event.savedBy', { n: event._count.favorites })}</span> : null}
+          </div>
+          {partner
+            ? <span className="pts" title={t('score.checkinHere')}><Zap className="ic" aria-hidden="true" />+{event.venue.checkInPoints ?? 100}</span>
+            : <span className="pts pts--none">{t('event.noPoints')}</span>}
+        </div>
+      </div>
+    </article>
+  );
 }

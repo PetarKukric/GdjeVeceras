@@ -1,29 +1,41 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { Manrope, Unbounded } from "next/font/google";
 import "./globals.css";
+import "./gv.css";
 import { Header } from "@/components/layout/Header";
+import { BottomNav } from "@/components/layout/BottomNav";
+import { Footer } from "@/components/layout/Footer";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { LangProvider } from "@/components/i18n/LangProvider";
 import { getSession } from "@/lib/auth";
+import { getT } from "@/lib/i18n/server";
+import { htmlLang } from "@/lib/i18n";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
-});
-
 const manrope = Manrope({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-manrope",
+  variable: "--font-body",
+  display: "swap",
 });
 
-export const metadata: Metadata = {
+const unbounded = Unbounded({
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "700", "800", "900"],
+  variable: "--font-unbounded",
+  display: "swap",
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { lang, t } = await getT();
+  return {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com'),
   title: {
-    default: "Gdje Večeras — Pronađi. Izaberi. Izađi.",
+    default: t('meta.title'),
     template: "%s | Gdje Večeras",
   },
-  description: "Žurke, koncerti i najbolji lokali u Banjoj Luci, Gradišci, Prnjavoru i Srpcu — sve na jednom mjestu. Pronađi. Izaberi. Izađi.",
+  description: t('meta.description'),
   manifest: "/manifest.webmanifest",
   applicationName: "Gdje Večeras",
   icons: {
@@ -40,17 +52,18 @@ export const metadata: Metadata = {
     title: "Gdje Večeras",
   },
   openGraph: {
-    title: "Gdje Večeras — Pronađi. Izaberi. Izađi.",
-    description: "Otkrijte najbolje žurke, koncerte i lokale u svom gradu.",
+    title: t('meta.title'),
+    description: t('meta.ogDescription'),
     type: "website",
-    locale: "bs_BA",
+    locale: lang === 'en' ? "en_GB" : "sr_BA",
     siteName: "Gdje Večeras",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "Gdje Večeras" }],
   },
-};
+  };
+}
 
 export const viewport: Viewport = {
-  themeColor: "#FF006E",
+  themeColor: "#070708",
   width: "device-width",
   initialScale: 1,
 };
@@ -62,6 +75,7 @@ export default async function RootLayout({
 }) {
   const session = await getSession();
   const user = session ? session.user : null;
+  const { lang, t } = await getT();
 
   // JSON-LD: Organization + WebSite (Google razumije šta je sajt)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
@@ -85,24 +99,31 @@ export default async function RootLayout({
         '@id': `${baseUrl}/#website`,
         url: baseUrl,
         name: 'Gdje Večeras',
-        inLanguage: 'bs',
+        inLanguage: htmlLang(lang),
         publisher: { '@id': `${baseUrl}/#organization` },
       },
     ],
   };
 
   return (
-    <html lang="bs" className={`${inter.variable} ${manrope.variable}`}>
+    <html lang={htmlLang(lang)} className={`${manrope.variable} ${unbounded.variable}`}>
       <body className="bg-background text-text min-h-screen antialiased flex flex-col relative overflow-x-clip">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
-        <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-           <div className="absolute top-0 left-0 w-[45%] h-[45%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-           <div className="absolute bottom-0 right-0 w-[45%] h-[45%] bg-accent/5 blur-[120px] rounded-full" />
+        <a className="skip" href="#main">{t('common.skip')}</a>
+        <div className="bg-fx" aria-hidden="true">
+          <span className="bg-fx__img" />
+          <span className="bg-fx__shade" />
+          <span className="bg-fx__grain" />
         </div>
-        <ToastProvider>
-          <Header initialUser={user} />
-          {children}
-        </ToastProvider>
+        <LangProvider initialLang={lang}>
+          <ToastProvider>
+            <Header initialUser={user} />
+            <div id="main" className="flex-grow flex flex-col">{children}</div>
+            <Footer />
+            <BottomNav />
+            <PageTransition />
+          </ToastProvider>
+        </LangProvider>
         <ServiceWorkerRegister />
         <GoogleAnalytics />
       </body>

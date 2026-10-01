@@ -13,7 +13,6 @@ export function useEvents({
   limit = 20,
   lat,
   lng,
-  reservations = '',
   initialData,
 }: UseEventsProps = {}) {
   const sequence = useRef(0);
@@ -39,7 +38,6 @@ export function useEvents({
       if (maxPrice !== undefined) params.append('maxPrice', maxPrice.toString());
       if (lat !== undefined && lat !== null) params.append('lat', lat.toString());
       if (lng !== undefined && lng !== null) params.append('lng', lng.toString());
-      if (reservations === 'available') params.append('reservations', reservations);
 
       const response = await fetch(`/api/events?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch events');
@@ -51,12 +49,12 @@ export function useEvents({
     } finally {
       if (request === sequence.current) setLoading(false);
     }
-  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng, reservations]);
+  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng]);
 
   useEffect(() => {
     fetchEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng, reservations]);
+  }, [date, category, search, venue, city, minPrice, maxPrice, sort, limit, lat, lng]);
 
   return { data, loading, error, refetch: fetchEvents };
 }

@@ -1,145 +1,87 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { BottomNav } from '@/components/layout/BottomNav';
+import Link from 'next/link';
+import { Calendar, Heart, MapPin } from 'lucide-react';
 import { EventCard } from '@/components/events/EventCard';
 import { VenueCard } from '@/components/venues/VenueCard';
-import { Event, Venue } from '@/types';
-import { Heart, Calendar, MapPin} from 'lucide-react';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useLang } from '@/components/i18n/LangProvider';
+import { Event, Venue } from '@/types';
 
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<{ events: Event[], venues: Venue[] }>({ events: [], venues: [] });
+  const { t } = useLang();
+  const [favorites, setFavorites] = useState<{ events: Event[]; venues: Venue[] }>({ events: [], venues: [] });
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveCategory] = useState<'events' | 'venues'>('events');
-
-  const fetchFavorites = async () => {
-    try {
-      const sessionRes = await fetch('/api/auth/session');
-      if (!sessionRes.ok) {
-        setLoading(false);
-        return;
-      }
-      const session = await sessionRes.json();
-      
-      const res = await fetch(`/api/favorites?userId=${session.user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setFavorites({ events: data.events, venues: data.venues });
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loggedIn, setLoggedIn] = useState(true);
+  const [tab, setTab] = useState<'events' | 'venues'>('events');
 
   useEffect(() => {
-    fetchFavorites();
+    (async () => {
+      try {
+        const sessionRes = await fetch('/api/auth/session');
+        if (!sessionRes.ok) { setLoggedIn(false); return; }
+        const session = await sessionRes.json();
+        const res = await fetch(`/api/favorites?userId=${session.user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Prošli događaji idu na kraj — najbliži izlazak je prvi
+          const now = Date.now();
+          const events: Event[] = [...(data.events || [])].sort((a: Event, b: Event) => {
+            const ta = new Date(a.startDateTime).getTime(), tb = new Date(b.startDateTime).getTime();
+            const pa = ta < now, pb = tb < now;
+            return pa === pb ? (pa ? tb - ta : ta - tb) : pa ? 1 : -1;
+          });
+          setFavorites({ events, venues: data.venues || [] });
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const handleEventFavoriteToggle = (eventId: string, favorited: boolean) => {
-    if (!favorited) {
-      setFavorites(prev => ({
-        ...prev,
-        events: prev.events.filter(e => e.id !== eventId)
-      }));
-    }
-  };
-
-  const handleVenueFavoriteToggle = (venueId: string, favorited: boolean) => {
-    if (!favorited) {
-      setFavorites(prev => ({
-        ...prev,
-        venues: prev.venues.filter(v => v.id !== venueId)
-      }));
-    }
+  const onEventToggle = (eventId: string, favorited: boolean) => {
+    if (!favorited) setFavorites((prev) => ({ ...prev, events: prev.events.filter((e) => e.id !== eventId) }));
   };
 
   return (
-    <div className="min-h-screen bg-background text-text flex flex-col">
-      <main className="flex-grow max-w-7xl mx-auto px-4 py-16 w-full pb-32 animate-fade-up">
-        <header className="mb-16 text-center md:text-left">
-          <div className="bg-primary/10 border border-primary/20 w-fit px-4 py-1.5 rounded-full text-primary text-[10px] font-black uppercase tracking-[0.3em] mb-6 mx-auto md:mx-0">
-             Your Collection
+    <main className="page">
+      <div className="wrap">
+        <div className="page-head">
+          <div>
+            <p className="kicker"><Heart size={13} aria-hidden="true" style={{ display: 'inline', verticalAlign: -2, marginRight: 6 }} />{t('favorites.kicker')}</p>
+            <h1 className="h1">{t('nav.saved')}</h1>
+            <p className="lead">{t('favorites.lead')}</p>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter uppercase flex items-center justify-center md:justify-start gap-4 leading-tight">
-            <Heart size={44} className="text-primary fill-primary" /> Sačuvano
-          </h1>
-          <p className="text-muted font-bold mt-4 uppercase tracking-[0.2em] text-[10px] opacity-70">Vaša personalizovana lista omiljenih događaja i lokala</p>
-        </header>
-
-        {/* Tabs */}
-        <div className="flex gap-8 mb-16 border-b border-border/50">
-          <button 
-            onClick={() => setActiveCategory('events')}
-            className={`pb-5 px-1 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === 'events' ? 'text-primary' : 'text-muted hover:text-white'}`}
-          >
-            Događaji ({favorites.events.length})
-            {activeTab === 'events' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-lg shadow-primary/50" />}
-          </button>
-          <button 
-            onClick={() => setActiveCategory('venues')}
-            className={`pb-5 px-1 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === 'venues' ? 'text-primary' : 'text-muted hover:text-white'}`}
-          >
-            Lokali ({favorites.venues.length})
-            {activeTab === 'venues' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-lg shadow-primary/50" />}
-          </button>
+          <div className="seg" style={{ marginTop: 0 }} role="group" aria-label={t('favorites.tabsAria')}>
+            <button type="button" className="seg__btn" aria-pressed={tab === 'events'} onClick={() => setTab('events')}>
+              <Calendar size={15} aria-hidden="true" />&nbsp;{t('nav.events')} <span className="seg__count">{favorites.events.length}</span>
+            </button>
+            <button type="button" className="seg__btn" aria-pressed={tab === 'venues'} onClick={() => setTab('venues')}>
+              <MapPin size={15} aria-hidden="true" />&nbsp;{t('nav.venues')} <span className="seg__count">{favorites.venues.length}</span>
+            </button>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-80 bg-surface border border-border/50 rounded-3xl animate-pulse" />
-            ))}
+        {!loggedIn ? (
+          <div className="empty">
+            <b>{t('favorites.guestTitle')}</b>{t('favorites.guestText')}
+            <div style={{ marginTop: 18 }}><Link className="btn btn--pink btn--sm" href="/login?next=/favorites">{t('nav.login')}</Link></div>
           </div>
-        ) : activeTab === 'events' ? (
-          favorites.events.length === 0 ? (
-            <EmptyState 
-              icon={Calendar} 
-              title="Nemaš sačuvanih događaja" 
-              description="Istraži predstojeće žurke i svirke i sačuvaj one koje ne želiš propustiti."
-              actionHref="/events"
-              actionLabel="ISTRAŽI DOGAĐAJE"
-            />
-          ) : (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {favorites.events.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  isFavoritedInitial={true} 
-                  onFavoriteToggle={handleEventFavoriteToggle}
-                />
-              ))}
-            </div>
-          )
+        ) : loading ? (
+          <div className="events">{[0, 1, 2].map((i) => <div key={i} className="skel" />)}</div>
+        ) : tab === 'events' ? (
+          favorites.events.length === 0
+            ? <EmptyState icon={Calendar} title={t('favorites.noEvents')} description={t('favorites.noEventsText')} actionHref="/events" actionLabel={t('favorites.browseEvents')} />
+            : <div className="events">{favorites.events.map((event, i) => <EventCard key={event.id} event={event} index={i} isFavoritedInitial onFavoriteToggle={onEventToggle} />)}</div>
         ) : (
-          favorites.venues.length === 0 ? (
-            <EmptyState 
-              icon={MapPin} 
-              title="Nemaš sačuvanih lokala" 
-              description="Pronađi omiljene kafiće i klubove u gradu i prati njihova dešavanja."
-              actionHref="/venues"
-              actionLabel="POGLEDAJ LOKALE"
-            />
-          ) : (
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {favorites.venues.map((venue) => (
-                <VenueCard 
-                  key={venue.id} 
-                  venue={venue} 
-                  isFavoritedInitial={true} 
-                  onFavoriteToggle={handleVenueFavoriteToggle}
-                />
-              ))}
-            </div>
-          )
+          favorites.venues.length === 0
+            ? <EmptyState icon={MapPin} title={t('favorites.noVenues')} description={t('favorites.noVenuesText')} actionHref="/venues" actionLabel={t('favorites.browseVenues')} />
+            : <div className="venues">{favorites.venues.map((venue, i) => <VenueCard key={venue.id} venue={venue} index={i} isFavoritedInitial />)}</div>
         )}
-      </main>
-      <BottomNav />
-    </div>
+      </div>
+    </main>
   );
 }
-
-// Uklonjena stara EmptyState funkcija

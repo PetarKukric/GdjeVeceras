@@ -12,7 +12,7 @@ function getKey(): Uint8Array {
 }
 
 export interface JWTPayload {
-  user: { id: string; email: string; role: string; name: string };
+  user: { id: string; email: string; role: string; name: string; sv?: number };
   expires: string | Date;
 }
 

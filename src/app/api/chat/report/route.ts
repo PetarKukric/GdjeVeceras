@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimit  } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
@@ -7,6 +8,9 @@ export async function POST(request: NextRequest) {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!rateLimit(`chat-report:${session.user.id}`, 10, 10 * 60_000).ok) {
+      return NextResponse.json({ error: 'Previše zahtjeva. Sačekaj par minuta.' }, { status: 429 });
     }
 
     const { targetId, reason, details } = await request.json();

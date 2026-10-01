@@ -30,7 +30,6 @@ export async function GET(_request: NextRequest) {
     const minPrice = searchParams.get('minPrice') ? parseFloat(searchParams.get('minPrice')!) : undefined;
     const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined;
     const search = searchParams.get('search');
-    const reservations = searchParams.get('reservations');
 
     // Grad — rezolucija na kanonski naziv (gradovi dolaze iz centralne liste)
     const city = getCityBySlug(cityParam) || getCityByName(cityParam);
@@ -54,10 +53,6 @@ export async function GET(_request: NextRequest) {
       if (venueSlug) venueWhere.slug = venueSlug;
       if (city) venueWhere.city = city.name;
       where.venue = venueWhere;
-    }
-
-    if (reservations === 'available') {
-      where.venue = { ...(where.venue || {}), reservationsEnabled: true };
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {

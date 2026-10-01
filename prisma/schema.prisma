@@ -43,6 +43,21 @@ model User {
   comments          Comment[]
   liveMedia         EventLiveMedia[]
   reservations      Reservation[]
+  // GdjeVečeras Score: points = stanje za trošenje, totalPoints = ukupno zarađeno (određuje nivo)
+  points            Int              @default(0)
+  totalPoints       Int              @default(0)
+  checkIns          CheckIn[]
+  redemptions       Redemption[]
+  following         Follow[]         @relation("Follower")
+  followers         Follow[]         @relation("Following")
+  // Prijava preko Google naloga (sub iz Google ID tokena)
+  googleId          String?          @unique
+  // Profil: kratki opis, da li se nedavni check-ini vide drugima, galerija fotki iz izlazaka
+  bio               String?
+  showCheckIns      Boolean          @default(true)
+  // Povećava se pri promjeni lozinke / banu / "odjavi se svuda" — stare sesije (JWT) prestaju da važe
+  sessionVersion    Int              @default(0)
+  photos            UserPhoto[]
 }
 
 model Venue {
@@ -78,6 +93,14 @@ model Venue {
   sharedInChats ChatMessage[]
   floorItems    VenueFloorItem[]
   reservations  Reservation[]
+  // Partner lokali daju bodove za check-in (QR kod na ulazu ili fotka + lokacija)
+  isPartner     Boolean   @default(false)
+  checkInPoints Int       @default(100)
+  // QR kod se izvodi kao HMAC(venueId:verzija) — tajna se ne čuva u bazi; nova verzija poništava stare QR kodove
+  checkInVersion Int      @default(1)
+  checkIns      CheckIn[]
+  rewards       Reward[]
+  userPhotos    UserPhoto[]
 }
 
 model VenueOpeningHour {
@@ -205,6 +228,7 @@ model Event {
   recurrenceStart DateTime?
   recurrenceEnd DateTime?
   occurrenceExceptions EventOccurrenceException[] @relation("EventOccurrences")
+  checkIns      CheckIn[]
 
   @@index([status, startDateTime])
   @@index([venueId])
@@ -467,4 +491,87 @@ model EventOccurrenceException {
   parentEvent    Event     @relation("EventOccurrences", fields: [parentEventId], references: [id], onDelete: Cascade)
 
   @@unique([parentEventId, occurrenceDate])
+}
+
+// ===== GdjeVečeras Score (check-in, nagrade, praćenje) =====
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  venueId   String
+  eventId   String?
+  method    String   // "QR" | "PHOTO"
+  points    Int      // ukupno dodijeljeno (osnova + bonusi)
+  bonus     Int      @default(0)
+  photoUrl  String?
+  latitude  Float?
+  longitude Float?
+  distanceM Int?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  event     Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([venueId, createdAt])
+  @@index([createdAt])
+}
+
+model Reward {
+  id            String       @id @default(cuid())
+  title         String
+  titleEn       String?
+  description   String?
+  descriptionEn String?
+  kind          String       @default("DRINK") // "DRINK" | "ENTRY" | "MERCH" | "OTHER"
+  cost          Int
+  imageUrl      String?
+  stock         Int?         // null = neograničeno
+  active        Boolean      @default(true)
+  venueId       String?      // null = GdjeVečeras merch (upaljač, majica, patike...)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  venue         Venue?       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  redemptions   Redemption[]
+}
+
+model Redemption {
+  id        String    @id @default(cuid())
+  userId    String
+  rewardId  String
+  cost      Int
+  code      String    @unique
+  status    String    @default("ACTIVE") // "ACTIVE" | "USED" | "CANCELLED"
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward    Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+// Fotke koje korisnik doda na svoj profil (izlasci, klubovi)
+model UserPhoto {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  caption   String?
+  venueId   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue     Venue?   @relation(fields: [venueId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
 }

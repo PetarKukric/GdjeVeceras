@@ -2,134 +2,119 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminHeader } from '@/components/admin/AdminLayout';
-import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Users,
-  Flag,
-  ArrowUpRight,
-  TrendingUp} from 'lucide-react';
 import Link from 'next/link';
+import { AdminHeader } from '@/components/admin/AdminLayout';
+import { Avatar } from '@/components/ui/Avatar';
+import { Calendar, CheckCircle, Clock, Users, Flag, ArrowUpRight, TrendingUp, QrCode, Gift, Zap, Plus, Ticket } from 'lucide-react';
 import { formatSerbianDate } from '@/lib/date-format';
+
+interface Stats {
+  totalEvents: number; published: number; pending: number; upcoming: number; users: number; reports: number; pendingReports: number;
+  checkIns7d: number; partners: number; activeRewards: number; activeCodes: number;
+  recentEvents: { id: string; title: string; imageUrl: string | null; startDateTime: string; status: string; venue: { name: string } | null }[];
+  recentCheckIns: { id: string; points: number; method: string; createdAt: string; user: { name: string | null; avatarUrl: string | null }; venue: { name: string } }[];
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchSessionAndStats() {
+    (async () => {
       try {
         // Vlasnici (gazde) nemaju pristup dashboardu — samo svojim događajima
         const sessionRes = await fetch('/api/auth/session');
-        if (sessionRes.ok) {
-          const sessionData = await sessionRes.json();
-          if (sessionData.user?.role === 'OWNER') {
-            router.replace('/admin/events');
-            return;
-          }
+        if (sessionRes.ok && (await sessionRes.json()).user?.role === 'OWNER') {
+          router.replace('/admin/events');
+          return;
         }
-
         const res = await fetch('/api/admin/stats');
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
+        if (res.ok) setStats(await res.json());
       } catch (err) {
         console.error('Failed to fetch stats', err);
       } finally {
         setLoading(false);
       }
-    }
-    fetchSessionAndStats();
-  }, []);
+    })();
+  }, [router]);
 
-  if (loading) return <div className="p-4 md:p-8 text-center animate-pulse">Učitavanje kontrolne table...</div>;
-
-  const statCards = [
-    { label: 'Ukupno', value: stats?.totalEvents || 0, icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { label: 'Objavljeno', value: stats?.published || 0, icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-400/10' },
-    { label: 'Na čekanju', value: stats?.pending || 0, icon: Clock, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
-    { label: 'Aktivno', value: stats?.upcoming || 0, icon: TrendingUp, color: 'text-purple-400', bg: 'bg-purple-400/10' },
-    { label: 'Korisnici', value: stats?.users || 0, icon: Users, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
-    { label: 'Prijave', value: stats?.reports || 0, icon: Flag, color: 'text-orange-400', bg: 'bg-orange-400/10' },
+  const cards = [
+    { label: 'Nadolazeći događaji', value: stats?.upcoming, icon: TrendingUp, href: '/admin/events' },
+    { label: 'Na čekanju', value: stats?.pending, icon: Clock, href: '/admin/events/pending', warn: (stats?.pending || 0) > 0 },
+    { label: 'Objavljeno ukupno', value: stats?.published, icon: CheckCircle, href: '/admin/events' },
+    { label: 'Korisnici', value: stats?.users, icon: Users, href: '/admin/users' },
+    { label: 'Check-ini (7 dana)', value: stats?.checkIns7d, icon: QrCode, href: '/admin/checkin', pink: true },
+    { label: 'Partner lokali', value: stats?.partners, icon: Zap, href: '/admin/checkin', pink: true },
+    { label: 'Aktivne nagrade', value: stats?.activeRewards, icon: Gift, href: '/admin/rewards', pink: true },
+    { label: 'Neiskorišteni kodovi', value: stats?.activeCodes, icon: Ticket, href: '/admin/rewards', pink: true },
   ];
 
   return (
     <>
       <AdminHeader title="Kontrolna tabla" />
-      <main className="p-4 md:p-8 space-y-6 animate-fade-up relative z-[1]">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-          {statCards.map((stat) => (
-            <div key={stat.label} className="bg-card/50 border border-white/5 p-4 rounded-[1.8rem]  hover:border-primary/20 transition-all group">
-              <div className={`${stat.bg} ${stat.color} w-9 h-9 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110`}>
-                <stat.icon size={20} />
-              </div>
-              <p className="text-muted text-sm font-medium">{stat.label}</p>
-              <h3 className="text-3xl font-black mt-2 text-white">{stat.value}</h3>
-            </div>
+      <main className="adm-main">
+        <div className="adm-quick">
+          <Link href="/admin/events/new" className="btn btn--pink btn--sm"><Plus className="ic" aria-hidden="true" />Dodaj događaj</Link>
+          <Link href="/admin/rewards" className="btn btn--ghost btn--sm"><Gift className="ic" aria-hidden="true" />Dodaj nagradu</Link>
+          <Link href="/admin/rewards#provjera" className="btn btn--ghost btn--sm"><Ticket className="ic" aria-hidden="true" />Provjeri kod</Link>
+        </div>
+
+        <div className="adm-stats">
+          {cards.map((c) => (
+            <Link key={c.label} href={c.href} className={`adm-stat${c.pink ? ' adm-stat--pink' : ''}${c.warn ? ' adm-stat--warn' : ''}`}>
+              <span className="adm-stat__ic"><c.icon size={18} /></span>
+              <b>{loading ? '–' : c.value ?? 0}</b>
+              <span>{c.label}</span>
+            </Link>
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-3"><Link href="/admin/events/new" className="bg-primary rounded-xl px-5 min-h-12 flex items-center text-sm font-semibold">Dodaj događaj</Link><Link href="/admin/reservations" className="border border-border rounded-xl px-4 min-h-12 flex items-center text-sm">Rezervacije</Link><Link href="/admin/floor-plan" className="border border-border rounded-xl px-4 min-h-12 flex items-center text-sm">Raspored stolova</Link></div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Events Section */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-4 border-b border-border flex justify-between items-center">
-              <h2 className="font-bold text-lg">Nedavni događaji</h2>
-              <Link href="/admin/events" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
-                Vidi sve <ArrowUpRight size={14} />
-              </Link>
+        <div className="adm-cols">
+          <section className="adm-card">
+            <div className="adm-card__head">
+              <h2>Nedavni događaji</h2>
+              <Link href="/admin/events" className="link" style={{ minHeight: 0 }}>Svi <ArrowUpRight size={14} /></Link>
             </div>
-            <div className="divide-y divide-border">
-              {stats?.recentEvents?.map((event: any) => (
-                <div key={event.id} className="p-4 flex items-center gap-4 hover:bg-surface/50 transition-colors">
-                  <div className="w-12 h-12 rounded-lg bg-surface border border-border flex-shrink-0 overflow-hidden flex items-center justify-center">
-                    {event.imageUrl ? (
-                        <img src={event.imageUrl} className="w-full h-full object-cover" alt="" />
-                    ) : (
-                        <span className="text-xs"><Calendar size={12} /></span>
-                    )}
-                  </div>
-                  <div className="flex-grow overflow-hidden">
-                    <p className="font-bold text-sm truncate">{event.title}</p>
-                    <p className="text-[10px] text-muted uppercase tracking-wider">{event.venue?.name} • {formatSerbianDate(event.startDateTime)}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${event.status === 'PUBLISHED' ? 'bg-green-400/10 text-green-400' : 'bg-yellow-400/10 text-yellow-400'}`}>
-                      {event.status}
+            <ul className="adm-list">
+              {stats?.recentEvents?.map((event) => (
+                <li key={event.id}>
+                  <Link href={`/admin/events/${event.id}`}>
+                    <span className="adm-list__img">{event.imageUrl ? <img src={event.imageUrl} alt="" /> : <Calendar size={16} />}</span>
+                    <span className="adm-list__body"><b>{event.title}</b><small>{event.venue?.name} · {formatSerbianDate(event.startDateTime)}</small></span>
+                    <span className={`adm-pill ${event.status === 'PUBLISHED' ? 'adm-pill--ok' : event.status === 'PENDING' ? 'adm-pill--warn' : ''}`}>
+                      {event.status === 'PUBLISHED' ? 'Objavljen' : event.status === 'PENDING' ? 'Na čekanju' : event.status}
                     </span>
-                  </div>
-                </div>
+                  </Link>
+                </li>
               ))}
-              {(!stats?.recentEvents || stats.recentEvents.length === 0) && (
-                  <div className="p-12 text-center text-muted text-sm italic">Nema nedavnih događaja</div>
-              )}
-            </div>
-          </div>
+              {!loading && !stats?.recentEvents?.length && <li className="adm-list__empty">Nema nedavnih događaja</li>}
+            </ul>
+          </section>
 
-          <div className="space-y-8">
-             {/* Pending Events Summary */}
-             <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-border flex justify-between items-center">
-                <h2 className="font-bold text-lg uppercase tracking-tight">Događaji na čekanju</h2>
-              </div>
-              <div className="p-4 md:p-8 text-center">
-                 <div className="w-16 h-16 bg-yellow-400/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Clock size={32} />
-                 </div>
-                 <h3 className="font-bold text-xl">{stats?.pending || 0} prijava na čekanju</h3>
-                 <p className="text-muted text-sm mt-2 max-w-xs mx-auto">Novi događaji koje su dodali vlasnici lokala čekaju tvoju potvrdu.</p>
-                 <Link href="/admin/events/pending" className="mt-8 inline-block px-8 py-3 bg-primary text-text font-black rounded-xl text-xs uppercase tracking-[0.2em] hover:bg-primary-hover transition-all shadow-lg shadow-primary/20">
-                    OTVORI MODERACIJU
-                 </Link>
-              </div>
+          <section className="adm-card">
+            <div className="adm-card__head">
+              <h2>Posljednji check-ini</h2>
+              <Link href="/admin/checkin" className="link" style={{ minHeight: 0 }}>QR kodovi <ArrowUpRight size={14} /></Link>
             </div>
-          </div>
+            <ul className="adm-list">
+              {stats?.recentCheckIns?.map((c) => (
+                <li key={c.id}>
+                  <div>
+                    <Avatar name={c.user.name} url={c.user.avatarUrl} className="row__av" />
+                    <span className="adm-list__body"><b>{c.user.name || '—'}</b><small>{c.venue.name} · {c.method === 'QR' ? 'QR kod' : 'Fotka + lokacija'} · {new Date(c.createdAt).toLocaleString('sr-Latn-BA', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' })}</small></span>
+                    <span className="feed__pts">+{c.points}</span>
+                  </div>
+                </li>
+              ))}
+              {!loading && !stats?.recentCheckIns?.length && <li className="adm-list__empty">Još nema check-ina. Označi partner lokale i odštampaj QR kodove.</li>}
+            </ul>
+          </section>
         </div>
+
+        {(stats?.pendingReports || 0) > 0 && (
+          <Link href="/admin/reports" className="adm-alert"><Flag size={18} />{stats!.pendingReports} prijava problema čeka pregled</Link>
+        )}
       </main>
     </>
   );

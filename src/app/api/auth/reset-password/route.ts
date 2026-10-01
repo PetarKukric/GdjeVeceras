@@ -55,6 +55,8 @@ export async function POST(request: NextRequest) {
         tokenExpires: null,
         failedLoginAttempts: 0,
         loginLockoutUntil: null,
+        // Reset lozinke odjavljuje sve postojeće sesije (npr. ako je nalog bio ukraden)
+        sessionVersion: { increment: 1 },
       },
     });
 
