@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Lock, Mail, User, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, User, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { GUEST_REASONS, type GuestReason } from '@/lib/guest';
 import { isValidEmail, normalizeEmail } from '@/lib/validation';
 import { useLang } from '@/components/i18n/LangProvider';
 import { AuthShell, GoogleSection, safeNext } from '@/components/auth/AuthShell';
@@ -13,7 +14,12 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [query, setQuery] = useState('');
-  useEffect(() => setQuery(window.location.search), []);
+  const [reason, setReason] = useState<GuestReason | null>(null);
+  useEffect(() => {
+    setQuery(window.location.search);
+    const r = new URLSearchParams(window.location.search).get('reason');
+    if (r && (GUEST_REASONS as readonly string[]).includes(r)) setReason(r as GuestReason);
+  }, []);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -61,6 +67,12 @@ export default function Signup() {
 
   return (
     <AuthShell>
+      {reason && (
+        <div className="auth__reason" role="status">
+          <Sparkles className="ic" aria-hidden="true" />
+          <div><b>{t(`auth.reason.${reason}.title`)}</b><span>{t(`auth.reason.${reason}.text`)}</span></div>
+        </div>
+      )}
       <p className="kicker">{t('auth.signupKicker')}</p>
       <h1 className="h2">{t('auth.signupTitle')}</h1>
       <p className="lead" style={{ fontSize: 16 }}>{t('auth.signupLead')}</p>

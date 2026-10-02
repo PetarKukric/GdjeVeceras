@@ -9,6 +9,7 @@ import { PosterArt, posterFor } from '@/components/ui/PosterArt';
 import { PointsBadge } from '@/components/score/PointsBadge';
 import { intlLocale } from '@/lib/i18n';
 import { POPULARITY_THRESHOLD } from '@/lib/constants';
+import { goSignup } from '@/lib/guest';
 
 const TZ = 'Europe/Sarajevo';
 
@@ -51,7 +52,7 @@ export function EventCard({ event, variant = 'compact', isFavoritedInitial = fal
     setBusy(true);
     try {
       const session = await fetch('/api/auth/session');
-      if (!session.ok) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return; }
+      if (!session.ok) { goSignup('save'); return; }
       const user = await session.json();
       const response = await fetch('/api/favorites', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.user.id, eventId: event.id }) });
       if (!response.ok) throw new Error('favorite');

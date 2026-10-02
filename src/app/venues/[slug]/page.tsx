@@ -18,6 +18,7 @@ import { useLang } from '@/components/i18n/LangProvider';
 import { getVenueStatus } from '@/lib/venue-utils';
 import { CHECKIN_RULES, initials, isBoosted, venuePoints } from '@/lib/score';
 import { trackEvent } from '@/lib/analytics';
+import { goSignup } from '@/lib/guest';
 
 type IconProps = { size?: number; className?: string };
 const Instagram = ({ size = 18 }: IconProps) => (
@@ -83,7 +84,7 @@ export default function VenuePage() {
   useEffect(() => { if (slug) fetchData(); }, [slug, fetchData]);
 
   const toggleFavorite = async () => {
-    if (!user) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return; }
+    if (!user) { goSignup('save'); return; }
     try {
       const res = await fetch('/api/favorites', {
         method: 'POST',

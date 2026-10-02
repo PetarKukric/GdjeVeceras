@@ -400,6 +400,16 @@ export const en: typeof sr = {
     photoAt: 'Photo from {venue}',
   },
   auth: {
+    reason: {
+      save: { title: "Save the parties you don't want to miss", text: 'With a free account you keep events and venues in one place.' },
+      checkin: { title: 'Create an account and earn points', text: 'Every check-in earns +10 points, partner venues +30. Trade points for drinks, entry and merch.' },
+      comment: { title: 'Join the conversation', text: "Create an account to comment on parties and see who else is going." },
+      follow: { title: 'Follow your crew', text: 'With an account you see where your friends go out and compete on the leaderboard.' },
+      rewards: { title: 'Create an account and collect points', text: 'Earn points for every night out and trade them for rewards. The monthly top 5 win special prizes.' },
+      report: { title: 'Account required', text: 'Create an account to report a problem with an event.' },
+      profile: { title: 'Your profile is waiting', text: 'Create an account: points for every night out, saved parties and the leaderboard.' },
+      chat: { title: 'Send it to your crew', text: 'Create an account to share parties with friends.' },
+    },
     welcomeBack: 'Welcome back',
     loginTitle: 'Log in',
     loginLead: 'Your points, saved nights out and crew are waiting.',

@@ -9,7 +9,7 @@ import {
   Loader2, 
 } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
-import Link from 'next/link';
+import { goSignup } from '@/lib/guest';
 import { useToast } from '@/components/ui/Toast';
 import { formatSerbianDate } from '@/lib/date-format';
 
@@ -194,13 +194,14 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
           </form>
         ) : (
           <div className="text-center py-6">
-            <p className="text-muted font-medium mb-6">Prijavite se da biste ostavili komentar.</p>
-            <Link 
-              href="/login"
-              className="px-10 py-4 bg-white text-background font-black rounded-2xl uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-white/5 hover:bg-primary hover:text-white transition-all"
+            <p className="text-muted font-medium mb-6">Napravi besplatan nalog da bi ostavio komentar.</p>
+            <button
+              type="button"
+              onClick={() => goSignup('comment')}
+              className="btn btn--pink btn--sm"
             >
-              PRIJAVA
-            </Link>
+              Napravi nalog
+            </button>
           </div>
         )}
       </div>

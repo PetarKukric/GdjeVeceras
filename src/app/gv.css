@@ -1461,3 +1461,10 @@
   .fk-sec__head { padding: 16px; }
   .fk-sec__body { padding: 16px; }
 }
+
+/* Signup: zašto gost treba nalog (dolazi iz ?reason=) */
+.auth__reason { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 22px; padding: 16px 18px; border-radius: var(--r); background: var(--pink-20); border: 1px solid var(--pink-40); text-align: left; }
+.auth__reason .ic { color: var(--pink); flex: none; margin-top: 2px; }
+.auth__reason div { display: grid; gap: 4px; }
+.auth__reason b { font-size: 16px; }
+.auth__reason span { font-size: 14px; color: var(--muted); }

@@ -1,8 +1,8 @@
 import type { MetadataRoute } from 'next';
 
 /**
- * Aplikacija je iza prijave — Google indeksira samo javne stranice (prijava, registracija, FAQ, kako radi, kontakt, pravni tekstovi).
- * Zaključano: admin, API i lične stranice (chat, podešavanja, reset lozinke...).
+ * Google indeksira javni dio: početnu, događaje, lokale, nagrade, rang listu i info stranice.
+ * Zaključano: admin, API i lične stranice (profil, sačuvano, poruke, podešavanja, reset lozinke...).
  */
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://gdjeveceras.com';
@@ -18,7 +18,6 @@ export default function robots(): MetadataRoute.Robots {
           '/settings',
           '/favorites',
           '/profile',
-          '/rewards',
           '/checkin',
           '/u/',
           '/thank-you',

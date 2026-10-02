@@ -115,14 +115,14 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
             <span className="brand__name">Gdje<span>Večeras</span></span>
           </Link>
 
-          {user && <nav className="nav" aria-label={t('nav.main')}>
+          <nav className="nav" aria-label={t('nav.main')}>
             {navLinks.map((item) => (
               <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>{item.name}</Link>
             ))}
-          </nav>}
+          </nav>
 
           <div className="topbar__actions">
-            <LangSwitch className={user ? 'hide-md' : ''} />
+            <LangSwitch className="hide-md" />
             {user ? (
               <>
                 <Link href="/profile" className={`score-pill${bump ? ' is-bump' : ''}`} aria-label={t('score.yourScore', { n: fmt(user.points ?? 0) })} onAnimationEnd={() => setBump(false)}>

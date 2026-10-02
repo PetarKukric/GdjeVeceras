@@ -13,6 +13,7 @@ import {
   User
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { goSignup } from '@/lib/guest';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -106,7 +107,7 @@ export function ShareModal({ isOpen, onClose, type, data }: ShareModalProps) {
 
   const handleSendToUser = async (recipientId: string) => {
     if (!currentUser) {
-      window.location.href = '/login';
+      goSignup('chat');
       return;
     }
     setSendingId(recipientId);

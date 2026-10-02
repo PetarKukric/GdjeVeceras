@@ -21,7 +21,7 @@ const serialize = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
 export default async function ProfilePage() {
   const session = await getSession();
-  if (!session) redirect('/login?next=/profile');
+  if (!session) redirect('/signup?reason=profile&next=/profile');
   const { t } = await getT();
 
   const [profile, feed, suggestions] = await Promise.all([

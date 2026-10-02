@@ -9,6 +9,7 @@ import { loadProfile } from '@/lib/profile-data';
 import { Feed, FollowButton, type FeedEntry } from '@/components/score/SocialParts';
 import { PhotoGallery, ProfileIdentity, type ProfilePhoto } from '@/components/score/ProfileParts';
 import { TierLadder } from '@/components/score/ScoreParts';
+import { signupUrl } from '@/lib/guest';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,7 @@ export default async function PublicProfilePage({ params }: Props) {
             <div style={{ marginTop: 18 }}>
               {session
                 ? <FollowButton userId={user.id} initial={isFollowing} />
-                : <a className="btn btn--pink" href={`/login?next=/u/${user.id}`}>{t('social.follow')}</a>}
+                : <a className="btn btn--pink" href={signupUrl('follow', `/u/${user.id}`)}>{t('social.follow')}</a>}
             </div>
           </ProfileIdentity>
           <ul className="stats">

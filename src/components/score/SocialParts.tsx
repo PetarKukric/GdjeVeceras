@@ -6,6 +6,7 @@ import { Loader2, UserCheck, UserPlus } from 'lucide-react';
 import { useLang } from '@/components/i18n/LangProvider';
 import { tierInfo } from '@/lib/score';
 import { Avatar } from '@/components/ui/Avatar';
+import { goSignup } from '@/lib/guest';
 
 export function FollowButton({ userId, initial, small = false }: { userId: string; initial: boolean; small?: boolean }) {
   const { t } = useLang();
@@ -15,7 +16,7 @@ export function FollowButton({ userId, initial, small = false }: { userId: strin
     setBusy(true);
     try {
       const res = await fetch('/api/follow', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }) });
-      if (res.status === 401) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return; }
+      if (res.status === 401) { goSignup('follow'); return; }
       if (res.ok) setFollowing((await res.json()).following);
     } finally {
       setBusy(false);

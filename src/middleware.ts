@@ -3,12 +3,19 @@ import type { NextRequest } from 'next/server';
 import { decrypt } from './lib/session-token';
 
 /**
- * Cijeli sajt je iza prijave: bez sesije svaka stranica preusmjerava na /login?next=<gdje si krenuo>.
- * Javne ostaju samo auth stranice, pravni tekstovi i kontakt. API rute same provjeravaju sesiju (vraćaju 401),
- * pa ih ovdje ne preusmjeravamo — inače bi fetch dobio HTML umjesto JSON-a.
+ * Gosti mogu razgledati: početnu, događaje, lokale, rang listu, nagrade i info stranice (i Google ih indeksira).
+ * Lične stranice (profil, sačuvano, poruke, podešavanja, tuđi profili, admin) traže nalog.
+ * /checkin je javan jer gostu sam objasni check-in i ponudi registraciju (i čuva QR kod u `next`).
+ * API rute same provjeravaju sesiju (vraćaju 401), pa ih ovdje ne preusmjeravamo — inače bi fetch dobio HTML umjesto JSON-a.
  */
-// /contact je javan da bi vlasnici lokala mogli pisati i bez naloga; /faq i /how-it-works su javni (i za Google)
-const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email', '/terms', '/privacy', '/contact', '/faq', '/how-it-works'];
+const PUBLIC_PATHS = [
+  '/login', '/signup', '/forgot-password', '/reset-password', '/verify-email',
+  '/terms', '/privacy', '/contact', '/faq', '/how-it-works',
+  '/events', '/venues', '/leaderboard', '/rewards', '/checkin',
+];
+
+// Razlog koji signup stranica prikaže gostu ("Napravi nalog da bi...")
+const REASON_BY_PATH: [string, string][] = [['/favorites', 'save'], ['/chat', 'chat'], ['/u/', 'follow']];
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('bl_session')?.value;
@@ -23,7 +30,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const isAuthPage = pathname === '/login' || pathname === '/signup';
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isPublic = pathname === '/' || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!session && !isPublic) {
     // Razvoj (npm run dev): bez prijave — automatski se uloguj kao lokalni dev nalog
@@ -32,10 +39,16 @@ export async function middleware(request: NextRequest) {
       dev.searchParams.set('next', pathname + request.nextUrl.search);
       return NextResponse.redirect(dev);
     }
-    const login = new URL('/login', request.url);
+    // Istekla sesija (ili admin panel) = postojeći korisnik, ide na prijavu; pravi gost ide na registraciju sa razlogom
     const next = pathname + request.nextUrl.search;
-    if (next !== '/') login.searchParams.set('next', next);
-    return NextResponse.redirect(login);
+    const toLogin = Boolean(sessionCookie) || pathname.startsWith('/admin');
+    const target = new URL(toLogin ? '/login' : '/signup', request.url);
+    target.searchParams.set('next', next);
+    if (!toLogin) {
+      const reason = REASON_BY_PATH.find(([p]) => pathname.startsWith(p))?.[1] ?? 'profile';
+      target.searchParams.set('reason', reason);
+    }
+    return NextResponse.redirect(target);
   }
 
   if (pathname.startsWith('/admin') && session && session.user.role !== 'ADMIN' && session.user.role !== 'OWNER') {

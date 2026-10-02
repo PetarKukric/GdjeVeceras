@@ -8,6 +8,7 @@ import { VenueCard } from '@/components/venues/VenueCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useLang } from '@/components/i18n/LangProvider';
 import { Event, Venue } from '@/types';
+import { signupUrl } from '@/lib/guest';
 
 export default function FavoritesPage() {
   const { t } = useLang();
@@ -68,7 +69,7 @@ export default function FavoritesPage() {
         {!loggedIn ? (
           <div className="empty">
             <b>{t('favorites.guestTitle')}</b>{t('favorites.guestText')}
-            <div style={{ marginTop: 18 }}><Link className="btn btn--pink btn--sm" href="/login?next=/favorites">{t('nav.login')}</Link></div>
+            <div style={{ marginTop: 18 }}><Link className="btn btn--pink btn--sm" href={signupUrl('save', '/favorites')}>{t('nav.signup')}</Link></div>
           </div>
         ) : loading ? (
           <div className="events">{[0, 1, 2].map((i) => <div key={i} className="skel" />)}</div>

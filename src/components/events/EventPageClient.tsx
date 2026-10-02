@@ -16,6 +16,7 @@ import { useLang } from '@/components/i18n/LangProvider';
 import { intlLocale } from '@/lib/i18n';
 import { CHECKIN_RULES, initials, venuePoints } from '@/lib/score';
 import { trackEvent } from '@/lib/analytics';
+import { goSignup } from '@/lib/guest';
 
 const TZ = 'Europe/Sarajevo';
 
@@ -53,7 +54,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
   const toggleFavorite = async () => {
     try {
       const sessionRes = await fetch('/api/auth/session');
-      if (!sessionRes.ok) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname)}`; return; }
+      if (!sessionRes.ok) { goSignup('save'); return; }
       const session = await sessionRes.json();
       const res = await fetch('/api/favorites', {
         method: 'POST',
@@ -72,7 +73,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
     e.preventDefault();
     try {
       const sessionRes = await fetch('/api/auth/session');
-      if (!sessionRes.ok) { window.location.href = '/login'; return; }
+      if (!sessionRes.ok) { goSignup('report'); return; }
       const session = await sessionRes.json();
       const res = await fetch('/api/reports', {
         method: 'POST',

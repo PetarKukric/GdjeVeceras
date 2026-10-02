@@ -7,6 +7,7 @@ import { useLang } from '@/components/i18n/LangProvider';
 import { SCORE_EVENT } from '@/components/layout/Header';
 import { CHECKIN_RULES } from '@/lib/score';
 import { ReceiptClaim } from '@/components/score/ReceiptClaim';
+import { signupUrl } from '@/lib/guest';
 
 type Mode = 'qr' | 'photo';
 interface NearbyVenue { id: string; name: string; slug: string; city: string; distanceM: number; checkInPoints: number }
@@ -246,8 +247,8 @@ export function CheckInClient({ loggedIn, qrVenue, qrCode }: { loggedIn: boolean
           <h1 className="h1">{t('checkin.guestTitle')}</h1>
           <p className="lead" style={{ marginInline: 'auto' }}>{t('checkin.guestText')}</p>
           <div className="ci-actions" style={{ maxWidth: 360, marginInline: 'auto', marginTop: 28 }}>
-            <Link className="btn btn--pink" href={`/login?next=${encodeURIComponent(next)}`}>{t('nav.login')}</Link>
-            <Link className="btn btn--ghost" href={`/signup?next=${encodeURIComponent(next)}`}>{t('nav.signup')}</Link>
+            <Link className="btn btn--pink" href={signupUrl('checkin', next)}>{t('nav.signup')}</Link>
+            <Link className="btn btn--ghost" href={`/login?next=${encodeURIComponent(next)}`}>{t('nav.login')}</Link>
           </div>
         </div>
       </main>

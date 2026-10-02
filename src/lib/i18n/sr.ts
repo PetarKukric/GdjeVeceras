@@ -398,6 +398,16 @@ export const sr = {
     photoAt: 'Fotka iz lokala {venue}',
   },
   auth: {
+    reason: {
+      save: { title: 'Sačuvaj žurke koje ne želiš propustiti', text: 'Uz besplatan nalog čuvaš događaje i lokale na jednom mjestu.' },
+      checkin: { title: 'Napravi nalog i dobij bodove', text: 'Svaki check-in donosi +10 bodova, a partner lokali +30. Bodove mijenjaš za piće, ulaze i merch.' },
+      comment: { title: 'Pridruži se razgovoru', text: 'Napravi nalog da komentarišeš žurke i vidiš ko još ide.' },
+      follow: { title: 'Prati ekipu', text: 'Uz nalog vidiš gdje tvoji prijatelji izlaze i takmičite se na rang listi.' },
+      rewards: { title: 'Napravi nalog i skupljaj bodove', text: 'Bodove dobijaš za svaki izlazak i mijenjaš ih za nagrade. Top 5 mjeseca osvaja posebne nagrade.' },
+      report: { title: 'Prijava je potrebna', text: 'Napravi nalog da bi nam prijavio problem sa događajem.' },
+      profile: { title: 'Tvoj profil te čeka', text: 'Napravi nalog: bodovi za svaki izlazak, sačuvane žurke i rang lista.' },
+      chat: { title: 'Pošalji ekipi', text: 'Napravi nalog da dijeliš žurke sa prijateljima.' },
+    },
     welcomeBack: 'Dobro došao nazad',
     loginTitle: 'Prijava',
     loginLead: 'Tvoji bodovi, sačuvani izlasci i ekipa te čekaju.',

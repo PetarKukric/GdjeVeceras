@@ -9,6 +9,7 @@ import { RewardKindIcon } from '@/components/score/ScoreParts';
 import { PosterArt } from '@/components/ui/PosterArt';
 import { Avatar } from '@/components/ui/Avatar';
 import { rewardIssuer } from '@/lib/reward-labels';
+import { signupUrl } from '@/lib/guest';
 
 export interface RewardItem {
   id: string; title: string; titleEn: string | null; description: string | null; descriptionEn: string | null;
@@ -137,7 +138,7 @@ export function RewardsClient({ rewards: allRewards, codes: initialCodes, initia
                     {r.stock !== null && <div className="rcard__stock">{soldOut ? t('rewards.soldOut') : t('rewards.stock', { n: r.stock })}</div>}
                   </div>
                   {!loggedIn ? (
-                    <Link className="btn btn--pink btn--sm" href="/login?next=/rewards">{t('rewards.redeem')}</Link>
+                    <Link className="btn btn--pink btn--sm" href={signupUrl('rewards', '/rewards')}>{t('rewards.redeem')}</Link>
                   ) : missing > 0 ? (
                     <span className="rcard__need">{t('rewards.missing', { n: fmt(missing) })}</span>
                   ) : (
