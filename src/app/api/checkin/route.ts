@@ -21,7 +21,7 @@ function num(value: unknown): number | null {
 }
 
 /**
- * Check-in u partner lokal.
+ * Check-in u lokal.
  * - JSON { method: 'QR', venue: slug, code, lat?, lng?, accuracy? } — kod iz QR-a na ulazu
  * - multipart { method: 'PHOTO', venueId, lat, lng, accuracy, photo } — fotka + lokacija
  * Greške vraćaju { error: <kod> } koji klijent prevodi (checkin.errors.<kod>).
