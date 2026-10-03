@@ -118,8 +118,10 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
               </>
             ) : (
               <>
-                <Link href="/login" className="btn btn--ghost btn--sm">{t('nav.login')}</Link>
-                <Link href="/signup" className="btn btn--pink btn--sm hide-sm">{t('nav.signup')}</Link>
+                {/* Na telefonu ima mjesta za jedno dugme: novi posjetioci (većina sa Instagrama) idu na registraciju,
+                    a prijava je jedan klik dalje na /signup ("Već imaš nalog? Prijava"). */}
+                <Link href="/login" className="btn btn--ghost btn--sm hide-sm">{t('nav.login')}</Link>
+                <Link href="/signup" className="btn btn--pink btn--sm">{t('nav.signup')}</Link>
               </>
             )}
           </div>

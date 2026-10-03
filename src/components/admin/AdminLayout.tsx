@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Calendar, MapPin, Flag, Users, LogOut, Globe, MessageSquare, AlertTriangle,
-  X, Upload, Menu, QrCode, Gift, Receipt, ExternalLink,
+  X, Upload, Menu, QrCode, Gift, Receipt, ExternalLink, Download,
 } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { Avatar } from '@/components/ui/Avatar';
@@ -35,6 +35,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { name: 'Lokali', href: '/admin/venues', icon: MapPin, roles: ['ADMIN'] },
       { name: 'Poruke', href: '/admin/messages', icon: MessageSquare, roles: ['ADMIN'] },
       { name: 'Masovni uvoz', href: '/admin/import', icon: Upload, roles: ['ADMIN'] },
+      { name: 'Izvoz podataka', href: '/admin/export', icon: Download, roles: ['ADMIN'] },
       { name: 'Prijave', href: '/admin/reports', icon: Flag, roles: ['ADMIN'] },
       { name: 'Korisnici', href: '/admin/users', icon: Users, roles: ['ADMIN'] },
     ],

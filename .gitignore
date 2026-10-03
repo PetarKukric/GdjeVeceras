@@ -52,3 +52,14 @@ next-env.d.ts
 
 # lokalna MCP konfiguracija može sadržati API ključeve
 .mcp.json
+
+# marketing agents: the repo is public, so data, outputs and internal context stay local.
+# Only the instructions (INSTRUCTIONS.md, ORCHESTRATOR.md, data/README.md) are committed.
+/.agents/marketing-team/data/*.csv
+/.agents/marketing-team/*/outputs/
+/.agents/marketing-team/handoffs/
+/.agents/marketing-team/runs/
+/.agents/marketing-team/content-copy/hook-bank.md
+/.agents/marketing-team/ESCALATIONS.md
+/.agents/marketing-team/last-run.log
+/.agents/product-marketing.md
