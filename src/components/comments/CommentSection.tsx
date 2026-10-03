@@ -127,7 +127,7 @@ export function CommentSection({ eventId, venueId, currentUser }: CommentSection
     if (!reason) return;
 
     try {
-      const res = await fetch('/api/chat/report', {
+      const res = await fetch('/api/comments/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

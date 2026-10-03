@@ -169,7 +169,7 @@ export function EventPageClient({ slug, initialData }: { slug: string; initialDa
             </section>
 
             <section id="live-feed" className="dsec">
-              <LiveFeed eventSlug={slug} isOwner={isOwner} isLive={isLive} />
+              <LiveFeed eventSlug={slug} isOwner={Boolean(isOwner)} isLive={isLive} date={event.occurrenceDate || undefined} />
             </section>
 
             <section id="organizator" className="dsec">

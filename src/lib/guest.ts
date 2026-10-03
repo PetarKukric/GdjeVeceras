@@ -3,7 +3,7 @@
  * (sačuvaj, čekiraj se, komentar...), šaljemo ih na registraciju sa razlogom,
  * a signup stranica objasni šta dobijaju. Nakon registracije vraćaju se na `next`.
  */
-export const GUEST_REASONS = ['save', 'checkin', 'comment', 'follow', 'rewards', 'report', 'profile', 'chat'] as const;
+export const GUEST_REASONS = ['save', 'checkin', 'comment', 'follow', 'rewards', 'report', 'profile'] as const;
 export type GuestReason = (typeof GUEST_REASONS)[number];
 
 export function signupUrl(reason: GuestReason, next?: string): string {

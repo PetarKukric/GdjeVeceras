@@ -94,9 +94,9 @@ export function NotificationBell({ user }: { user: any }) {
                 const isLiveUpdate = n.type === 'EVENT_LIVE_UPDATE';
                 const href = (isPromotion || isLiveUpdate)
                   ? `/events/${n.event?.slug}${isLiveUpdate ? '#live-feed' : ''}`
-                  : (n.type === 'NEW_CHAT_MESSAGE' || !n.messageId)
-                    ? '/chat'
-                    : `/admin/messages/${n.messageId}`;
+                  : n.messageId
+                    ? `/admin/messages/${n.messageId}`
+                    : '/';
                 const Icon = isLiveUpdate ? Camera : (isPromotion ? Zap : MessageSquare);
                 
                 return (

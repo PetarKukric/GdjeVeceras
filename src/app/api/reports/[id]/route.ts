@@ -21,7 +21,7 @@ export async function DELETE(
       });
       return NextResponse.json({ message: 'Report deleted' });
     } catch {
-      // If not found, try chat reports
+      // Ako nije prijava događaja, onda je prijava komentara
       await prisma.chatReport.delete({
         where: { id },
       });

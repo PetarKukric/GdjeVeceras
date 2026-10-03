@@ -47,7 +47,7 @@ export function PageTransition() {
       // Samo promjena query/hash-a (filteri, sidra) — bez velike tranzicije
       if (url.pathname === window.location.pathname) return;
       if (url.pathname.startsWith('/api/')) return;
-      const inPanel = (p: string) => p.startsWith('/admin') || p.startsWith('/chat');
+      const inPanel = (p: string) => p.startsWith('/admin');
       if (inPanel(url.pathname) && inPanel(window.location.pathname)) return;
 
       e.preventDefault();

@@ -6,6 +6,7 @@ import { saveUpload, deleteUpload } from '@/lib/uploads';
 import crypto from 'crypto';
 import { detectMedia, mediaMatchesDeclaredType } from '@/lib/media-validation';
 import { isEventLive, archiveEventLiveMedia, sendLiveUpdateNotifications } from '@/lib/live-service';
+import { loadAtmosphere } from '@/lib/atmosphere';
 
 export async function GET(
   request: NextRequest,
@@ -13,28 +14,18 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const event = await prisma.event.findUnique({
-      where: { slug },
-      include: {
-        liveMedia: {
-          orderBy: { createdAt: 'desc' },
-          include: { uploadedBy: { select: { name: true } } }
-        }
-      }
-    });
-
-    if (!event) {
+    const session = await getSession();
+    const data = await loadAtmosphere(slug, session?.user.id ?? null, request.nextUrl.searchParams.get('date'));
+    if (!data) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    // Check if event is finished and archive if not already done
-    const now = new Date();
-    if (event.endDateTime < now) {
-        // Archive in background (or wait for it)
-        await archiveEventLiveMedia(event.id);
+    // Završen događaj: objave vlasnika se arhiviraju u galeriju lokala (jednom)
+    if (data.event.endDateTime < new Date()) {
+      await archiveEventLiveMedia(data.event.id);
     }
 
-    return NextResponse.json(event.liveMedia);
+    return NextResponse.json(data.items, { headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) {
     console.error('Live Media GET Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

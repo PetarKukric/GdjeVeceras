@@ -15,7 +15,7 @@ const PUBLIC_PATHS = [
 ];
 
 // Razlog koji signup stranica prikaže gostu ("Napravi nalog da bi...")
-const REASON_BY_PATH: [string, string][] = [['/favorites', 'save'], ['/chat', 'chat'], ['/u/', 'follow']];
+const REASON_BY_PATH: [string, string][] = [['/favorites', 'save'], ['/u/', 'follow']];
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('bl_session')?.value;

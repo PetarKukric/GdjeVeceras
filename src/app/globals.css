@@ -240,7 +240,7 @@ body {
 .reservation-dock > div { box-shadow:none; border:0; padding:0; }
 .reservation-dock button { text-transform:none; letter-spacing:normal; font-size:16px; }
 .reservation-dock p { text-align:center; font-size:12px; color:#A5A5B2; margin-top:8px; }
-@media(max-width:899px) { body { padding-bottom:calc(76px + env(safe-area-inset-bottom)); } body:has(.admin-shell), body:has(.chat-shell) { padding-bottom:0; } .event-detail { padding-bottom:120px!important; } }
+@media(max-width:899px) { body { padding-bottom:calc(76px + env(safe-area-inset-bottom)); } body:has(.admin-shell) { padding-bottom:0; } .event-detail { padding-bottom:120px!important; } }
 @media(min-width:768px) { .mobile-nav { display:none; } .discovery-results { grid-template-columns:repeat(2,minmax(0,1fr)); } .discovery-results .event-card--featured { grid-row:span 2; } .event-card { grid-template-columns:104px minmax(0,1fr); } }
 @media(min-width:1200px) { .discovery-results { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }

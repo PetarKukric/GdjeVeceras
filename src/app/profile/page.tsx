@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Gift, Heart, MessageSquare, QrCode, Settings, Trophy, Share2 } from 'lucide-react';
+import { Gift, Heart, QrCode, Settings, Trophy, Share2 } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import { getT } from '@/lib/i18n/server';
 import { loadFeed, loadProfile, loadSuggestions } from '@/lib/profile-data';
@@ -52,7 +52,6 @@ export default async function ProfilePage() {
             <Link href="/leaderboard"><Trophy className="ic" aria-hidden="true" />{t('nav.leaderboard')}</Link>
             <Link href={`/u/${user.id}`}><Share2 className="ic" aria-hidden="true" />{t('profile.public')}</Link>
             <Link href="/favorites"><Heart className="ic" aria-hidden="true" />{t('nav.saved')}</Link>
-            <Link href="/chat"><MessageSquare className="ic" aria-hidden="true" />{t('nav.messages')}</Link>
             <Link href="/settings"><Settings className="ic" aria-hidden="true" />{t('nav.settings')}</Link>
           </div>
           <LogoutButton />

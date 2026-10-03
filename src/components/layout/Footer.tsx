@@ -19,7 +19,7 @@ const TikTok = () => (
 export function Footer() {
   const { t } = useLang();
   const pathname = usePathname();
-  if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/chat')) return null;
+  if (!pathname || pathname.startsWith('/admin')) return null;
   // Auth ekrani su čisti — bez podnožja
   if (['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].some((p) => pathname.startsWith(p))) return null;
   return (

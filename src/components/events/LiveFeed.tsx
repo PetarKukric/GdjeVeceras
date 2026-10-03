@@ -8,26 +8,35 @@ import {
   X, 
   Clock,
   Send,
-  Trash2
+  Trash2,
+  Lock,
+  MapPin
 } from 'lucide-react';
+import Link from 'next/link';
 import { formatSerbianDate } from '@/lib/date-format';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface LiveMedia {
   id: string;
+  /** OWNER = objava vlasnika, CHECKIN = fotka sa check-ina gosta, PHOTO = fotka sa profila gosta iz lokala */
+  source: 'OWNER' | 'CHECKIN' | 'PHOTO';
   type: 'IMAGE' | 'VIDEO';
   mediaUrl: string;
-  caption?: string;
+  caption?: string | null;
   createdAt: string;
-  uploadedBy: { name: string };
+  visibility: 'PUBLIC' | 'FRIENDS';
+  uploadedBy: { id: string; name: string | null; avatarUrl: string | null };
 }
 
 interface LiveFeedProps {
   eventSlug: string;
   isOwner: boolean;
   isLive: boolean;
+  /** Termin ponavljajućeg događaja (YYYY-MM-DD) */
+  date?: string;
 }
 
-export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
+export function LiveFeed({ eventSlug, isOwner, isLive, date }: LiveFeedProps) {
   const [media, setMedia] = useState<LiveMedia[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -39,7 +48,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
 
   const fetchMedia = useCallback(async () => {
     try {
-      const res = await fetch(`/api/events/${eventSlug}/live`);
+      const res = await fetch(`/api/events/${eventSlug}/live${date ? `?date=${encodeURIComponent(date)}` : ''}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setMedia(data);
@@ -49,7 +58,7 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
     } finally {
       setLoading(false);
     }
-  }, [eventSlug]);
+  }, [eventSlug, date]);
 
   useEffect(() => {
     fetchMedia();
@@ -139,92 +148,64 @@ export function LiveFeed({ eventSlug, isOwner, isLive }: LiveFeedProps) {
 
   if (loading && media.length === 0) {
     return (
-      <div className="py-12 flex flex-col items-center justify-center text-muted gap-4">
-        <Loader2 className="animate-spin" size={24} />
-        <p className="text-[10px] font-black uppercase tracking-widest">Učitavanje atmosfere...</p>
+      <div className="atmo atmo--loading" aria-busy="true">
+        <Loader2 className="ic animate-spin" aria-hidden="true" />
+        <span>Učitavanje atmosfere…</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-fade-up">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-          <h2 className="text-xl font-black uppercase tracking-tight text-white">
-            {isLive ? 'UŽIVO SA DOGAĐAJA' : 'ATMOSFERA SA DOGAĐAJA'}
-          </h2>
-        </div>
-
+    <div className="atmo">
+      <div className="atmo__head">
+        <h2 className="dsec__title atmo__title">
+          {isLive && <span className="atmo__dot" aria-hidden="true" />}
+          {isLive ? 'Uživo sa događaja' : 'Atmosfera sa događaja'}
+        </h2>
         {isOwner && isLive && (
-          <button 
-            onClick={() => setShowUploadModal(true)}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all"
-          >
-            <Plus size={14} /> DODAJ UPDATE
+          <button type="button" onClick={() => setShowUploadModal(true)} className="btn btn--pink btn--sm">
+            <Plus className="ic" aria-hidden="true" />Dodaj objavu
           </button>
         )}
       </div>
+      <p className="atmo__lead">Fotke vlasnika i gostiju koji su se čekirali fotkom ili objavili fotku iz lokala tokom događaja.</p>
 
       {media.length === 0 ? (
-        <div className="bg-surface/30 border border-dashed border-border/50 rounded-3xl p-16 text-center">
-          <Camera size={48} className="mx-auto mb-6 text-muted opacity-20" />
-          <p className="text-muted text-sm font-medium uppercase tracking-widest">
-            {isLive ? 'Još nema objava uživo. Vlasnik će uskoro podijeliti atmosferu!' : 'Nema zabilježenih trenutaka sa ovog događaja.'}
-          </p>
+        <div className="empty">
+          <b>{isLive ? 'Još nema objava' : 'Nema fotki sa ovog događaja'}</b>
+          {isLive ? <>Budi prvi — <Link href="/checkin" className="link">čekiraj se fotkom</Link> i tvoja fotka se pojavi ovdje.</> : 'Niko nije objavio fotku dok je događaj trajao.'}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ul className="atmo__grid">
           {media.map((item) => (
-            <div key={item.id} className="bg-card border border-white/5 rounded-3xl overflow-hidden shadow-xl group flex flex-col">
-              <div className="aspect-square relative overflow-hidden bg-black">
+            <li key={item.id} className="atmo__card">
+              <div className="atmo__media">
                 {item.type === 'IMAGE' ? (
-                  <img src={item.mediaUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <img src={item.mediaUrl} alt={item.caption || `Fotka: ${item.uploadedBy.name || 'gost'}`} loading="lazy" decoding="async" />
                 ) : (
-                  <video 
-                    src={item.mediaUrl} 
-                    className="w-full h-full object-cover" 
-                    controls 
-                    muted 
-                    playsInline 
-                  />
+                  <video src={item.mediaUrl} controls muted playsInline preload="metadata" />
                 )}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  {isOwner && (
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDelete(item.id);
-                      }}
-                      className="bg-black/50 backdrop-blur-md p-1.5 rounded-lg text-white hover:text-red-500 transition-colors border border-white/10"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                  <div className="bg-black/50 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-black text-white uppercase tracking-widest border border-white/10">
-                    {item.type === 'VIDEO' ? 'VIDEO' : 'FOTO'}
-                  </div>
+                <div className="atmo__tags">
+                  {item.source === 'OWNER' && <span className="atmo__tag atmo__tag--pink">Lokal</span>}
+                  {item.source === 'CHECKIN' && <span className="atmo__tag"><MapPin aria-hidden="true" />Check-in</span>}
+                  {item.visibility === 'FRIENDS' && <span className="atmo__tag"><Lock aria-hidden="true" />Samo prijatelji</span>}
                 </div>
-              </div>
-              <div className="p-5 space-y-3">
-                {item.caption && (
-                  <p className="text-sm font-medium text-white leading-relaxed">{item.caption}</p>
+                {isOwner && item.source === 'OWNER' && (
+                  <button type="button" onClick={() => handleDelete(item.id)} className="atmo__del" aria-label="Obriši objavu">
+                    <Trash2 aria-hidden="true" />
+                  </button>
                 )}
-                <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-black text-primary">
-                       {item.uploadedBy.name.charAt(0)}
-                    </div>
-                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{item.uploadedBy.name}</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-muted uppercase tracking-widest flex items-center gap-1">
-                    <Clock size={10} /> {formatTimeAgo(item.createdAt)}
-                  </span>
-                </div>
               </div>
-            </div>
+              {item.caption && <p className="atmo__caption">{item.caption}</p>}
+              <div className="atmo__foot">
+                {item.source === 'OWNER'
+                  ? <span className="atmo__who"><Avatar name={item.uploadedBy.name} url={item.uploadedBy.avatarUrl} className="row__av" /><b>{item.uploadedBy.name}</b></span>
+                  : <Link href={`/u/${item.uploadedBy.id}`} className="atmo__who"><Avatar name={item.uploadedBy.name} url={item.uploadedBy.avatarUrl} className="row__av" /><b>{item.uploadedBy.name}</b></Link>}
+                <time dateTime={item.createdAt}><Clock aria-hidden="true" />{formatTimeAgo(item.createdAt)}</time>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
       {/* Upload Modal */}

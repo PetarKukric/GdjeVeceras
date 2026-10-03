@@ -3,13 +3,14 @@ import { rateLimit  } from '@/lib/rate-limit';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
+/** Prijava komentara (admin je vidi u Prijavama) */
 export async function POST(request: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (!rateLimit(`chat-report:${session.user.id}`, 10, 10 * 60_000).ok) {
+    if (!rateLimit(`comment-report:${session.user.id}`, 10, 10 * 60_000).ok) {
       return NextResponse.json({ error: 'Previše zahtjeva. Sačekaj par minuta.' }, { status: 429 });
     }
 
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Prijava uspješno poslata.' }, { status: 201 });
   } catch (error) {
-    console.error('Chat Report Error:', error);
+    console.error('Comment Report Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

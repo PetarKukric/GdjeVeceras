@@ -8,7 +8,7 @@ import { useLang } from '@/components/i18n/LangProvider';
 export function BottomNav() {
   const pathname = usePathname();
   const { t } = useLang();
-  if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/chat')) return null;
+  if (!pathname || pathname.startsWith('/admin')) return null;
   // Na auth stranicama (prije prijave) donja traka nema smisla — sve ostalo je iza prijave
   if (['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'].some((p) => pathname.startsWith(p))) return null;
 

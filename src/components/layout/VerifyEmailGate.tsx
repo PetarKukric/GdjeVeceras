@@ -153,7 +153,7 @@ export function VerifyEmailGate({ email, onVerified }: { email: string; onVerifi
             <li>{t('verify.step3')}</li>
           </ol>
           <ul className="vgate__locked" aria-label={t('verify.lockedTitle')}>
-            {(['points', 'rewards', 'chat', 'photos'] as const).map((k) => <li key={k}><CheckCircle2 aria-hidden="true" />{t(`verify.locked.${k}`)}</li>)}
+            {(['points', 'rewards', 'comments', 'photos'] as const).map((k) => <li key={k}><CheckCircle2 aria-hidden="true" />{t(`verify.locked.${k}`)}</li>)}
           </ul>
           {actions}
           {message && <p className={`vgate__msg${message.ok ? ' is-ok' : ''}`} role="status">{message.text}</p>}

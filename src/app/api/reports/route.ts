@@ -29,7 +29,7 @@ export async function GET(_request: NextRequest) {
     const formattedOtherReports = otherReports.map(r => ({
       ...r,
       type: 'OTHER',
-      event: { title: r.details || 'Chat/Komentar', slug: '#' }
+      event: { title: r.details || 'Komentar', slug: '#' }
     }));
 
     const allReports = [...eventReports.map(r => ({...r, type: 'EVENT'})), ...formattedOtherReports]

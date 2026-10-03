@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, MessageSquare, Settings, LayoutDashboard, Zap, User, QrCode, Gift, LogOut, Trophy } from 'lucide-react';
+import { Heart, Settings, LayoutDashboard, Zap, User, QrCode, Gift, LogOut, Trophy } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { LangSwitch, useLang } from '@/components/i18n/LangProvider';
 import { Avatar } from '@/components/ui/Avatar';
@@ -27,7 +27,6 @@ export const SCORE_EVENT = 'gv-score';
 export function Header({ initialUser = null }: { initialUser?: HeaderUser | null }) {
   const { t, fmt } = useLang();
   const [user, setUser] = useState<HeaderUser | null>(initialUser);
-  const [chatUnread, setChatUnread] = useState(0);
   const [bump, setBump] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
@@ -52,24 +51,6 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
   // Zatvori meni pri navigaciji
   useEffect(() => { if (menuRef.current) menuRef.current.open = false; }, [pathname]);
 
-  useEffect(() => {
-    if (!user) return;
-    const fetchChatUnread = async () => {
-      try {
-        const res = await fetch('/api/chat/list');
-        if (res.ok) {
-          const data = await res.json();
-          setChatUnread(data.reduce((acc: number, conv: { unreadCount: number }) => acc + conv.unreadCount, 0));
-        }
-      } catch {}
-    };
-    fetchChatUnread();
-    const refreshWhenVisible = () => { if (document.visibilityState === 'visible') fetchChatUnread(); };
-    const interval = setInterval(refreshWhenVisible, 30000);
-    document.addEventListener('visibilitychange', refreshWhenVisible);
-    return () => { clearInterval(interval); document.removeEventListener('visibilitychange', refreshWhenVisible); };
-  }, [user]);
-
   const markVerified = useCallback(() => setUser((prev) => (prev ? { ...prev, emailVerified: true } : prev)), []);
 
   const logout = async () => {
@@ -77,7 +58,7 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
     window.location.href = '/';
   };
 
-  if (!pathname || pathname.startsWith('/admin') || pathname.startsWith('/chat')) return null;
+  if (!pathname || pathname.startsWith('/admin')) return null;
 
   const navLinks = [
     { name: t('nav.tonight'), href: '/' },
@@ -124,7 +105,6 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
                     <Link href="/rewards"><Gift className="ic" />{t('nav.rewards')}</Link>
                     <Link href="/leaderboard"><Trophy className="ic" />{t('nav.leaderboard')}</Link>
                     <div className="menu__sep" />
-                    <Link href="/chat"><MessageSquare className="ic" />{t('nav.messages')}{chatUnread > 0 ? ` (${chatUnread})` : ''}</Link>
                     <Link href="/favorites"><Heart className="ic" />{t('nav.saved')}</Link>
                     <Link href="/settings"><Settings className="ic" />{t('nav.settings')}</Link>
                     {(user.role === 'ADMIN' || user.role === 'OWNER') && (
