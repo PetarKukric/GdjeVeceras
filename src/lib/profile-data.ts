@@ -1,9 +1,26 @@
 import prisma from '@/lib/prisma';
 import { currentStreakWeeks } from '@/lib/score-service';
 
+/** Skida fotku sa check-ina koje gledalac ne smije vidjeti */
+function visiblePhotos<T extends { photoUrl: string | null; photoVisibility: string }>(items: T[], canSee: (item: T) => boolean): T[] {
+  return items.map((c) => (c.photoVisibility === 'FRIENDS' && !canSee(c) ? { ...c, photoUrl: null } : c));
+}
+
+/** Prijatelji = oboje prate jedno drugo */
+export async function friendIds(userId: string): Promise<Set<string>> {
+  const [following, followers] = await Promise.all([
+    prisma.follow.findMany({ where: { followerId: userId }, select: { followingId: true } }),
+    prisma.follow.findMany({ where: { followingId: userId }, select: { followerId: true } }),
+  ]);
+  const back = new Set(followers.map((f) => f.followerId));
+  return new Set(following.map((f) => f.followingId).filter((id) => back.has(id)));
+}
+
 /**
  * Podaci za profil (vlastiti i javni). Lokacija check-ina se nikad ne vraća — samo lokal, vrijeme i fotka.
  * Ako je korisnik sakrio check-ine (showCheckIns = false), drugi ih ne dobijaju uopšte (ne samo sakriveno u UI-ju).
+ * Fotke check-ina označene "samo prijatelji" (photoVisibility = FRIENDS) vide samo vlasnik i prijatelji (međusobno praćenje) —
+ * ostali dobijaju photoUrl = null, pa URL fotke nikad ne stigne do njih.
  */
 export async function loadProfile(userId: string, viewerId?: string | null) {
   const user = await prisma.user.findUnique({
@@ -18,17 +35,21 @@ export async function loadProfile(userId: string, viewerId?: string | null) {
   const isSelf = viewerId === userId;
   const checkInsVisible = isSelf || user.showCheckIns;
 
-  const [venues, streak, checkIns, isFollowing, photos] = await Promise.all([
+  const other = viewerId && viewerId !== userId ? viewerId : null;
+  const [venues, streak, checkIns, isFollowing, followsYou, photos] = await Promise.all([
     prisma.checkIn.findMany({ where: { userId }, distinct: ['venueId'], select: { venueId: true } }),
     currentStreakWeeks(userId),
     checkInsVisible ? prisma.checkIn.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 12,
-      select: { id: true, points: true, method: true, photoUrl: true, createdAt: true, venue: { select: { name: true, slug: true } }, event: { select: { title: true } } },
+      select: { id: true, points: true, method: true, photoUrl: true, photoVisibility: true, createdAt: true, venue: { select: { name: true, slug: true } }, event: { select: { title: true } } },
     }) : Promise.resolve([]),
-    viewerId && viewerId !== userId
-      ? prisma.follow.findUnique({ where: { followerId_followingId: { followerId: viewerId, followingId: userId } } }).then(Boolean)
+    other
+      ? prisma.follow.findUnique({ where: { followerId_followingId: { followerId: other, followingId: userId } } }).then(Boolean)
+      : Promise.resolve(false),
+    other
+      ? prisma.follow.findUnique({ where: { followerId_followingId: { followerId: userId, followingId: other } } }).then(Boolean)
       : Promise.resolve(false),
     prisma.userPhoto.findMany({
       where: { userId },
@@ -43,16 +64,21 @@ export async function loadProfile(userId: string, viewerId?: string | null) {
     photos,
     checkInsVisible,
     score: { points: user.points, totalPoints: user.totalPoints, checkIns: user._count.checkIns, venues: venues.length, streak },
-    checkIns,
+    checkIns: visiblePhotos(checkIns, () => isSelf || (isFollowing && followsYou)),
     isFollowing,
+    followsYou,
+    isFriend: isFollowing && followsYou,
   };
 }
 
 /** Feed: nedavni check-ini ljudi koje pratim */
 export async function loadFeed(viewerId: string) {
-  const following = await prisma.follow.findMany({ where: { followerId: viewerId }, select: { followingId: true } });
+  const [following, friends] = await Promise.all([
+    prisma.follow.findMany({ where: { followerId: viewerId }, select: { followingId: true } }),
+    friendIds(viewerId),
+  ]);
   if (!following.length) return [];
-  return prisma.checkIn.findMany({
+  const items = await prisma.checkIn.findMany({
     where: {
       userId: { in: following.map((f) => f.followingId) },
       createdAt: { gte: new Date(Date.now() - 14 * 24 * 3600_000) },
@@ -61,12 +87,13 @@ export async function loadFeed(viewerId: string) {
     orderBy: { createdAt: 'desc' },
     take: 30,
     select: {
-      id: true, points: true, photoUrl: true, createdAt: true,
+      id: true, userId: true, points: true, photoUrl: true, photoVisibility: true, createdAt: true,
       user: { select: { id: true, name: true, avatarUrl: true } },
       venue: { select: { name: true, slug: true } },
       event: { select: { title: true } },
     },
   });
+  return visiblePhotos(items, (c) => friends.has(c.userId));
 }
 
 /** Prijedlozi koga pratiti: najaktivniji ove sedmice koje još ne pratim */

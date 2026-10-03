@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeUrl } from '@/lib/validation';
 import { Category } from '@prisma/client';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
 import { getSarajevoNow, sarajevoStartOfDay } from '@/lib/bosnia-time';
@@ -323,10 +324,10 @@ export async function POST(_request: NextRequest) {
         dressCodeType: body.dressCodeType || 'NONE',
         dressCodeName: body.dressCodeName || null,
         dressCodeDescription: body.dressCodeDescription || null,
-        imageUrl: body.imageUrl || null,
-        ticketUrl: body.ticketUrl || null,
-        instagramUrl: body.instagramUrl || null,
-        facebookUrl: body.facebookUrl || null,
+        imageUrl: safeUrl(body.imageUrl),
+        ticketUrl: safeUrl(body.ticketUrl),
+        instagramUrl: safeUrl(body.instagramUrl),
+        facebookUrl: safeUrl(body.facebookUrl),
         createdBy: { connect: { id: session.user.id } },
         status: session.user.role === 'ADMIN' ? 'PUBLISHED' : 'PENDING',
         additionalVenues: additionalVenueIds.length > 0

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeUrl } from '@/lib/validation';
 import { getSession } from '@/lib/auth';
 import { requireVerifiedEmail } from '@/lib/verification';
 import { getCityBySlug, getCityByName } from '@/lib/cities';
@@ -81,11 +82,11 @@ export async function POST(_request: NextRequest) {
         latitude: body.latitude,
         longitude: body.longitude,
         phone: body.phone,
-        website: body.website,
-        instagramUrl: body.instagramUrl,
-        facebookUrl: body.facebookUrl,
-        tiktokUrl: body.tiktokUrl,
-        imageUrl: body.imageUrl,
+        website: safeUrl(body.website),
+        instagramUrl: safeUrl(body.instagramUrl),
+        facebookUrl: safeUrl(body.facebookUrl),
+        tiktokUrl: safeUrl(body.tiktokUrl),
+        imageUrl: safeUrl(body.imageUrl),
         // Samo ADMIN smije dodijeliti lokal drugom korisniku.
         // OWNER koji kreira lokal uvijek postaje vlasnik tog lokala.
         ownerId: session.user.role === 'ADMIN'

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeUrl } from '@/lib/validation';
 import { getSession } from '@/lib/auth';
 import { resolveOccurrence, toExceptionMap, validateRecurrenceInput } from '@/lib/recurrence';
 
@@ -133,12 +134,12 @@ export async function PUT(
         endDateTime: body.endDateTime ? new Date(body.endDateTime) : undefined,
         price: body.price,
         currency: body.currency === 'EUR' ? 'EUR' : 'KM',
-        imageUrl: body.imageUrl,
+        imageUrl: safeUrl(body.imageUrl),
         performers: body.performers,
         minimumAge: body.minimumAge ? parseInt(body.minimumAge) : null,
-        ticketUrl: body.ticketUrl || null,
-        instagramUrl: body.instagramUrl || null,
-        facebookUrl: body.facebookUrl || null,
+        ticketUrl: safeUrl(body.ticketUrl),
+        instagramUrl: safeUrl(body.instagramUrl),
+        facebookUrl: safeUrl(body.facebookUrl),
         dressCodeType: body.dressCodeType || 'NONE',
         dressCodeName: body.dressCodeName || null,
         dressCodeDescription: body.dressCodeDescription || null,

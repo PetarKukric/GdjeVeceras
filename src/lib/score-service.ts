@@ -69,10 +69,11 @@ interface CheckInInput {
   lng?: number | null;
   accuracy?: number | null;
   photoUrl?: string | null;
+  photoVisibility?: 'PUBLIC' | 'FRIENDS';
 }
 
 /** Provjere prije upisa (poziva se i prije uploada fotke, da ne čuvamo fotke za odbijene check-ine) */
-export async function assertCanCheckIn(input: Omit<CheckInInput, 'photoUrl'>): Promise<number | null> {
+export async function assertCanCheckIn(input: Omit<CheckInInput, 'photoUrl' | 'photoVisibility'>): Promise<number | null> {
   const { userId, venue, method, lat, lng, accuracy } = input;
 
   const hasUserLocation = typeof lat === 'number' && typeof lng === 'number' && Number.isFinite(lat) && Number.isFinite(lng);
@@ -105,7 +106,7 @@ export async function assertCanCheckIn(input: Omit<CheckInInput, 'photoUrl'>): P
 export type BonusType = 'partner' | 'boost' | 'streak';
 
 export async function performCheckIn(input: CheckInInput) {
-  const { userId, venue, method, lat, lng, photoUrl } = input;
+  const { userId, venue, method, lat, lng, photoUrl, photoVisibility } = input;
   const distance = await assertCanCheckIn(input);
   const now = new Date();
 
@@ -139,6 +140,7 @@ export async function performCheckIn(input: CheckInInput) {
       data: {
         userId, venueId: venue.id, eventId: liveEvent?.id, method, points, bonus: points - r.basePoints,
         photoUrl: photoUrl || null,
+        photoVisibility: photoVisibility === 'FRIENDS' ? 'FRIENDS' : 'PUBLIC',
         latitude: typeof lat === 'number' ? lat : null,
         longitude: typeof lng === 'number' ? lng : null,
         distanceM: distance,

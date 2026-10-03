@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Camera, Check, Loader2, LocateFixed, QrCode, AlertCircle, Zap } from 'lucide-react';
+import { Camera, Check, Globe, Loader2, LocateFixed, QrCode, AlertCircle, Users, Zap } from 'lucide-react';
 import { useLang } from '@/components/i18n/LangProvider';
 import { SCORE_EVENT } from '@/components/layout/Header';
 import { CHECKIN_RULES } from '@/lib/score';
@@ -68,6 +68,7 @@ export function CheckInClient({ loggedIn, qrVenue, qrCode }: { loggedIn: boolean
   const [venueId, setVenueId] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
+  const [visibility, setVisibility] = useState<'PUBLIC' | 'FRIENDS'>('PUBLIC');
 
   const errorText = useCallback((code: string, extra?: { nextAt?: string; distance?: number }) => {
     if (code === 'cooldown' && extra?.nextAt) {
@@ -219,6 +220,7 @@ export function CheckInClient({ loggedIn, qrVenue, qrCode }: { loggedIn: boolean
       const form = new FormData();
       form.append('venueId', venueId);
       form.append('photo', photo);
+      form.append('visibility', visibility);
       form.append('lat', String(pos.lat));
       form.append('lng', String(pos.lng));
       form.append('accuracy', String(pos.accuracy));
@@ -352,10 +354,22 @@ export function CheckInClient({ loggedIn, qrVenue, qrCode }: { loggedIn: boolean
                 </div>
                 <label className="ci-photo">
                   {preview ? <img src={preview} alt={t('checkin.photoPreview')} /> : (
-                    <span className="ci-photo__cta"><Camera className="ic" aria-hidden="true" />{t('checkin.takePhoto')}<small style={{ color: 'var(--muted)', fontWeight: 600 }}>{t('checkin.photoPublic')}</small></span>
+                    <span className="ci-photo__cta"><Camera className="ic" aria-hidden="true" />{t('checkin.takePhoto')}</span>
                   )}
                   <input type="file" accept="image/*" capture="environment" onChange={pickPhoto} aria-label={t('checkin.takePhoto')} />
                 </label>
+                <fieldset className="ci-vis">
+                  <legend>{t('checkin.visTitle')}</legend>
+                  <div className="seg" role="radiogroup">
+                    <button type="button" role="radio" className="seg__btn" aria-checked={visibility === 'PUBLIC'} onClick={() => setVisibility('PUBLIC')}>
+                      <Globe size={16} aria-hidden="true" />&nbsp;{t('checkin.visPublic')}
+                    </button>
+                    <button type="button" role="radio" className="seg__btn" aria-checked={visibility === 'FRIENDS'} onClick={() => setVisibility('FRIENDS')}>
+                      <Users size={16} aria-hidden="true" />&nbsp;{t('checkin.visFriends')}
+                    </button>
+                  </div>
+                  <small>{visibility === 'PUBLIC' ? t('checkin.visPublicHint') : t('checkin.visFriendsHint')}</small>
+                </fieldset>
                 <div className="ci-actions" style={{ maxWidth: 360, marginInline: 'auto' }}>
                   <button className="btn btn--pink" onClick={submitPhoto} disabled={busy || !photo || !venueId}>
                     {busy ? <Loader2 className="ic animate-spin" aria-hidden="true" /> : <Check className="ic" aria-hidden="true" />}{t('checkin.submitPhoto')}

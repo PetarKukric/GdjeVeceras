@@ -1,0 +1,30 @@
+# GdjeVečeras
+
+> GdjeVečeras (gdjeveceras.com) je vodič za noćni život u Republici Srpskoj (BiH): žurke, svirke, koncerti, klubovi, pabovi i kafići na jednom mjestu. Korisnici se "čekiraju" u lokale (QR kod na ulazu ili fotka + lokacija), skupljaju Večeras Score bodove i mijenjaju ih za piće, ulaze i merch. Jezik sajta: srpski (latinica, ijekavica), dostupan i na engleskom.
+
+GdjeVečeras is a nightlife guide for towns in Republika Srpska, Bosnia and Herzegovina. It lists tonight's and this weekend's parties, gigs and venues, and rewards people with points for checking in at venues.
+
+Gradovi / cities: Banja Luka, Gradiška, Prijedor, Doboj, Laktaši, Prnjavor, Srbac.
+
+## Glavne stranice
+
+- [Početna](https://gdjeveceras.com/): šta se dešava večeras i ovog vikenda
+- [Događaji](https://gdjeveceras.com/events): svi aktuelni događaji (žurke, svirke, koncerti), filtriranje po gradu, datumu i tipu
+- [Lokali](https://gdjeveceras.com/venues): klubovi, pabovi, kafići i restorani sa adresom, radnim vremenom i mapom
+- [Kako radi](https://gdjeveceras.com/how-it-works): check-in, bodovi, nivoi i nagrade
+- [Nagrade](https://gdjeveceras.com/rewards): za šta se mijenjaju bodovi
+- [Rang lista](https://gdjeveceras.com/leaderboard): najaktivniji korisnici sedmice i mjeseca
+- [Česta pitanja](https://gdjeveceras.com/faq)
+
+## Za lokale
+
+- [Kontakt](https://gdjeveceras.com/contact): vlasnici lokala mogu dodati lokal i događaje, postati partner i dobiti QR kod za check-in
+
+## Pravila
+
+- [Uslovi korišćenja](https://gdjeveceras.com/terms)
+- [Privatnost](https://gdjeveceras.com/privacy)
+
+## Optional
+
+- [Sitemap](https://gdjeveceras.com/sitemap.xml): svi javni lokali i događaji

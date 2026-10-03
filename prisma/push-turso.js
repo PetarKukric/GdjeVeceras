@@ -119,6 +119,7 @@ async function main() {
     `ALTER TABLE "Reward" ADD COLUMN "type" TEXT NOT NULL DEFAULT 'REDEEM'`,
     'ALTER TABLE "Reward" ADD COLUMN "topRank" INTEGER',
     'ALTER TABLE "Reward" ADD COLUMN "month" TEXT',
+    `ALTER TABLE "CheckIn" ADD COLUMN "photoVisibility" TEXT NOT NULL DEFAULT 'PUBLIC'`,
   ];
   for (const migration of additiveMigrations) {
     try {

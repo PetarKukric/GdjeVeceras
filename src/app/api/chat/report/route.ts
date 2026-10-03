@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     const { targetId, reason, details } = await request.json();
 
-    if (!targetId || !reason) {
+    if (typeof targetId !== 'string' || typeof reason !== 'string' || !targetId || !reason.trim()) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         targetId,
-        reason,
-        details,
+        reason: reason.trim().slice(0, 200),
+        details: typeof details === 'string' ? details.slice(0, 1000) : null,
       },
     });
 

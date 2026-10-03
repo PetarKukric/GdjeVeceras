@@ -31,7 +31,7 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const profile = await loadProfile(id, session?.user.id).catch(() => null);
   if (!profile) notFound();
-  const { user, score, checkIns, isFollowing, photos, checkInsVisible } = profile;
+  const { user, score, checkIns, isFollowing, followsYou, photos, checkInsVisible } = profile;
   const tier = tierInfo(score.totalPoints);
 
   return (
@@ -45,11 +45,12 @@ export default async function PublicProfilePage({ params }: Props) {
             counts={<>
               <span><b>{user._count.followers}</b> {t('social.followers')}</span>
               <span><b>{user._count.following}</b> {t('social.followingCount')}</span>
+              {followsYou && <span className="chip-mini">{t('social.followsYou')}</span>}
             </>}
           >
             <div style={{ marginTop: 18 }}>
               {session
-                ? <FollowButton userId={user.id} initial={isFollowing} />
+                ? <FollowButton userId={user.id} initial={isFollowing} followsYou={followsYou} />
                 : <a className="btn btn--pink" href={signupUrl('follow', `/u/${user.id}`)}>{t('social.follow')}</a>}
             </div>
           </ProfileIdentity>

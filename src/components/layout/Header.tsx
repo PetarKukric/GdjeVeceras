@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, MessageSquare, Settings, LayoutDashboard, Loader2, Zap, User, QrCode, Gift, LogOut, Trophy } from 'lucide-react';
+import { Heart, MessageSquare, Settings, LayoutDashboard, Zap, User, QrCode, Gift, LogOut, Trophy } from 'lucide-react';
 import { ClientOnly } from '@/components/ui/ClientOnly';
 import { LangSwitch, useLang } from '@/components/i18n/LangProvider';
 import { Avatar } from '@/components/ui/Avatar';
 import { NotificationBell } from './NotificationBell';
+import { VerifyEmailGate } from './VerifyEmailGate';
 
 interface HeaderUser {
   id: string;
@@ -27,8 +28,6 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
   const { t, fmt } = useLang();
   const [user, setUser] = useState<HeaderUser | null>(initialUser);
   const [chatUnread, setChatUnread] = useState(0);
-  const [resending, setResending] = useState(false);
-  const [verificationMessage, setVerificationMessage] = useState('');
   const [bump, setBump] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
@@ -71,24 +70,7 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
     return () => { clearInterval(interval); document.removeEventListener('visibilitychange', refreshWhenVisible); };
   }, [user]);
 
-  const resendVerification = async () => {
-    if (!user?.email || resending) return;
-    setResending(true);
-    setVerificationMessage('');
-    try {
-      const res = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email }),
-      });
-      const data = await res.json();
-      setVerificationMessage(data.message || data.error || t('common.tryLater'));
-    } catch {
-      setVerificationMessage(t('common.tryLater'));
-    } finally {
-      setResending(false);
-    }
-  };
+  const markVerified = useCallback(() => setUser((prev) => (prev ? { ...prev, emailVerified: true } : prev)), []);
 
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
@@ -164,13 +146,7 @@ export function Header({ initialUser = null }: { initialUser?: HeaderUser | null
         </div>
       </header>
       {user && user.emailVerified === false && (
-        <div className="verify-bar">
-          {t('auth.verifyBar')}{' '}
-          <button onClick={resendVerification} disabled={resending}>
-            {resending ? <Loader2 size={13} className="animate-spin inline" /> : t('auth.resend')}
-          </button>
-          {verificationMessage && <span> · {verificationMessage}</span>}
-        </div>
+        <VerifyEmailGate email={user.email} onVerified={markVerified} />
       )}
     </>
   );

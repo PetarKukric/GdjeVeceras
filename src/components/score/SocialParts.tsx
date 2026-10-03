@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Loader2, UserCheck, UserPlus } from 'lucide-react';
+import { Loader2, Lock, UserCheck, UserPlus, Users } from 'lucide-react';
 import { useLang } from '@/components/i18n/LangProvider';
 import { tierInfo } from '@/lib/score';
 import { Avatar } from '@/components/ui/Avatar';
 import { goSignup } from '@/lib/guest';
 
-export function FollowButton({ userId, initial, small = false }: { userId: string; initial: boolean; small?: boolean }) {
+/** Praćenje; kad se prate međusobno postaju prijatelji (vide i fotke "samo za prijatelje") */
+export function FollowButton({ userId, initial, followsYou = false, small = false }: { userId: string; initial: boolean; followsYou?: boolean; small?: boolean }) {
   const { t } = useLang();
   const [following, setFollowing] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -22,16 +23,18 @@ export function FollowButton({ userId, initial, small = false }: { userId: strin
       setBusy(false);
     }
   };
-  const Icon = busy ? Loader2 : following ? UserCheck : UserPlus;
+  const friends = following && followsYou;
+  const Icon = busy ? Loader2 : friends ? Users : following ? UserCheck : UserPlus;
+  const label = friends ? t('social.friends') : following ? t('social.following') : followsYou ? t('social.followBack') : t('social.follow');
   return (
     <button type="button" onClick={toggle} disabled={busy} aria-pressed={following} className={`btn ${following ? 'btn--ghost' : 'btn--pink'}${small ? ' btn--sm' : ''}`}>
-      <Icon className={`ic${busy ? ' animate-spin' : ''}`} aria-hidden="true" />{following ? t('social.following') : t('social.follow')}
+      <Icon className={`ic${busy ? ' animate-spin' : ''}`} aria-hidden="true" />{label}
     </button>
   );
 }
 
 export interface FeedEntry {
-  id: string; points: number; photoUrl: string | null; createdAt: string;
+  id: string; points: number; photoUrl: string | null; photoVisibility?: string; createdAt: string;
   user?: { id: string; name: string | null; avatarUrl?: string | null };
   venue: { name: string; slug: string };
   event: { title: string } | null;
@@ -63,7 +66,12 @@ export function Feed({ items, emptyText, showUser = true, owner }: { items: Feed
             <small><TimeAgo iso={c.createdAt} /></small>
           </p>
           <span className="feed__pts">+{c.points}</span>
-          {c.photoUrl && <div className="feed__photo"><img src={c.photoUrl} alt={t('social.photoAt', { venue: c.venue.name })} loading="lazy" /></div>}
+          {c.photoUrl && (
+            <div className="feed__photo">
+              <img src={c.photoUrl} alt={t('social.photoAt', { venue: c.venue.name })} loading="lazy" />
+              {c.photoVisibility === 'FRIENDS' && <span className="feed__vis"><Lock aria-hidden="true" />{t('social.friendsOnly')}</span>}
+            </div>
+          )}
         </li>
       ))}
     </ul>

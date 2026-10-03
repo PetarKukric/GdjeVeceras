@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       }
       const photoUrl = await saveUpload(`checkins/${crypto.randomUUID()}.${detected.ext}`, buffer, detected.mime);
 
-      const result = await performCheckIn({ userId: session.user.id, venue, method: 'PHOTO', lat, lng, accuracy, photoUrl });
+      const result = await performCheckIn({ userId: session.user.id, venue, method: 'PHOTO', lat, lng, accuracy, photoUrl, photoVisibility: form.get('visibility') === 'FRIENDS' ? 'FRIENDS' : 'PUBLIC' });
       return NextResponse.json(result, { status: 201 });
     }
 

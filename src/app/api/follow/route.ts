@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { rateLimit } from '@/lib/rate-limit';
+import { friendIds } from '@/lib/profile-data';
 
 /** Prati / prestani pratiti korisnika (toggle). Praćenje puni rang listu "Ekipa" i feed na profilu. */
 export async function POST(request: NextRequest) {
@@ -27,4 +28,19 @@ export async function POST(request: NextRequest) {
   }
   const followers = await prisma.follow.count({ where: { followingId: userId } });
   return NextResponse.json({ following: !existing, followers });
+}
+
+/** Moji prijatelji (međusobno praćenje) — za brzi početak razgovora u chatu */
+export async function GET() {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: 'auth' }, { status: 401 });
+  const ids = [...await friendIds(session.user.id)];
+  if (!ids.length) return NextResponse.json([]);
+  const friends = await prisma.user.findMany({
+    where: { id: { in: ids }, restricted: false },
+    orderBy: { name: 'asc' },
+    take: 50,
+    select: { id: true, name: true, avatarUrl: true },
+  });
+  return NextResponse.json(friends);
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeUrl } from '@/lib/validation';
 import { getSession } from '@/lib/auth';
 import { resolveOccurrence, toExceptionMap } from '@/lib/recurrence';
 
@@ -157,10 +158,10 @@ export async function PUT(
         price: body.price,
         currency: body.currency,
         performers: body.performers,
-        imageUrl: body.imageUrl,
-        ticketUrl: body.ticketUrl,
-        instagramUrl: body.instagramUrl,
-        facebookUrl: body.facebookUrl,
+        imageUrl: safeUrl(body.imageUrl),
+        ticketUrl: safeUrl(body.ticketUrl),
+        instagramUrl: safeUrl(body.instagramUrl),
+        facebookUrl: safeUrl(body.facebookUrl),
         minimumAge: body.minimumAge,
         dressCodeType: body.dressCodeType,
         dressCodeName: body.dressCodeName,

@@ -514,6 +514,7 @@ model CheckIn {
   points    Int      // ukupno dodijeljeno (osnova + bonusi)
   bonus     Int      @default(0)
   photoUrl  String?
+  photoVisibility String @default("PUBLIC") // "PUBLIC" (svi) | "FRIENDS" (samo prijatelji = međusobno praćenje)
   latitude  Float?
   longitude Float?
   distanceM Int?

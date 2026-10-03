@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { safeUrl } from '@/lib/validation';
 import { expandRecurringEvents, toExceptionMap } from '@/lib/recurrence';
 import { checkAndArchiveFinishedEvents } from '@/lib/live-service';
 import type { Prisma } from '@prisma/client';
@@ -137,11 +138,11 @@ export async function PUT(
           latitude: body.latitude,
           longitude: body.longitude,
           phone: body.phone,
-          website: body.website,
-          instagramUrl: body.instagramUrl,
-          facebookUrl: body.facebookUrl,
-          tiktokUrl: body.tiktokUrl,
-          imageUrl: body.imageUrl,
+          website: safeUrl(body.website),
+          instagramUrl: safeUrl(body.instagramUrl),
+          facebookUrl: safeUrl(body.facebookUrl),
+          tiktokUrl: safeUrl(body.tiktokUrl),
+          imageUrl: safeUrl(body.imageUrl),
           ownerId: ownerId,
           openingHours: body.openingHours ? {
             create: body.openingHours.map((h: any) => ({
